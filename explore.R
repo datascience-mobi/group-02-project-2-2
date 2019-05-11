@@ -1,0 +1,13 @@
+library(rstudioapi)
+
+wd = dirname(rstudioapi::getSourceEditorContext()$path)
+
+meta = read.delim(paste0(wd, "/NCI_TPW_metadata.tsv"), header = TRUE, sep = "\t") 
+untreated = readRDS(paste0(wd, "/NCI_TPW_gep_untreated.RDS"))
+treated = readRDS(paste0(wd, "/NCI_TPW_gep_untreated.RDS"))
+ic50 = readRDS(paste0(wd, "/NegLogGI50.RDS"))
+basalexp = readRDS(paste0(wd, "/CCLE_basalexpression.RDS"))
+copynumber = readRDS(paste0(wd, "/CCLE_copynumber.RDS"))
+mutations = readRDS(paste0(wd, "/CCLE_mutations.RDS"))
+cellline = read.delim(paste0(wd, "/cellline_annotation.tsv"), header = TRUE, sep = "\t")
+drug = read.delim(paste0(wd, "/drug_annotation.tsv"), header = TRUE, sep = "\t")
