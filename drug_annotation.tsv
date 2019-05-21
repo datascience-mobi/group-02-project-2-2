@@ -1,0 +1,16 @@
+Drug	NCI-60 mean GI50 (µM)	Mechanism	clinical_phase	mechanism_of_action	target	disease_area	indication
+bortezomib	0.00051	Proteasome inhibitor	Launched	NFkB pathway inhibitor|proteasome inhibitor	PSMA1|PSMA2|PSMA3|PSMA4|PSMA5|PSMA6|PSMA7|PSMA8|PSMB1|PSMB10|PSMB11|PSMB2|PSMB3|PSMB4|PSMB5|PSMB6|PSMB7|PSMB8|PSMB9|PSMD1|PSMD2|RELA	hematologic malignancy	multiple myeloma|mantle cell lymphoma (MCL)
+sirolimus	0.05	mTOR inhibitor	Launched	mTOR inhibitor	FGF2|FKBP1A|MTOR	transplant|pulmonary	organ rejection|lymphangioleiomyomatosis
+geldanamycin	0.1	Hsp90 inhibitor	Preclinical	HSP inhibitor	HSP90AA1|HSP90AB1		
+doxorubicin	0.097	Reactive oxygen species generator, topoisomerase 2 inhibitor	Launched	topoisomerase inhibitor	TOP2A	hematologic malignancy|oncology	acute lymphoblastic leukemia (ALL)|acute myeloid leukemia (AML)|Wilm's tumor|breast cancer|ovarian cancer|Hodgkin's lymphoma|bladder cancer|multiple myeloma
+gemcitibine	0.24	DNA synthesis inhibitor (chain terminator)	Launched	ribonucleotide reductase inhibitor	CMPK1|RRM1|RRM2|TYMS	oncology	ovarian cancer|breast cancer|non-small cell lung cancer (NSCLC)|pancreatic cancer
+paclitaxel	0.025	Microtubule stabilizer	Launched	tubulin polymerization inhibitor	BCL2|MAP2|MAP4|MAPT|NR1I2|TLR4|TUBB|TUBB1	oncology	ovarian cancer|breast cancer|non-small cell lung cancer (NSCLC)
+dasatinib	0.33	Tyrosine kinase inhibitor	Launched	Bcr-Abl kinase inhibitor|ephrin inhibitor|KIT inhibitor|PDGFR tyrosine kinase receptor inhibitor|src inhibitor|tyrosine kinase inhibitor	ABL1|ABL2|BLK|EPHA2|FGR|FRK|FYN|HCK|KIT|LCK|LYN|PDGFRB|SRC|SRMS|STAT5B|YES1	hematologic malignancy	chronic myeloid leukemia (CML)|acute lymphoblastic leukemia (ALL)
+5-Azacytidine	0.95	DNA alkyltransferase inhibitor	Launched	DNA alkylating agent|DNA synthesis inhibitor	DNMT2	hematologic malignancy	myelodysplastic syndrome
+vorinostat	0.94	HDAC inhibitor	Launched	HDAC inhibitor	HDAC1|HDAC10|HDAC11|HDAC2|HDAC3|HDAC5|HDAC6|HDAC8|HDAC9	hematologic malignancy	cutaneous T-cell lymphoma (CTCL)
+sunitinib	2.2	Tyrosine kinase inhibitor	Launched	FLT3 inhibitor|KIT inhibitor|PDGFR tyrosine kinase receptor inhibitor|RET tyrosine kinase inhibitor|VEGFR inhibitor	CSF1R|FGFR1|FLT1|FLT3|FLT4|KDR|KIT|PDGFRA|PDGFRB|RET	oncology	gastrointestinal stromal tumors (GIST)|renal cell carcinoma (RCC)|neuroendocrine tumors of pancreatic origin (PNET)
+lapatinib	2.9	Tyrosine kinase inhibitor	Launched	EGFR inhibitor	EGFR|ERBB2	oncology	breast cancer
+sorafenib	1.9	Tyrosine kinase inhibitor	Launched	FLT3 inhibitor|KIT inhibitor|PDGFR tyrosine kinase receptor inhibitor|RAF inhibitor|RET tyrosine kinase inhibitor|VEGFR inhibitor	BRAF|DDR2|FGFR1|FLT1|FLT3|FLT4|KDR|KIT|PDGFRB|RAF1|RET	oncology	renal cell carcinoma (RCC)|thyroid cancer|hepatocellular carcinoma (HCC)
+topotecan	0.031	Topoisomerase 1 inhibitor	Launched	topoisomerase inhibitor	TOP1|TOP1MT	oncology	small cell lung cancer|cervical cancer
+erlotinib	5.5	Kinase inhibitor (EGFR)	Launched	EGFR inhibitor	EGFR|NR1I2	oncology	non-small cell lung cancer (NSCLC)|pancreatic cancer
+cisplatin	1.4	Intrastrand DNA crosslinker	Launched	DNA alkylating agent|DNA synthesis inhibitor	XIAP	oncology	testicular carcinoma|ovarian cancer|bladder cancer
