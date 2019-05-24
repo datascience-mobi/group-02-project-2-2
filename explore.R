@@ -4,7 +4,7 @@ wd = dirname(rstudioapi::getSourceEditorContext()$path)
 
 meta = read.delim(paste0(wd, "/NCI_TPW_metadata.tsv"), header = TRUE, sep = "\t") 
 untreated = readRDS(paste0(wd, "/NCI_TPW_gep_untreated.RDS"))
-treated = readRDS(paste0(wd, "/NCI_TPW_gep_untreated.RDS"))
+treated = readRDS(paste0(wd, "/NCI_TPW_gep_treated.RDS"))
 ic50 = readRDS(paste0(wd, "/NegLogGI50.RDS"))
 basalexp = readRDS(paste0(wd, "/CCLE_basalexpression.RDS"))
 copynumber = readRDS(paste0(wd, "/CCLE_copynumber.RDS"))
