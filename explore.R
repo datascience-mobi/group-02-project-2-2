@@ -30,3 +30,15 @@ na.meta=apply(meta, 2, function(x) {sum(is.na(x))})
 which(na.meta >0)
 
 mutations.removed = mutations[, -(12:13)]
+basal.scaled <-- scale(basalexp)
+treated.scaled <-- scale(treated)
+untreated.scaled <-- scale(untreated)
+log2FC.treated.untreated <-- log2(treated.scaled/untreated.scaled)
+is.nan.data.frame <- function(x)      #NaN durch 0 ersetzen
+  do.call(cbind, lapply(x, is.nan))
+log2FC.treated.untreated[is.nan(log2FC.treated.untreated)] <- 0
+plot(density(log2FC.treated.untreated))
+PCA.FC <- prcomp(log2FC.treated.untreated, center=F , scale.=F)
+plot(PCA.FC, type ="lines")
+plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], xlab = "PC1", ylab = "PC2")
+# Medikamente einf�rben
