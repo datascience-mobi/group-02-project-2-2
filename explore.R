@@ -51,3 +51,46 @@ FC.named <-- log2FC.treated.untreated
 colnames(FC.named)[chemo] <- "chemo"
 color.chemo <- ifelse(colnames(FC.named)=="chemo", "firebrick","forestgreen")
 plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=color.chemo, xlab = "PC1", ylab = "PC2")
+#einzelne Medikamente einfärben
+FC.color <- log2FC.treated.untreated
+azacytidine <- c(1:39)
+colnames(FC.color)[azacytidine] <- "azacytidine"
+bortezomib <-c(40:94)
+colnames(FC.color)[bortezomib] <- "bortezomib"
+dasatinib <- c(150:198)
+colnames(FC.color)[dasatinib] <- "dasatinib"
+doxorubicin <- c(199:248)
+colnames(FC.color)[doxorubicin] <- "doxorubicin"
+erlotinib <- c(249:307)
+colnames(FC.color)[erlotinib] <- "erlotinib"
+geldanamycin <- c(308:364)
+colnames(FC.color)[geldanamycin] <- "geldanamycin"
+gemcitabine <- c(365:420)
+colnames(FC.color)[gemcitabine] <- "gemcitabine"
+lapatinib <- c(421:474)
+colnames(FC.color)[lapatinib] <- "lapatinib"
+paclitaxel <- c(475:533)
+colnames(FC.color)[paclitaxel] <- "paclitaxel"
+sirolimus <- c(534:589)
+colnames(FC.color)[sirolimus] <- "sirolimus"
+sorafenib <- c(590:646)
+colnames(FC.color)[sorafenib] <- "sorafenib"
+sunitinib <- c(647:702)
+colnames(FC.color)[sunitinib] <- "sunitinib"
+topotecan <- c(703:760)
+colnames(FC.color)[topotecan] <- "topotecan"
+vorinostat <- c(761:819)
+colnames(FC.color)[vorinostat] <- "vorinostat"
+#color vectors
+color.aza <- ifelse(colnames(FC.color[,c(1:94)])=="azacytidine", "firebrick", "forestgreen")
+color.cis <- ifelse(colnames(FC.color[,c(95:198)])=="cisplatin", "blue","orange")
+color.dox <- ifelse(colnames(FC.color[,c(199:307)])=="doxorubicin", "black", "lightblue")
+color.gel <- ifelse(colnames(FC.color[,c(308:420)])=="geldanamycin", "pink", "violet")
+color.lap <- ifelse(colnames(FC.color[,c(421:533)])=="lapatinib", "grey", "lightgreen")
+color.sir<- ifelse(colnames(FC.color[,c(534:646)])=="sirolimus", "darkblue", "gold")
+color.sun <- ifelse(colnames(FC.color[,c(647:760)])=="sunitinib", "yellow", "red")
+color.vor <- ifelse(colnames(FC.color[,c(761:819)])=="vorinostat", "peru", "silver")
+cb <- c(color.aza, color.cis, color.dox, color.gel, color.lap, color.sir, color.sun, color.vor)
+#plot
+plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=cb, xlab = "PC1", ylab = "PC2", pch=19)
+plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=cb, xlab = "PC3", ylab = "PC4", pch=19)
