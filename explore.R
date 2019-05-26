@@ -30,6 +30,7 @@ na.meta=apply(meta, 2, function(x) {sum(is.na(x))})
 which(na.meta >0)
 
 mutations.removed = mutations[, -(12:13)]
+
 basal.scaled <-- scale(basalexp)
 treated.scaled <-- scale(treated)
 untreated.scaled <-- scale(untreated)
@@ -42,3 +43,11 @@ PCA.FC <- prcomp(log2FC.treated.untreated, center=F , scale.=F)
 plot(PCA.FC, type ="lines")
 plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], xlab = "PC1", ylab = "PC2")
 # Medikamente einf�rben
+chemo1 <-- c(94:248)   #�berpr�fen
+chemo2 <-- c(307:533)  #�berpr�fen
+chemo3 <-- c(589:760)  #�berpr�fen
+chemo <-- c(chemo1, chemo2, chemo3)
+FC.named <-- log2FC.treated.untreated
+colnames(FC.named)[chemo] <- "chemo"
+color.chemo <- ifelse(colnames(FC.named)=="chemo", "firebrick","forestgreen")
+plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=color.chemo, xlab = "PC1", ylab = "PC2")
