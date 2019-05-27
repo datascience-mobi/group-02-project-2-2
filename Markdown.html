@@ -379,28 +379,23 @@ $(document).ready(function () {
 
 <div id="project-02-group-02" class="section level1">
 <h1>project-02-group-02</h1>
-<p>group-02-project-2-2 created by GitHub Classroom</p>
+<p>group-02-project-2-2 created by GitHub Classroom # Chunk options ```{r setup, include=FALSE} knitr::opts_chunks<span class="math inline">\(set(echo = TRUE) knitr::opts_chunk\)</span>set(cache = TRUE)</p>
 </div>
 <div id="load-data" class="section level1">
 <h1>Load Data</h1>
-<pre><code>library(rstudioapi)
-wd = dirname(rstudioapi::getSourceEditorContext()$path)</code></pre>
-<div id="rename" class="section level2">
-<h2>rename</h2>
-<pre class="{r}"><code>meta = read.delim(paste0(wd, &quot;/NCI_TPW_metadata.tsv&quot;), header = TRUE, sep = &quot;\t&quot;)  
-untreated = readRDS(paste0(wd, &quot;/NCI_TPW_gep_untreated.RDS&quot;))  
-treated = readRDS(paste0(wd, &quot;/NCI_TPW_gep_treated.RDS&quot;))  
-ic50 = readRDS(paste0(wd, &quot;/NegLogGI50.RDS&quot;))  
-basalexp = readRDS(paste0(wd, &quot;/CCLE_basalexpression.RDS&quot;))  
-copynumber = readRDS(paste0(wd, &quot;/CCLE_copynumber.RDS&quot;))  
-mutations = readRDS(paste0(wd, &quot;/CCLE_mutations.RDS&quot;))  
-cellline = read.delim(paste0(wd, &quot;/cellline_annotation.tsv&quot;), header = TRUE, sep = &quot;\t&quot;)  
-drug = read.delim(paste0(wd, &quot;/drug_annotation.tsv&quot;), header = TRUE, sep = &quot;\t&quot;)  </code></pre>
+<p>library(rstudioapi)</p>
+<p>wd = dirname(rstudioapi::getSourceEditorContext()$path)</p>
 </div>
-<div id="general-overview" class="section level2">
-<h2>general overview</h2>
-<pre class="{r}"><code>boxplot(treated, xlab = &quot;treated&quot;, horizontal = F, border=cb)
-boxplot(treated.scaled, xlab=&quot;treated scaled&quot;, horizontal =F, border=cb)</code></pre>
+<div id="rename" class="section level1">
+<h1>rename</h1>
+<p><code>{r read_data} meta = read.delim(paste0(wd, &quot;/NCI_TPW_metadata.tsv&quot;), header = TRUE, sep = &quot;\t&quot;)   untreated = readRDS(paste0(wd, &quot;/NCI_TPW_gep_untreated.RDS&quot;))   treated = readRDS(paste0(wd, &quot;/NCI_TPW_gep_treated.RDS&quot;))   ic50 = readRDS(paste0(wd, &quot;/NegLogGI50.RDS&quot;))   basalexp = readRDS(paste0(wd, &quot;/CCLE_basalexpression.RDS&quot;))   copynumber = readRDS(paste0(wd, &quot;/CCLE_copynumber.RDS&quot;))   mutations = readRDS(paste0(wd, &quot;/CCLE_mutations.RDS&quot;))   cellline = read.delim(paste0(wd, &quot;/cellline_annotation.tsv&quot;), header = TRUE, sep = &quot;\t&quot;)   drug = read.delim(paste0(wd, &quot;/drug_annotation.tsv&quot;), header = TRUE, sep = &quot;\t&quot;)</code> ## checking how many NAs we have<br />
+na.treated = apply(treated, 2, function(x) {sum(is.na(x))}) which(na.treated &gt; 0) na.untreated = apply(untreated, 2, function(x) {sum(is.na(x))}) which(na.untreated &gt; 0) na.mutations = apply(mutations, 2, function(x) {sum(is.na(x))}) which(na.mutations &gt; 0) na.basal=apply(basalexp, 2, function(x) {sum(is.na(x))}) which(na.basal &gt; 0) na.cellline=apply(cellline, 2, function(x) {sum(is.na(x))}) which(na.cellline&gt;0) na.copynumber=apply(copynumber, 2, function(x) {sum(is.na(x))}) which(na.copynumber &gt; 0) na.ic50=apply(ic50, 2, function(x) {sum(is.na(x))}) which(ic50 &gt; 0) na.meta=apply(meta, 2, function(x) {sum(is.na(x))}) which(na.meta &gt;0)</p>
+<div id="remove-the-column-with-only-nas" class="section level3">
+<h3>remove the column with only NAs</h3>
+<p>mutations.removed = mutations[, -(12:13)]</p>
+<pre class="{r}"><code>library(rstudioapi) 
+wd = dirname(rstudioapi::getSourceEditorContext()$path)</code></pre>
+<p>Now we will rename our data to get a better overview. <code>{r read_data} meta = read.delim(paste0(wd, &quot;/NCI_TPW_metadata.tsv&quot;), header = TRUE, sep = &quot;\t&quot;)  untreated = readRDS(paste0(wd, &quot;/NCI_TPW_gep_untreated.RDS&quot;)) treated = readRDS(paste0(wd, &quot;/NCI_TPW_gep_untreated.RDS&quot;)) ic50 = readRDS(paste0(wd, &quot;/NegLogGI50.RDS&quot;)) basalexp = readRDS(paste0(wd, &quot;/CCLE_basalexpression.RDS&quot;)) copynumber = readRDS(paste0(wd, &quot;/CCLE_copynumber.RDS&quot;)) mutations = readRDS(paste0(wd, &quot;/CCLE_mutations.RDS&quot;)) cellline = read.delim(paste0(wd, &quot;/cellline_annotation.tsv&quot;), header = TRUE, sep = &quot;\t&quot;) drug = read.delim(paste0(wd, &quot;/drug_annotation.tsv&quot;), header = TRUE, sep = &quot;\t&quot;)</code> Let’s check how many <code>NA</code> values we have. ```{r}</p>
 </div>
 </div>
 
