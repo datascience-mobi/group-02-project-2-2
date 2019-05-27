@@ -94,3 +94,12 @@ cb <- c(color.aza, color.cis, color.dox, color.gel, color.lap, color.sir, color.
 #plot
 plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=cb, xlab = "PC1", ylab = "PC2", pch=19)
 plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=cb, xlab = "PC3", ylab = "PC4", pch=19)
+
+#color tyrosine kinase inhibitor
+FC.TKI <- log2FC.treated.untreated
+tyrosinKI <- c(dasatinib, sunitinib, lapatinib, sorafenib)
+colnames(FC.TKI)[tyrosinKI]<- "Tyrosine Kinase Inhibitor"
+color.TKI <- ifelse(colnames(FC.TKI)=="Tyrosine Kinase Inhibitor", "firebrick", "forestgreen")
+#plot
+plot(PCA.FC$rotation[,1], PCA.FC$rotation[,2], col=color.TKI, xlab="PC1", ylab="PC2", pch=19)
+plot(PCA.FC$rotation[,3], PCA.FC$rotation[,4], col=color.TKI, xlab="PC1", ylab="PC2", pch=19)
