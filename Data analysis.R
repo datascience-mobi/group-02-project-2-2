@@ -12,6 +12,10 @@ mutations = readRDS(paste0(wd, "/CCLE_mutations.RDS"))
 cellline = read.delim(paste0(wd, "/cellline_annotation.tsv"), header = TRUE, sep = "\t")
 drug = read.delim(paste0(wd, "/drug_annotation.tsv"), header = TRUE, sep = "\t")
 
+#general overview
+boxplot(treated, xlab = "treated", horizontal = F, border=cb)
+boxplot(treated.scaled, xlab="treated scaled", horizontal =F, border=cb)
+
 na.treated = apply(treated, 2, function(x) {sum(is.na(x))})
 which(na.treated > 0)
 na.untreated = apply(untreated, 2, function(x) {sum(is.na(x))})
@@ -31,6 +35,7 @@ which(na.meta >0)
 
 mutations.removed = mutations[, -(12:13)]
 
+#scaled, FC, PCA
 basal.scaled <-- scale(basalexp)
 treated.scaled <-- scale(treated)
 untreated.scaled <-- scale(untreated)
@@ -57,6 +62,8 @@ azacytidine <- c(1:39)
 colnames(FC.color)[azacytidine] <- "azacytidine"
 bortezomib <-c(40:94)
 colnames(FC.color)[bortezomib] <- "bortezomib"
+cisplatin <- c(95:150)
+colnames(FC.color)[cisplatin] <- "cisplatin"
 dasatinib <- c(150:198)
 colnames(FC.color)[dasatinib] <- "dasatinib"
 doxorubicin <- c(199:248)
