@@ -13,7 +13,9 @@ cellline = read.delim(paste0(wd, "/cellline_annotation.tsv"), header = TRUE, sep
 drug = read.delim(paste0(wd, "/drug_annotation.tsv"), header = TRUE, sep = "\t")
 
 #general overview
+#colored boxplot without scaling
 boxplot(treated, xlab = "treated", horizontal = F, border=cb)
+#colored boxplot with scaling
 boxplot(treated.scaled, xlab="treated scaled", horizontal =F, border=cb)
 
 na.treated = apply(treated, 2, function(x) {sum(is.na(x))})
@@ -56,8 +58,9 @@ FC.named <-- log2FC.treated.untreated
 colnames(FC.named)[chemo] <- "chemo"
 color.chemo <- ifelse(colnames(FC.named)=="chemo", "firebrick","forestgreen")
 plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=color.chemo, xlab = "PC1", ylab = "PC2")
-#einzelne Medikamente einfärben
+#color every drug PCA
 FC.color <- log2FC.treated.untreated
+#creating vectors for every drug and rename the log2FC matrix
 azacytidine <- c(1:39)
 colnames(FC.color)[azacytidine] <- "azacytidine"
 bortezomib <-c(40:94)
@@ -88,7 +91,7 @@ topotecan <- c(703:760)
 colnames(FC.color)[topotecan] <- "topotecan"
 vorinostat <- c(761:819)
 colnames(FC.color)[vorinostat] <- "vorinostat"
-#color vectors
+#creating color vector
 color.aza <- ifelse(colnames(FC.color[,c(1:94)])=="azacytidine", "firebrick", "forestgreen")
 color.cis <- ifelse(colnames(FC.color[,c(95:198)])=="cisplatin", "blue","orange")
 color.dox <- ifelse(colnames(FC.color[,c(199:307)])=="doxorubicin", "black", "lightblue")
@@ -98,7 +101,7 @@ color.sir<- ifelse(colnames(FC.color[,c(534:646)])=="sirolimus", "darkblue", "go
 color.sun <- ifelse(colnames(FC.color[,c(647:760)])=="sunitinib", "yellow", "red")
 color.vor <- ifelse(colnames(FC.color[,c(761:819)])=="vorinostat", "peru", "silver")
 cb <- c(color.aza, color.cis, color.dox, color.gel, color.lap, color.sir, color.sun, color.vor)
-#plot
+#plot colored PCA
 plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=cb, xlab = "PC1", ylab = "PC2", pch=19)
 plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=cb, xlab = "PC3", ylab = "PC4", pch=19)
 
