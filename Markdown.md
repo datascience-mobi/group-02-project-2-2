@@ -1,12 +1,17 @@
 # project-02-group-02
-group-02-project-2-2 created by GitHub Classroom  
-# Load Data {#anchor}  
+group-02-project-2-2 created by GitHub Classroom 
+# Chunk options
+```{r setup, include=FALSE}
+knitr::opts_chunks$set(echo = TRUE)
+knitr::opts_chunk$set(cache = TRUE)
+
+#Load Data  
 library(rstudioapi)
 
 wd = dirname(rstudioapi::getSourceEditorContext()$path)
 
 #rename 
-```{r}
+```{r read_data}
 meta = read.delim(paste0(wd, "/NCI_TPW_metadata.tsv"), header = TRUE, sep = "\t")  
 untreated = readRDS(paste0(wd, "/NCI_TPW_gep_untreated.RDS"))  
 treated = readRDS(paste0(wd, "/NCI_TPW_gep_treated.RDS"))  
@@ -43,7 +48,7 @@ library(rstudioapi)
 wd = dirname(rstudioapi::getSourceEditorContext()$path)
 ```
 Now we will rename our data to get a better overview.
-```{r}
+```{r read_data}
 meta = read.delim(paste0(wd, "/NCI_TPW_metadata.tsv"), header = TRUE, sep = "\t") 
 untreated = readRDS(paste0(wd, "/NCI_TPW_gep_untreated.RDS"))
 treated = readRDS(paste0(wd, "/NCI_TPW_gep_untreated.RDS"))
