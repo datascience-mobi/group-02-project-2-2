@@ -52,15 +52,15 @@ plot(PCA.FC, type ="lines")
 plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], xlab = "PC1", ylab = "PC2")
 
 # wie viel Varianz wird durch components erklaert?
-PCA.FC$sdev^2
+Varianz.PCA=PCA.FC$sdev^2
 
 
 # Medikamente einfaerben
-chemo1 <-- c(94:248)   #ueberpruefen
-chemo2 <-- c(307:533)  #ueberpruefen
-chemo3 <-- c(589:760)  #ueberpruefen
-chemo <-- c(chemo1, chemo2, chemo3)
-FC.named <-- log2FC.treated.untreated
+chemo1 <- c(94:248)   #ueberpruefen
+chemo2 <- c(307:533)  #ueberpruefen
+chemo3 <- c(589:760)  #ueberpruefen
+chemo <- c(chemo1, chemo2, chemo3)
+FC.named <- log2FC.treated.untreated
 
 
 # Medikamente einf�rben
@@ -126,12 +126,7 @@ plot(PCA.FC$rotation[,3], PCA.FC$rotation[,4], col=color.TKI, xlab="PC3", ylab="
 
 #Specific Analysis
 #Find Biomarker for cisplatin through FC
-treated.cisplatin = treated.scaled[,c(95:149)]
-untreated.cisplatin = untreated.scaled[,c(95:149)]
-FC.cisplatin = log2(treated.cisplatin/untreated.cisplatin)
-is.nan.data.frame.2 <- function(x)      #NaN durch 0 ersetzen
-  + do.call(cbind, lapply(x, is.nan))
-FC.cisplatin[is.nan(FC.cisplatin)] <- 0
+FC.cisplatin = log2FC.treated.untreated[,c(95:149)]
 FC.cisplatin = t(FC.cisplatin)
 mean.FC <- colMeans(FC.cisplatin, na.rm = TRUE, dims =1)
 sorted.mean = sort(mean.FC, decreasing = TRUE)
@@ -144,3 +139,11 @@ barplot(lowest.FC, horiz = TRUE, xlim = c(-1.3,0), main= "lowest log2 FC-values 
 highest.FC <- sorted.mean[1:10]
 par(mar = c(5, 5, 5, 5))
 barplot(highest.FC, horiz = TRUE, xlim = c(0,1.8), main= "highest log2 FC-values for cisplatin", xlab= "mean log2FC values in different celllines", col= "lightgreen",las=1, cex.names =0.8)
+
+#upordownregulation
+upordown = (treated.scaled/untreated.scaled)
+upordown = upordown[,c(95:149)]
+upordown= t(upordown)
+upordown.biomarker = upordown[,c(11372, 1053, 503, 1347, 4403, 5711, 2819, 12310, 7537, 7538, 7539, 8326, 9002, 4060, 8765, 12703, 8892, 6729, 11254, 6344, 11536, 1261, 525, 2332)]
+heatmap(upordown.biomarker)
+
