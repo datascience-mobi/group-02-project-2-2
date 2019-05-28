@@ -38,10 +38,6 @@ which(na.meta >0)
 mutations.removed = mutations[, -(12:13)]
 
 #scaled, FC, PCA
-basal.scaled <-- scale(basalexp)
-treated.scaled <-- scale(treated)
-untreated.scaled <-- scale(untreated)
-log2FC.treated.untreated <-- log2(treated.scaled/untreated.scaled)
 is.nan.data.frame <- function(x)      #NaN durch 0 ersetzen
   do.call(cbind, lapply(x, is.nan))
 log2FC.treated.untreated[is.nan(log2FC.treated.untreated)] <- 0
@@ -54,11 +50,6 @@ plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], xlab = "PC1", ylab = "PC2")
 PCA.FC$sdev^2
 
 # Medikamente einf�rben
-chemo1 <-- c(94:248)   #�berpr�fen
-chemo2 <-- c(307:533)  #�berpr�fen
-chemo3 <-- c(589:760)  #�berpr�fen
-chemo <-- c(chemo1, chemo2, chemo3)
-FC.named <-- log2FC.treated.untreated
 colnames(FC.named)[chemo] <- "chemo"
 color.chemo <- ifelse(colnames(FC.named)=="chemo", "firebrick","forestgreen")
 plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=color.chemo, xlab = "PC1", ylab = "PC2")
