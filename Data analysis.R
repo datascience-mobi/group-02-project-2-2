@@ -18,22 +18,21 @@ boxplot(treated, xlab = "treated", horizontal = F, border=cb)
 #colored boxplot with scaling
 boxplot(treated.scaled, xlab="treated scaled", horizontal =F, border=cb)
 
-na.treated = apply(treated, 2, function(x) {sum(is.na(x))})
-which(na.treated > 0)
-na.untreated = apply(untreated, 2, function(x) {sum(is.na(x))})
-which(na.untreated > 0)
-na.mutations = apply(mutations, 2, function(x) {sum(is.na(x))})
-which(na.mutations > 0)
-na.basal=apply(basalexp, 2, function(x) {sum(is.na(x))})
-which(na.basal > 0)
-na.cellline=apply(cellline, 2, function(x) {sum(is.na(x))})
-which(na.cellline>0)
-na.copynumber=apply(copynumber, 2, function(x) {sum(is.na(x))})
-which(na.copynumber > 0)
-na.ic50=apply(ic50, 2, function(x) {sum(is.na(x))})
-which(ic50 > 0)
-na.meta=apply(meta, 2, function(x) {sum(is.na(x))})
-which(na.meta >0)
+
+
+
+
+#loop for NA values
+list.na = list("treated"=treated, "untreated"=untreated, "mutations"=mutations, "basalexp" = basalexp, "cellline"=cellline, "copynumber"=copynumber, "ic50"=ic50, "meta"=meta)
+myfunc = function(x){sum(is.na)}
+
+i = 0
+while(i<9)
+{
+  p=sapply(list.na[i],myfunc)
+  print(p)
+  i = i +1
+}
 
 mutations.removed = mutations[, -(12:13)]
 
