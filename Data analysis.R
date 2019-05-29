@@ -124,7 +124,7 @@ plot(PCA.FC$rotation[,1], PCA.FC$rotation[,2], col=color.TKI, xlab="PC1", ylab="
 plot(PCA.FC$rotation[,3], PCA.FC$rotation[,4], col=color.TKI, xlab="PC3", ylab="PC4", pch=19)
 
 
-#Specific Analysis
+#Specific Analysisbo
 #Find Biomarker for cisplatin through FC
 FC.cisplatin = log2FC.treated.untreated[,c(95:149)]
 FC.cisplatin = t(FC.cisplatin)
@@ -143,7 +143,8 @@ barplot(highest.FC, horiz = TRUE, xlim = c(0,1.8), main= "highest log2 FC-values
 #upordownregulation
 upordown = (treated.scaled/untreated.scaled)
 upordown = upordown[,c(95:149)]
-upordown= t(upordown)
-upordown.biomarker = upordown[,c(11372, 1053, 503, 1347, 4403, 5711, 2819, 12310, 7537, 7538, 7539, 8326, 9002, 4060, 8765, 12703, 8892, 6729, 11254, 6344, 11536, 1261, 525, 2332)]
-heatmap(upordown.biomarker)
+upordown = t(upordown)
+upordown.biomarker = upordown[ , c(11372, 1053, 503, 4403, 5711, 2819, 12310, 7537, 8326, 9002, 4060, 8765, 12703, 8892, 6729, 11254, 11536, 1261, 525, 2332)]
+upordown.biomarker = t(upordown.biomarker)
+heatmap(upordown.biomarker, Rowv=NA, Colv=NA, col = cm.colors(256), scale="column", margins=c(5,10))
 
