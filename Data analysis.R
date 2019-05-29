@@ -147,3 +147,13 @@ upordown= t(upordown)
 upordown.biomarker = upordown[,c(11372, 1053, 503, 1347, 4403, 5711, 2819, 12310, 7537, 7538, 7539, 8326, 9002, 4060, 8765, 12703, 8892, 6729, 11254, 6344, 11536, 1261, 525, 2332)]
 heatmap(upordown.biomarker)
 
+#biomarker Kriterium 2
+biomarker.kriterium2 = log2FC.treated.untreated
+biomarker.kriterium2[biomarker.kriterium2<0]=-1
+biomarker.kriterium2[biomarker.kriterium2>0]=1
+biomarker.kriterum2.sum = sapply(1:13299 , function(k) {sum(biomarker.kriterium2[k,]==-1)})
+biomarker.kriterium2.sum.names =cbind(rownames(treated), biomarker.kriterum2.sum)
+biomarker.kriterium2.sum.names.klein = biomarker.kriterium2.sum.names[,2]<205  #25%
+biomarker.kriterium2.sum.names.groﬂ = biomarker.kriterium2.sum.names[,2]>614
+komplett.kriterium2 = cbind(biomarker.kriterium2.sum.names , biomarker.kriterium2.sum.names.klein , biomarker.kriterium2.sum.names.groﬂ)
+komplett.kriterium2 = komplett.kriterium2[-which(komplett.kriterium2[,4]=="FALSE" & komplett.kriterium2[,3]=="FALSE"),]
