@@ -2,15 +2,15 @@ library(rstudioapi)
 
 wd = dirname(rstudioapi::getSourceEditorContext()$path)
 
-meta = read.delim(paste0(wd, "/NCI_TPW_metadata.tsv"), header = TRUE, sep = "\t") 
-untreated = readRDS(paste0(wd, "/NCI_TPW_gep_untreated.RDS"))
-treated = readRDS(paste0(wd, "/NCI_TPW_gep_treated.RDS"))
-ic50 = readRDS(paste0(wd, "/NegLogGI50.RDS"))
-basalexp = readRDS(paste0(wd, "/CCLE_basalexpression.RDS"))
-copynumber = readRDS(paste0(wd, "/CCLE_copynumber.RDS"))
-mutations = readRDS(paste0(wd, "/CCLE_mutations.RDS"))
-cellline = read.delim(paste0(wd, "/cellline_annotation.tsv"), header = TRUE, sep = "\t")
-drug = read.delim(paste0(wd, "/drug_annotation.tsv"), header = TRUE, sep = "\t")
+meta = read.delim(paste0(wd, "/data/NCI_TPW_metadata.tsv"), header = TRUE, sep = "\t") 
+untreated = readRDS(paste0(wd, "/data/NCI_TPW_gep_untreated.RDS"))
+treated = readRDS(paste0(wd, "/data/NCI_TPW_gep_treated.RDS"))
+ic50 = readRDS(paste0(wd, "/data/NegLogGI50.RDS"))
+basalexp = readRDS(paste0(wd, "/data/CCLE_basalexpression.RDS"))
+copynumber = readRDS(paste0(wd, "/data/CCLE_copynumber.RDS"))
+mutations = readRDS(paste0(wd, "/data/CCLE_mutations.RDS"))
+cellline = read.delim(paste0(wd, "/data/cellline_annotation.tsv"), header = TRUE, sep = "\t")
+drug = read.delim(paste0(wd, "/data/drug_annotation.tsv"), header = TRUE, sep = "\t")
 
 #general overview
 #colored boxplot without scaling
@@ -144,7 +144,7 @@ barplot(highest.FC, horiz = TRUE, xlim = c(0,1.8), main= "highest log2 FC-values
 upordown = (treated.scaled/untreated.scaled)
 upordown = upordown[,c(95:149)]
 upordown = t(upordown)
-upordown.biomarker = upordown[ , c(11372, 1053, 503, 4403, 5711, 2819, 12310, 7537, 8326, 9002, 4060, 8765, 12703, 8892, 6729, 11254, 11536, 1261, 525, 2332)]
+upordown.biomarker = upordown[ , c("SUPT3H","BBS9", "ANKRA2", "GNBL1", "KDM4C", "DDIT3", "TTC28","NBEA", "PCCA","PPP1R15A", "FTO", "PLK1", "VPS8", "POLR3B", "MAPKAP1", "STAG1", "TBCD", "C11orf49", "ANKS1A", "COMMD10")]
 upordown.biomarker = t(upordown.biomarker)
 heatmap(upordown.biomarker, Rowv=NA, Colv=NA, col = cm.colors(256), scale="column", margins=c(5,10))
 
@@ -155,6 +155,6 @@ biomarker.kriterium2[biomarker.kriterium2>0]=1
 biomarker.kriterum2.sum = sapply(1:13299 , function(k) {sum(biomarker.kriterium2[k,]==-1)})
 biomarker.kriterium2.sum.names =cbind(rownames(treated), biomarker.kriterum2.sum)
 biomarker.kriterium2.sum.names.klein = biomarker.kriterium2.sum.names[,2]<205  #25%
-biomarker.kriterium2.sum.names.groß = biomarker.kriterium2.sum.names[,2]>614
-komplett.kriterium2 = cbind(biomarker.kriterium2.sum.names , biomarker.kriterium2.sum.names.klein , biomarker.kriterium2.sum.names.groß)
+biomarker.kriterium2.sum.names.gross = biomarker.kriterium2.sum.names[,2]>614
+komplett.kriterium2 = cbind(biomarker.kriterium2.sum.names , biomarker.kriterium2.sum.names.klein , biomarker.kriterium2.sum.names.gross)
 komplett.kriterium2 = komplett.kriterium2[-which(komplett.kriterium2[,4]=="FALSE" & komplett.kriterium2[,3]=="FALSE"),]
