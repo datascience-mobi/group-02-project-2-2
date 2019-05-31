@@ -20,11 +20,9 @@ boxplot(treated.scaled, xlab="treated scaled", horizontal =F, border=cb)
 
 
 
-
-
 #loop for NA values
 list.na = list("treated"=treated, "untreated"=untreated, "mutations"=mutations, "basalexp" = basalexp, "cellline"=cellline, "copynumber"=copynumber, "ic50"=ic50, "meta"=meta)
-myfunc = function(x){sum(is.na)}
+myfunc = function(x){sum(is.na(x))}
 
 i = 0
 while(i<9)
