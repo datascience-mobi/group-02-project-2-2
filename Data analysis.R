@@ -53,8 +53,8 @@ Varianz.PCA=PCA.FC$sdev^2
 
 
 # Spalten die chemo Medikamente enthalten
-list.drug = list("5-Azacytidine", "bortezomib", "cisplatin","dasatinib","doxorubicin","erlotinib","geldanamycin","gemcitabine","lapatinib","paclitaxel","sirolimus","sorafenib","sunitinib","topotecan","vorinostat")
-list.chemo = list("cisplatin","dasatinib","doxorubicin","geldanamycin","gemcitabine","lapatinib","paclitaxel","sorafenib","sunitinib","topotecan")
+list.drug = list("5-Azacytidine", "bortezomib", "cisplatin","dasatinib","doxorubicin","erlotinib","geldanamycin","gemcitibine","lapatinib","paclitaxel","sirolimus","sorafenib","sunitinib","topotecan","vorinostat")
+list.chemo = list("cisplatin","dasatinib","doxorubicin","geldanamycin","gemcitibine","lapatinib","paclitaxel","sorafenib","sunitinib","topotecan")
 chemo = c()
 i=1
 j=1
@@ -62,7 +62,7 @@ while(i<16)
 {
   while(j<820)
   {
-       if(isTRUE(meta[j,3]== list.drug[i]))
+       if(isTRUE(meta[j,3]== list.chemo[i]))
        {chemo= c(chemo,j)
          }
         j = j +1
@@ -80,33 +80,30 @@ plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=color.chemo, xlab = "PC1", 
 
 #color every drug PCA
 FC.color <- log2FC.treated.untreated
-#creating vectors for every drug and rename the log2FC matrix
+#linking the drugs to colors and creating a vector with the colors for the drugs to color the PCA
 list.drug = list("5-Azacytidine", "bortezomib", "cisplatin","dasatinib","doxorubicin","erlotinib","geldanamycin","gemcitabine","lapatinib","paclitaxel","sirolimus","sorafenib","sunitinib","topotecan","vorinostat")
+list.colors = list("firebrick", "forestgreen", "blue", "orange", "black", "lightblue", "pink", "violet", "grey", "lightgreen", "darkblue", "gold", "yellow", "red", "peru", "gold")
+
 i=1
 j=1
+a=1
+drug.color = c()
 while(i<16)
 {
   while(j<820)
   {
     if(isTRUE(meta[j,3]== list.drug[i]))
-    {colnames(FC.color)[j] <- list.drug[i]
+    {drug.color = c(drug.color,list.colors[a])
     }
     j = j +1
   }
   j= 1
   i=i+1
+  a=a+1
 }
 
-#creating color vector
-color.aza <- ifelse(colnames(FC.color[,c(1:94)])=="azacytidine", "firebrick", "forestgreen")
-color.cis <- ifelse(colnames(FC.color[,c(95:198)])=="cisplatin", "blue","orange")
-color.dox <- ifelse(colnames(FC.color[,c(199:307)])=="doxorubicin", "black", "lightblue")
-color.gel <- ifelse(colnames(FC.color[,c(308:420)])=="geldanamycin", "pink", "violet")
-color.lap <- ifelse(colnames(FC.color[,c(421:533)])=="lapatinib", "grey", "lightgreen")
-color.sir<- ifelse(colnames(FC.color[,c(534:646)])=="sirolimus", "darkblue", "gold")
-color.sun <- ifelse(colnames(FC.color[,c(647:760)])=="sunitinib", "yellow", "red")
-color.vor <- ifelse(colnames(FC.color[,c(761:819)])=="vorinostat", "peru", "gold")
-cb <- c(color.aza, color.cis, color.dox, color.gel, color.lap, color.sir, color.sun, color.vor)
+#creating color vector / convert the list drug.color into a vector
+drug.color.vector = c(do.call("cbind",drug.color))
 #plot colored PCA
 plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=cb, xlab = "PC1", ylab = "PC2", pch=19)
 plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=cb, xlab = "PC3", ylab = "PC4", pch=19)
@@ -117,8 +114,8 @@ tyrosinKI <- c(dasatinib, sunitinib, lapatinib, sorafenib)
 colnames(FC.TKI)[tyrosinKI]<- "Tyrosine Kinase Inhibitor"
 color.TKI <- ifelse(colnames(FC.TKI)=="Tyrosine Kinase Inhibitor", "firebrick", "forestgreen")
 #plot
-plot(PCA.FC$rotation[,1], PCA.FC$rotation[,2], col=color.TKI, xlab="PC1", ylab="PC2", pch=19)
-plot(PCA.FC$rotation[,3], PCA.FC$rotation[,4], col=color.TKI, xlab="PC3", ylab="PC4", pch=19)
+plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=drug.color.vector, xlab = "PC1", ylab = "PC2", pch=19)
+plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=drug.color.vector, xlab = "PC3", ylab = "PC4", pch=19)
 
 
 #Specific Analysisbo
