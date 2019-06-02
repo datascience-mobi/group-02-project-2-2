@@ -52,18 +52,32 @@ plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], xlab = "PC1", ylab = "PC2")
 Varianz.PCA=PCA.FC$sdev^2
 
 
-# Medikamente einfaerben
-chemo1 <- c(94:248)   #ueberpruefen
-chemo2 <- c(307:533)  #ueberpruefen
-chemo3 <- c(589:760)  #ueberpruefen
-chemo <- c(chemo1, chemo2, chemo3)
-FC.named <- log2FC.treated.untreated
-
+# Spalten die chemo Medikamente enthalten
+list.drug = list("5-Azacytidine", "bortezomib", "cisplatin","dasatinib","doxorubicin","erlotinib","geldanamycin","gemcitabine","lapatinib","paclitaxel","sirolimus","sorafenib","sunitinib","topotecan","vorinostat")
+list.chemo = list("cisplatin","dasatinib","doxorubicin","geldanamycin","gemcitabine","lapatinib","paclitaxel","sorafenib","sunitinib","topotecan")
+chemo = c()
+i=1
+j=1
+while(i<16)
+{
+  while(j<820)
+  {
+       if(isTRUE(meta[j,3]== list.chemo[i]))
+       {chemo= c(chemo,j)
+         }
+        j = j +1
+  }
+  j= 1
+  i=i+1
+}
+ 
 
 # Medikamente einf�rben
+FC.named <- log2FC.treated.untreated
 colnames(FC.named)[chemo] <- "chemo"
 color.chemo <- ifelse(colnames(FC.named)=="chemo", "firebrick","forestgreen")
 plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=color.chemo, xlab = "PC1", ylab = "PC2")
+
 #color every drug PCA
 FC.color <- log2FC.treated.untreated
 #creating vectors for every drug and rename the log2FC matrix
