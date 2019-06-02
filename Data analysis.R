@@ -88,8 +88,8 @@ while(i<16)
 {
   while(j<820)
   {
-    if(isTRUE(meta[j,3]== list.chemo[i]))
-    {colnames(FC.color)[j] <- list.chemo[i]
+    if(isTRUE(meta[j,3]== list.drug[i]))
+    {colnames(FC.color)[j] <- list.drug[i]
     }
     j = j +1
   }
