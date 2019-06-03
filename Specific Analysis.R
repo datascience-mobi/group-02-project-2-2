@@ -2,9 +2,19 @@
 #Specific Analysis
 
 #Find Biomarker for cisplatin through FC
-FC.cisplatin = log2FC.treated.untreated[,c(95:149)]
-FC.cisplatin = t(FC.cisplatin)
-mean.FC <- colMeans(FC.cisplatin, na.rm = TRUE, dims =1)
+cisplatin.col=c()
+j=1
+
+while(j<820)
+{
+  if(isTRUE(meta[j,3]== "cisplatin"))
+  {cisplatin.col= c(cisplatin.col,j)
+  }
+  j = j +1
+}
+
+FC.cisplatin = log2FC.treated.untreated[,cisplatin.col]
+mean.FC.rows <- apply(FC.cisplatin, 1, mean)
 sorted.mean = sort(mean.FC, decreasing = TRUE)
 
 #finding/visualizing most extreme FC values for cisplatin
