@@ -39,10 +39,7 @@ drug.color.vector = c(do.call("cbind",drug.color))
 
 #general overview
 #colored boxplot without scaling
-boxplot(treated, xlab = "treated", horizontal = F, border=drug.color.vector)
-#colored boxplot with scaling
-boxplot(treated.scaled, xlab="treated scaled", horizontal =F, border=drug.color.vector)
-
+boxplot(treated, xlab = "Samples", horizontal = F, border=drug.color.vector, main = "Gene Expression Treated")
 
 
 #loop for NA values
@@ -64,17 +61,20 @@ basal.scaled <- scale(basalexp)
 treated.scaled <- scale(treated)
 untreated.scaled <- scale(untreated)
 
+#colored boxplot with scaling
+boxplot(treated.scaled, xlab="Samples", horizontal =F, border=drug.color.vector, main = "Gene Expression Treated Scaled")
+
 #FC
 log2FC.treated.untreated <- log2(treated.scaled/untreated.scaled)
 is.nan.data.frame <- function(x)      #NaN durch 0 ersetzen
   do.call(cbind, lapply(x, is.nan))
 log2FC.treated.untreated[is.nan(log2FC.treated.untreated)] <- 0
-plot(density(log2FC.treated.untreated))
+plot(density(log2FC.treated.untreated), main = "Log2 FC Treated/Untreated")
 
 #PCA
 PCA.FC <- prcomp(log2FC.treated.untreated, center=F , scale.=F)
 plot(PCA.FC, type ="lines")
-plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], xlab = "PC1", ylab = "PC2")
+plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], xlab = "PC1", ylab = "PC2", pch=19, main = "PCA Treated/Untreated")
 # wie viel Varianz wird durch components erklaert?
 Varianz.PCA=PCA.FC$sdev^2
 
@@ -100,12 +100,12 @@ while(i<16)
 FC.named <- log2FC.treated.untreated
 colnames(FC.named)[chemo] <- "chemo"
 color.chemo <- ifelse(colnames(FC.named)=="chemo", "firebrick","forestgreen")
-plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=color.chemo, xlab = "PC1", ylab = "PC2")
-
+plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=color.chemo, xlab = "PC1", ylab = "PC2", pch=19, main = "PCA Chemotherapy/Targeted")
+plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=color.chemo, xlab = "PC3", ylab = "PC4", pch = 19, main = "PCA Chemotherapy/Targeted")
 
 #plot colored PCA
-plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=drug.color.vector, xlab = "PC1", ylab = "PC2", pch=19)
-plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=drug.color.vector, xlab = "PC3", ylab = "PC4", pch=19)
+plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=drug.color.vector, xlab = "PC1", ylab = "PC2", pch=19, main ="PCA Drugs")
+plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=drug.color.vector, xlab = "PC3", ylab = "PC4", pch=19, main = "PCA Drugs")
 
 #color: tyrosine kinase inhibitor
 list.tyrosin = list("dasatinib", "sunitinib", "lapatinib", "sorafenib")
@@ -126,11 +126,10 @@ while(i<16)
 }
 
 #plot tyrosin kinase PCA
-FC.named <- log2FC.treated.untreated
 colnames(FC.named)[tyrosin] <- "tyrosin"
 color.tyrosin <- ifelse(colnames(FC.named)=="tyrosin", "brown2","darkolivegreen4")
-plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=color.tyrosin, xlab = "PC1", ylab = "PC2", pch=19)
-plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=color.tyrosin, xlab = "PC1", ylab = "PC2", pch=19)
+plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=color.tyrosin, xlab = "PC1", ylab = "PC2", pch=19, main = "PCA Tyrosin Kinase Inhibitor")
+plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=color.tyrosin, xlab = "PC1", ylab = "PC2", pch=19, main = "PCA Tyrosin Kinase Inhibitor")
 
 
 
