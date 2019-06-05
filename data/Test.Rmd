@@ -1,0 +1,41 @@
+---
+title: "Project 2 - Group 2"
+author: "Dorothee Mersch"
+date: "5 Juni 2019"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Load Data
+```{r}
+treated <- readRDS("C:/Users/Dori/Documents/NCI_TPW_gep_treated.rds")
+untreated <- readRDS("C:/Users/Dori/Documents/NCI_TPW_gep_untreated.rds")
+ic50 <- readRDS("C:/Users/Dori/Documents/NegLogGI50.rds")
+basalexp <- readRDS("C:/Users/Dori/Documents/CCLE_basalexpression.rds")
+copynumber <- readRDS("C:/Users/Dori/Documents/CCLE_copynumber.rds")
+mutations <- readRDS("C:/Users/Dori/Documents/CCLE_mutations.rds")
+cellline <- read.delim("C:/Users/Dori/Documents/cellline_annotation.tsv")
+meta <- read.delim("C:/Users/Dori/Documents/cellline_annotation.tsv")
+drug <- read.delim("C:/Users/Dori/Documents/drug_annotation.tsv")
+```
+
+## Scaling
+```{r}
+#scale
+basal.scaled <- scale(basalexp)
+treated.scaled <- scale(treated)
+untreated.scaled <- scale(untreated)
+```
+
+## Boxplot treated without scaling
+```{r}
+boxplot(treated, xlab = "Samples", horizontal = F, main = "Gene Expression Treated")
+```
+
+## Boxplot treated with scaling
+```{r}
+boxplot(treated.scaled, xlab="Samples", horizontal =F, main = "Gene Expression Treated Scaled")
+```
