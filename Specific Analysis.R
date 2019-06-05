@@ -1,7 +1,32 @@
+## necessary data from general analysis 
+library(rstudioapi)
 
-#Specific Analysis
+wd = dirname(rstudioapi::getSourceEditorContext()$path)
 
-#Find Biomarker for cisplatin through FC
+meta = read.delim(paste0(wd, "/data/NCI_TPW_metadata.tsv"), header = TRUE, sep = "\t") 
+untreated = readRDS(paste0(wd, "/data/NCI_TPW_gep_untreated.RDS"))
+treated = readRDS(paste0(wd, "/data/NCI_TPW_gep_treated.RDS"))
+ic50 = readRDS(paste0(wd, "/data/NegLogGI50.RDS"))
+basalexp = readRDS(paste0(wd, "/data/CCLE_basalexpression.RDS"))
+copynumber = readRDS(paste0(wd, "/data/CCLE_copynumber.RDS"))
+mutations = readRDS(paste0(wd, "/data/CCLE_mutations.RDS"))
+cellline = read.delim(paste0(wd, "/data/cellline_annotation.tsv"), header = TRUE, sep = "\t")
+drug = read.delim(paste0(wd, "/data/drug_annotation.tsv"), header = TRUE, sep = "\t")
+
+#scale
+basal.scaled <- scale(basalexp)
+treated.scaled <- scale(treated)
+untreated.scaled <- scale(untreated)
+#FC
+log2FC.treated.untreated <- log2(treated.scaled/untreated.scaled)
+is.nan.data.frame <- function(x)      #NaN durch 0 ersetzen
+  do.call(cbind, lapply(x, is.nan))
+log2FC.treated.untreated[is.nan(log2FC.treated.untreated)] <- 0
+
+
+#Specific analysis
+
+#Find Biomarker for cisplatin through FC (criterium 1)
 cisplatin.col=c()
 j=1
 
@@ -18,40 +43,70 @@ mean.FC.rows <- apply(FC.cisplatin, 1, mean)
 sorted.mean = sort(mean.FC.rows, decreasing = TRUE)
 
 #finding/visualizing most extreme FC values for cisplatin
-lowest.FC <- sorted.mean[13290:13299]
+lowest.FC <- sorted.mean[13280:13299]
 par(mar = c(5, 5, 5, 5))
 barplot(lowest.FC, horiz = TRUE, xlim = c(-1.3,0), main= "lowest log2 FC-values for cisplatin", xlab= "mean log2FC values in different celllines", col= "firebrick", names.arg=c("FTO", "PLK1", "VPS8", "POLR38", "MAPKAP1", "STAG1", "TBCD", "C11orf49","ANKS1A", "COMMD10"), las=1, cex.names =0.8)
 
-highest.FC <- sorted.mean[1:10]
+highest.FC <- sorted.mean[1:20]
 par(mar = c(5, 5, 5, 5))
 barplot(highest.FC, horiz = TRUE, xlim = c(0,1.8), main= "highest log2 FC-values for cisplatin", xlab= "mean log2FC values in different celllines", col= "lightgreen",las=1, cex.names =0.8)
 
-#upordownregulation
-biomarker.1 <- c("SUPT3H", "BBS9", "ANKRA2","GNB1L", "KDM4C", "DDIT3", "TTC28","NBEA", "PCCA","PPP1R15A", "FTO", "PLK1", "VPS8","POLR3B", "MAPKAP1", "STAG1", "TBCD", "C11orf49", "ANKS1A", "COMMD10")
-biomarker = FC.cisplatin[c("SUPT3H", "BBS9", "ANKRA2","GNB1L", "KDM4C", "DDIT3", "TTC28","NBEA", "PCCA","PPP1R15A", "FTO", "PLK1", "VPS8","POLR3B", "MAPKAP1", "STAG1", "TBCD", "C11orf49", "ANKS1A", "COMMD10"),]
-colfunc <- colorRampPalette(c("firebrick", "firebrick3", "lightcoral","lightyellow","lightskyblue1","steelblue1", "steelblue3", "darkblue"))
-colfunc(25)
-heatmap.2(biomarker, dendrogram = "row", col = colfunc(25), scale="column", margins=c(4,8), xlab= "celllines", ylab ="biomarker for cisplatin", labCol = FALSE, trace = "none", key =TRUE, keysize = 0.25, density.info = "histogram", key.title = "red = downregulation, blue =upregulation", key.ylab = "count", lmat=rbind( c(0, 3), c(2,1), c(0,4) ), lhei = c(0.5,1,0.5))
-title("Influence of cisplatin on the biomarkers gene expression", line =-3)
+highest.FC = as.matrix(highest.FC) 
+lowest.FC = as.matrix(lowest.FC)
+highest.names <- row.names(highest.FC)
+lowest.names <- row.names(lowest.FC)
+biomarker1 <- c(highest.names, lowest.names)
 
 #Kriterium 2
 is.neg = FC.cisplatin<0
 i =1
 j=1
 a=1
-biomarker2.row = c()
+biomarker2.up = c()
+biomarker2.down = c()
 while(j<13300){
   while(i<56){
     if(is.neg[j,i]==TRUE)
      {a=a+1}
     i=i+1}
   if(a>49)
-     {biomarker2.row= c(biomarker2.row, j)}
+     {biomarker2.down= c(biomarker2.down, j)}
   if(a<6)
-    {biomarker2.row= c(biomarker2.row, j)}
+    {biomarker2.up= c(biomarker2.up, j)}
   a=1
   i=1
   j=j+1}
+
 #das sind jetzt die nrow von Genen dich sich unter cisplatin
-#in 50 von 55 Fällen in die gleiche Richtung verändern
-biomarker2 = c(rownames(FC.cisplatin[biomarker2.row]))
+#in 50 von 55 Faellen in die gleiche Richtung ver?ndern
+biomarker2 = row.names(FC.cisplatin[c(biomarker2.down, biomarker2.up),])
+
+#do we find the same biomarkers for cisplatin with both criteria? 
+i=1
+j=1
+a=1
+double.biomarker = c()
+while(i<41)
+{
+  while(j<375)
+      {
+        if(isTRUE(biomarker2[j] == biomarker1[i]))
+           {double.biomarker = c(double.biomarker, biomarker1[a])
+             }
+            j = j +1
+         }
+          j= 1
+          i=i+1
+          a=a+1
+}
+
+# ttest to verify significance of the biomarker
+
+
+#influence of cisplatin on the biomarkers gene expression in different cell lines
+double.biomarker.FC = FC.cisplatin[double.biomarker,]
+colfunc <- colorRampPalette(c("firebrick", "firebrick3", "lightcoral","lightyellow","lightskyblue1","steelblue1", "steelblue3", "darkblue"))
+colfunc(25)
+heatmap.2(double.biomarker.FC, dendrogram = "row", col = colfunc(25), scale="column", margins=c(4,9), xlab= "celllines", ylab ="biomarker for cisplatin", labCol = FALSE, trace = "none", key =TRUE, keysize = 0.25, density.info = "histogram", key.title = "red = downregulation, blue =upregulation", key.ylab = "count", lmat=rbind( c(0, 3), c(2,1), c(0,4) ), lhei = c(0.5,1,0.5))
+title("Influence of cisplatin on the biomarkers gene expression", line =1)
+
