@@ -34,13 +34,24 @@ upordown.biomarker = upordown[ , c("SUPT3H","BBS9", "ANKRA2", "GNBL1", "KDM4C", 
 upordown.biomarker = t(upordown.biomarker)
 heatmap(upordown.biomarker, Rowv=NA, Colv=NA, col = cm.colors(256), scale="column", margins=c(5,10))
 
-#biomarker Kriterium 2
-biomarker.kriterium2 = log2FC.treated.untreated
-biomarker.kriterium2[biomarker.kriterium2<0]=-1
-biomarker.kriterium2[biomarker.kriterium2>0]=1
-biomarker.kriterum2.sum = sapply(1:13299 , function(k) {sum(biomarker.kriterium2[k,]==-1)})
-biomarker.kriterium2.sum.names =cbind(rownames(treated), biomarker.kriterum2.sum)
-biomarker.kriterium2.sum.names.klein = biomarker.kriterium2.sum.names[,2]<205  #25%
-biomarker.kriterium2.sum.names.gross = biomarker.kriterium2.sum.names[,2]>614
-komplett.kriterium2 = cbind(biomarker.kriterium2.sum.names , biomarker.kriterium2.sum.names.klein , biomarker.kriterium2.sum.names.gross)
-komplett.kriterium2 = komplett.kriterium2[-which(komplett.kriterium2[,4]=="FALSE" & komplett.kriterium2[,3]=="FALSE"),]
+#Kriterium 2
+is.neg = FC.cisplatin<0
+i =1
+j=1
+a=1
+biomarker2.row = c()
+while(j<13300){
+  while(i<56){
+    if(is.neg[j,i]==TRUE)
+     {a=a+1}
+    i=i+1}
+  if(a>49)
+     {biomarker2.row= c(biomarker2.row, j)}
+  if(a<6)
+    {biomarker2.row= c(biomarker2.row, j)}
+  a=1
+  i=1
+  j=j+1}
+#das sind jetzt die nrow von Genen dich sich unter cisplatin
+#in 50 von 55 Fällen in die gleiche Richtung verändern
+biomarker2 = c(rownames(FC.cisplatin[biomarker2.row]))
