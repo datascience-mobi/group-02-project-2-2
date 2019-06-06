@@ -1,5 +1,7 @@
 ## necessary data from general analysis 
 library(rstudioapi)
+library(gplots)
+library(pheatmap)
 
 wd = dirname(rstudioapi::getSourceEditorContext()$path)
 
@@ -45,11 +47,25 @@ sorted.mean = sort(mean.FC.rows, decreasing = TRUE)
 #finding/visualizing most extreme FC values for cisplatin
 lowest.FC <- sorted.mean[13280:13299]
 par(mar = c(5, 5, 5, 5))
-barplot(lowest.FC, horiz = TRUE, xlim = c(-1.3,0), main= "lowest log2 FC-values for cisplatin", xlab= "mean log2FC values in different celllines", col= "firebrick", names.arg=c("FTO", "PLK1", "VPS8", "POLR38", "MAPKAP1", "STAG1", "TBCD", "C11orf49","ANKS1A", "COMMD10"), las=1, cex.names =0.8)
+barplot(lowest.FC,
+        horiz = TRUE,
+        xlim = c(-1.3,0),
+        main= "lowest log2 FC-values for cisplatin",
+        xlab= "mean log2FC values in different celllines",
+        col= "firebrick",
+        las=1,
+        cex.names =0.8)
 
 highest.FC <- sorted.mean[1:20]
 par(mar = c(5, 5, 5, 5))
-barplot(highest.FC, horiz = TRUE, xlim = c(0,1.8), main= "highest log2 FC-values for cisplatin", xlab= "mean log2FC values in different celllines", col= "lightgreen",las=1, cex.names =0.8)
+barplot(highest.FC,
+        horiz = TRUE,
+        xlim = c(0,1.8),
+        main= "highest log2 FC-values for cisplatin",
+        xlab= "mean log2FC values in different celllines",
+        col= "lightgreen",
+        las=1,
+        cex.names =0.8)
 
 highest.FC = as.matrix(highest.FC) 
 lowest.FC = as.matrix(lowest.FC)
@@ -102,16 +118,48 @@ while(i<41)
 
 # ttest to verify significance of the biomarker
 
-
 #influence of cisplatin on the biomarkers gene expression in different cell lines
-install.packages("gplots")
-library(gplots)
-
 double.biomarker.FC = FC.cisplatin[double.biomarker,]
-colfunc <- colorRampPalette(c("firebrick", "firebrick3", "lightcoral","lightyellow","lightskyblue1","steelblue1", "steelblue3", "darkblue"))
+colfunc <- colorRampPalette(c("firebrick","firebrick3","lightcoral",
+                              "lightyellow","lightskyblue1","steelblue1",
+                              "steelblue3", "darkblue"))
 colfunc(25)
-heatmap.2(double.biomarker.FC, dendrogram = "row", col = colfunc(25), scale="column", margins=c(4,9), xlab= "celllines", ylab ="biomarker for cisplatin", labCol = FALSE, trace = "none", key =TRUE, keysize = 0.25, density.info = "histogram", key.title = "red = downregulation, blue =upregulation", key.ylab = "count", lmat=rbind( c(0, 3), c(2,1), c(0,4) ), lhei = c(0.5,1,0.5))
-title("Influence of cisplatin on the biomarkers gene expression", line =1)
+heatmap.2(double.biomarker.FC,
+          dendrogram = "both",
+          col = colfunc(25),
+          scale="column",
+          margins=c(6,10),
+          xlab= "celllines",
+          ylab ="biomarker for cisplatin",
+          labCol = FALSE,
+          trace = "none",
+          key =TRUE,
+          keysize = 0.25,
+          density.info = "histogram",
+          key.title = "red = downregulation, blue =upregulation",
+          key.ylab = "count",
+          lmat=rbind( c(0, 3), c(2,1), c(0,4) ),
+          lhei = c(0.5,1,0.5))
+title("Influence of cisplatin on the biomarkers gene expression", line =5)
+
+#andere version der heatmap 
+pheatmap(double.biomarker.FC,
+         color = colfunc(25),
+         cluster_cols = TRUE,
+         clustering_rows = TRUE,
+         clustering_distance_cols = "euclidean",
+         clustering_distance_rows = "euclidean",
+         clustering_method ="ward.D2",
+         treeheight_row = 20,
+         treeheight_col = 30,
+         legend =TRUE,
+         legend_labels = c("blue= upregulation", "red = downregulation"),
+         show_colnames = FALSE,
+         cutree_rows = 2,
+         cutree_cols = 5,
+         border_color = "white",
+         scale = "column",
+         main = "Influence of cisplatin on the biomarkers gene expression")
 
 
 #further analysis of biomarker
@@ -119,13 +167,36 @@ title("Influence of cisplatin on the biomarkers gene expression", line =1)
 copynumber.biomarker = copynumber[double.biomarker,]
 copynumber.biomarker = copynumber.biomarker[-11,]
 copynumber.biomarker = as.matrix(copynumber.biomarker)
-heatmap.2(copynumber.biomarker, dendrogram = "none", labCol = FALSE, col = colfunc(10), scale="column", margins=c(4,9), trace = "none", key =TRUE, keysize = 0.25, key.title = "red = deletion, blue = amplification", key.ylab = "count", lmat=rbind( c(0, 3), c(2,1), c(0,4) ), lhei = c(0.5,1,0.5))
-title("Connection between biomarker and gene alterations", line =1)
 
-#qualitative heatmap 
-copynumber.quali = ifelse(copynumber.biomarker < (-0.5), (-1), ifelse (copynumber.biomarker > 0.5, 1, 0))
-colfunc2 <- colorRampPalette(c("firebrick2", "white", "deepskyblue3"))
+plot(density(copynumber.biomarker))
+quantile(copynumber.biomarker)
+copynumber.quali = ifelse(copynumber.biomarker < (-0.22), (-1), ifelse (copynumber.biomarker > 0.22, 1, 0))
+
+#hestmap variante 1
+colfunc2 <- colorRampPalette(c("firebrick2", "grey88", "deepskyblue3"))
 colfunc2(3)
-heatmap.2(copynumber.quali, dendrogram = "none", labCol = FALSE, col = colfunc2(3), scale="column", margins=c(4,9), trace = "none", key =TRUE, keysize = 0.25, key.title = "red = deletion, blue = amplification", key.ylab = "count", lmat=rbind( c(0, 3), c(2,1), c(0,4) ), lhei = c(0.5,1,0.5))
+pheatmap(copynumber.quali,
+         color = colfunc2(3),
+         cluster_rows = FALSE,
+         cluster_cols = FALSE,
+         scale = "column",
+         border_color = "white",
+         show_colnames = FALSE,
+         main =  "red= deletation, blue = amplification")
+
+#heatmap variante 2
+heatmap.2(copynumber.quali,
+          dendrogram = "none",
+          labCol = FALSE,
+          col = colfunc2(3),
+          scale="column",
+          margins=c(4,9),
+          trace = "none",
+          key =TRUE,
+          keysize = 0.25,
+          key.title = "red = deletion, blue = amplification",
+          key.ylab = "count",
+          lmat=rbind( c(0, 3), c(2,1), c(0,4) ),
+          lhei = c(0.5,1,0.5))
 title("Connection between biomarker and gene alterations", line =1)
 
