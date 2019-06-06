@@ -104,9 +104,28 @@ while(i<41)
 
 
 #influence of cisplatin on the biomarkers gene expression in different cell lines
+install.packages("gplots")
+library(gplots)
+
 double.biomarker.FC = FC.cisplatin[double.biomarker,]
 colfunc <- colorRampPalette(c("firebrick", "firebrick3", "lightcoral","lightyellow","lightskyblue1","steelblue1", "steelblue3", "darkblue"))
 colfunc(25)
 heatmap.2(double.biomarker.FC, dendrogram = "row", col = colfunc(25), scale="column", margins=c(4,9), xlab= "celllines", ylab ="biomarker for cisplatin", labCol = FALSE, trace = "none", key =TRUE, keysize = 0.25, density.info = "histogram", key.title = "red = downregulation, blue =upregulation", key.ylab = "count", lmat=rbind( c(0, 3), c(2,1), c(0,4) ), lhei = c(0.5,1,0.5))
 title("Influence of cisplatin on the biomarkers gene expression", line =1)
+
+
+#further analysis of biomarker
+#amplification, deletation or neutral gene copy number
+copynumber.biomarker = copynumber[double.biomarker,]
+copynumber.biomarker = copynumber.biomarker[-11,]
+copynumber.biomarker = as.matrix(copynumber.biomarker)
+heatmap.2(copynumber.biomarker, dendrogram = "none", labCol = FALSE, col = colfunc(10), scale="column", margins=c(4,9), trace = "none", key =TRUE, keysize = 0.25, key.title = "red = deletion, blue = amplification", key.ylab = "count", lmat=rbind( c(0, 3), c(2,1), c(0,4) ), lhei = c(0.5,1,0.5))
+title("Connection between biomarker and gene alterations", line =1)
+
+#qualitative heatmap 
+copynumber.quali = ifelse(copynumber.biomarker < (-0.5), (-1), ifelse (copynumber.biomarker > 0.5, 1, 0))
+colfunc2 <- colorRampPalette(c("firebrick2", "white", "deepskyblue3"))
+colfunc2(3)
+heatmap.2(copynumber.quali, dendrogram = "none", labCol = FALSE, col = colfunc2(3), scale="column", margins=c(4,9), trace = "none", key =TRUE, keysize = 0.25, key.title = "red = deletion, blue = amplification", key.ylab = "count", lmat=rbind( c(0, 3), c(2,1), c(0,4) ), lhei = c(0.5,1,0.5))
+title("Connection between biomarker and gene alterations", line =1)
 
