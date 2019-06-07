@@ -10,6 +10,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 ## Load Data
+The given data is integrated as follows:
 ```{r}
 treated <- readRDS("C:/Users/Dori/Documents/NCI_TPW_gep_treated.rds")
 untreated <- readRDS("C:/Users/Dori/Documents/NCI_TPW_gep_untreated.rds")
@@ -17,12 +18,28 @@ ic50 <- readRDS("C:/Users/Dori/Documents/NegLogGI50.rds")
 basalexp <- readRDS("C:/Users/Dori/Documents/CCLE_basalexpression.rds")
 copynumber <- readRDS("C:/Users/Dori/Documents/CCLE_copynumber.rds")
 mutations <- readRDS("C:/Users/Dori/Documents/CCLE_mutations.rds")
-cellline <- read.delim("C:/Users/Dori/Documents/cellline_annotation.tsv")
-meta <- read.delim("C:/Users/Dori/Documents/cellline_annotation.tsv")
-drug <- read.delim("C:/Users/Dori/Documents/drug_annotation.tsv")
+cellline <- read.delim("C:/Users/Dori/Documents/cellline_annotation.tsv", header = TRUE, sep = "\t")
+meta <- read.delim("C:/Users/Dori/Documents/cellline_annotation.tsv", header = TRUE, sep = "\t")
+drug <- read.delim("C:/Users/Dori/Documents/drug_annotation.tsv", header = TRUE, sep = "\t")
 ```
+## Remove NAs
+In order to clean up our data, we created a loop for proving every matrix. Then, two coloumns, which only contained of NAs were removed out of the mutations matrix.
+```{r}
+list.na = list("treated"=treated, "untreated"=untreated, "mutations"=mutations, "basalexp" = basalexp, "cellline"=cellline, "copynumber"=copynumber, "ic50"=ic50, "meta"=meta)
+myfunc = function(x){sum(is.na(x))}
 
+i = 0
+while(i<9)
+{
+  p=sapply(list.na[i],myfunc)
+  print(p)
+  i = i +1
+}
+
+mutations.removed = mutations[, -(12:13)]
+```
 ## Scaling
+For normalizing our data, scale was used. 
 ```{r}
 #scale
 basal.scaled <- scale(basalexp)
@@ -31,11 +48,37 @@ untreated.scaled <- scale(untreated)
 ```
 
 ## Boxplot treated without scaling
+Looking at the boxplot without scaling, 15 different batches can be seen. Colouring each drug will follow. 
 ```{r}
 boxplot(treated, xlab = "Samples", horizontal = F, main = "Gene Expression Treated")
 ```
 
 ## Boxplot treated with scaling
+Looking at the boxplot of scaled data, the 15 different batches disappeared. Colouring each drug will follow.
 ```{r}
 boxplot(treated.scaled, xlab="Samples", horizontal =F, main = "Gene Expression Treated Scaled")
+```
+
+## Fold Change Treated/Untreated
+For analyse of changed gene expression from untreated to treated, fold change was computed. The distribution can be observed by looking at the density plot of the log2 FC matrix.
+```{r}
+log2FC.treated.untreated <- log2(treated.scaled/untreated.scaled)
+is.nan.data.frame <- function(x)      #NaN durch 0 ersetzen
+  do.call(cbind, lapply(x, is.nan))
+log2FC.treated.untreated[is.nan(log2FC.treated.untreated)] <- 0
+plot(density(log2FC.treated.untreated), main = "Log2 FC Treated/Untreated")
+```
+
+## PCA
+For a dimensional reduction, a principal component analysis was performed. By plotting PC1 against PC2 and Pc3 against PC4, clusters of drugs can be observed. Colouring every drug, targeted/chemo and tyrosine kinase inhibitors will follow.
+```{r}
+PCA.FC <- prcomp(log2FC.treated.untreated, center=F , scale.=F)
+plot(PCA.FC, type ="lines")
+plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], xlab = "PC1", ylab = "PC2", pch=19, main = "PCA Treated/Untreated")
+plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], xlab = "PC3", ylab = "PC4", pch = 19, main = "Treated/Untreated")
+```
+
+## How many variance can be explained by the principle components?
+```{r}
+Varianz.PCA=PCA.FC$sdev^2
 ```
