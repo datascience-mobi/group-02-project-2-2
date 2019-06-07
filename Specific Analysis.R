@@ -124,10 +124,16 @@ untreated.cisplatin <- untreated.scaled[,grep("cisplatin", colnames(treated.scal
 # 1. checking normality example BBS9
 qqnorm(treated.cisplatin["BBS9", ], main = "BBS9")
 qqline(treated.cisplatin["BBS9", ])
-# 2. t-test statistics and p-value
-pvalues <- sapply(double.biomarker, function(x){
+# 2. Welch two sample t-test
+pvalues.welch <- sapply(double.biomarker, function(x){
        t.test(treated.cisplatin[x,], untreated.cisplatin[x,],paired= T)$p.value
    })
+# 3. Wlicoxon rank sum test
+pvalues.wilcoxon <- sapply(double.biomarker, function(x){
+          wilcox.test(treated.cisplatin[x,], untreated.cisplatin[x,],paired= T)$p.value
+      })
+# Comparison t-tests
+cbind(pvalues.welch, pvalues.wilcoxon)
 #influence of cisplatin on the biomarkers gene expression in different cell lines
 double.biomarker.FC = FC.cisplatin[double.biomarker,]
 colfunc <- colorRampPalette(c("firebrick","firebrick3","lightcoral",
