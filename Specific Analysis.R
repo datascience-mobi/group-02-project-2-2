@@ -117,7 +117,17 @@ while(i<41)
 }
 
 # ttest to verify significance of the biomarker
+#Creating seperated matrices containing cisplatin
+treated.cisplatin <- treated.scaled[,grep ("cisplatin", colnames(treated.scaled))]
+untreated.cisplatin <- untreated.scaled[,grep("cisplatin", colnames(treated.scaled))]
 
+# 1. checking normality example BBS9
+qqnorm(treated.cisplatin["BBS9", ], main = "BBS9")
+qqline(treated.cisplatin["BBS9", ])
+# 2. t-test statistics and p-value
+pvalues <- sapply(double.biomarker, function(x){
+       t.test(treated.cisplatin[x,], untreated.cisplatin[x,],paired= T)$p.value
+   })
 #influence of cisplatin on the biomarkers gene expression in different cell lines
 double.biomarker.FC = FC.cisplatin[double.biomarker,]
 colfunc <- colorRampPalette(c("firebrick","firebrick3","lightcoral",
