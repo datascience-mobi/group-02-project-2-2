@@ -1,8 +1,9 @@
-## necessary data from general analysis 
+## packages 
 library(rstudioapi)
 library(gplots)
 library(pheatmap)
 
+## necessary data from the general analysis
 wd = dirname(rstudioapi::getSourceEditorContext()$path)
 
 meta = read.delim(paste0(wd, "/data/NCI_TPW_metadata.tsv"), header = TRUE, sep = "\t") 
@@ -134,6 +135,8 @@ pvalues.wilcoxon <- sapply(double.biomarker, function(x){
       })
 # Comparison t-tests
 cbind(pvalues.welch, pvalues.wilcoxon)
+
+
 #influence of cisplatin on the biomarkers gene expression in different cell lines
 double.biomarker.FC = FC.cisplatin[double.biomarker,]
 colfunc <- colorRampPalette(c("firebrick","firebrick3","lightcoral",
@@ -150,15 +153,15 @@ heatmap.2(double.biomarker.FC,
           labCol = FALSE,
           trace = "none",
           key =TRUE,
-          keysize = 0.25,
+          keysize = 0.5,
           density.info = "histogram",
           key.title = "red = downregulation, blue =upregulation",
           key.ylab = "count",
           lmat=rbind( c(0, 3), c(2,1), c(0,4) ),
-          lhei = c(0.5,1,0.5))
-title("Influence of cisplatin on the biomarkers gene expression", line =5)
+          lhei = c(0.2,0.5,0.2))
+title("Influence of cisplatin on the biomarkers gene expression", line =10)
 
-#andere version der heatmap 
+#different version of the heatmap 
 pheatmap(double.biomarker.FC,
          color = colfunc(25),
          cluster_cols = TRUE,
@@ -184,17 +187,20 @@ copynumber.biomarker = copynumber[double.biomarker,]
 copynumber.biomarker = copynumber.biomarker[-11,]
 copynumber.biomarker = as.matrix(copynumber.biomarker)
 
-plot(density(copynumber.biomarker))
-quantile(copynumber.biomarker)
-copynumber.quali = ifelse(copynumber.biomarker < (-0.22), (-1), ifelse (copynumber.biomarker > 0.22, 1, 0))
 
-#hestmap variante 1
+quantiles = as.matrix(quantile(copynumber.biomarker))
+plot(density(copynumber.biomarker))
+abline(v= quantiles[c(2,4),1], col= c("red", "blue"), lty =2)
+copynumber.quali = ifelse(copynumber.biomarker < (quantiles[2,1]), (-1), ifelse (copynumber.biomarker > (quantiles[4,1]), 1, 0))
+
+#heatmap variante 1
 colfunc2 <- colorRampPalette(c("firebrick2", "grey88", "deepskyblue3"))
 colfunc2(3)
 pheatmap(copynumber.quali,
          color = colfunc2(3),
-         cluster_rows = FALSE,
-         cluster_cols = FALSE,
+         cluster_rows = TRUE,
+         cluster_cols = TRUE,
+         clustering_method = "ward.D2",
          scale = "column",
          border_color = "white",
          show_colnames = FALSE,
