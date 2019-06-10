@@ -118,6 +118,14 @@ plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=drug.color.vector, xlab = "
 plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=drug.color.vector, xlab = "PC3", ylab = "PC4", pch=19, main = "PCA Drugs")
 
 #color: tyrosine kinase inhibitor
+# 2 versions
+# 1. sapply
+tyrosincolor <- ifelse(drug$Mechanism=="Tyrosine kinase inhibitor", "brown2", "darkolivegreen4")
+tyrosincolordrugs <- cbind(tyrosincolor, rownames(drugnames))
+tyrosincolorvector <- sapply(rownames(meta), function(x){
+       unname(tyrosincolor[meta[x, 3]], force = FALSE)
+   })
+# 2. while loop
 list.tyrosin = list("dasatinib", "sunitinib", "lapatinib", "sorafenib")
 tyrosin = c()
 i=1
