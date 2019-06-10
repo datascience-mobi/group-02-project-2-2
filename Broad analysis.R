@@ -13,6 +13,16 @@ cellline = read.delim(paste0(wd, "/data/cellline_annotation.tsv"), header = TRUE
 drug = read.delim(paste0(wd, "/data/drug_annotation.tsv"), header = TRUE, sep = "\t")
 
 #color drug: all drugs
+# 2 versions
+# 1. sapply
+colorvector = c("firebrick", "forestgreen", "blue", "orange", "black", "lightblue", "pink", "violet", "grey", "lightgreen", "navy", "gold", "yellow", "red", "peru")
+drugnames <- drug
+rownames(drugnames) = drugnames$Drug
+drugcolor <- cbind(colorvector, rownames(drugnames))
+drugcolorvector <- sapply(rownames(meta), function(x){
+  unname(drugcolor[meta[x, 3]], force = FALSE)
+})
+# 2. while loop
 #linking the drugs to colors and creating a vector with the colors for the drugs to color the PCA
 list.drug = list("5-Azacytidine", "bortezomib", "cisplatin","dasatinib","doxorubicin","erlotinib","geldanamycin","gemcitibine","lapatinib","paclitaxel","sirolimus","sorafenib","sunitinib","topotecan","vorinostat")
 list.colors = list("firebrick", "forestgreen", "blue", "orange", "black", "lightblue", "pink", "violet", "grey", "lightgreen", "darkblue", "gold", "yellow", "red", "peru", "gold")
