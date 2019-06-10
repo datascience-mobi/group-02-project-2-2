@@ -89,6 +89,17 @@ plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], xlab = "PC1", ylab = "PC2", pch
 Varianz.PCA=PCA.FC$sdev^2
 
 # color: chemo/targeted
+# 2 versions
+# 1. sapply
+#spalte ergänzen drug chemo
+targeted.chemo <- c("targeted", "targeted", "chemo", "chemo", "chemo", "chemo", "chemo", "targeted", "targeted", "chemo", "chemo", "chemo", "chemo", "targeted", "chemo")
+drug.added <- cbind(drug, targeted.chemo)
+chemocolor <- ifelse(drug.added$targeted.chemo=="chemo", "firebrick", "forestgreen")
+chemocolordrugs <- cbind(chemocolor, rownames(drugnames))
+chemocolorvector <- sapply(rownames(meta), function(x){
+       unname(tyrosincolor[meta[x, 3]], force = FALSE)
+   })
+# 2. while loop
 list.chemo = list("cisplatin","dasatinib","doxorubicin","geldanamycin","gemcitibine","lapatinib","paclitaxel","sorafenib","sunitinib","topotecan")
 chemo = c()
 i=1
