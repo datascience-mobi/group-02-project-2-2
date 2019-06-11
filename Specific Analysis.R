@@ -20,6 +20,7 @@ drug = read.delim(paste0(wd, "/data/drug_annotation.tsv"), header = TRUE, sep = 
 basal.scaled <- scale(basalexp)
 treated.scaled <- scale(treated)
 untreated.scaled <- scale(untreated)
+
 #FC
 log2FC.treated.untreated <- log2(treated.scaled/untreated.scaled)
 is.nan.data.frame <- function(x)      #NaN durch 0 ersetzen
@@ -27,7 +28,7 @@ is.nan.data.frame <- function(x)      #NaN durch 0 ersetzen
 log2FC.treated.untreated[is.nan(log2FC.treated.untreated)] <- 0
 
 
-#Specific analysis
+##Specific analysis
 
 #Find Biomarker for cisplatin through FC (criterium 1)
 cisplatin.col=c()
@@ -68,13 +69,18 @@ barplot(highest.FC,
         las=1,
         cex.names =0.8)
 
+
+#matrix containing the biomarker found through the FC 
 highest.FC = as.matrix(highest.FC) 
 lowest.FC = as.matrix(lowest.FC)
+biomarker1.FC = as.matrix(c(highest.FC, lowest.FC))
+row.names(biomarker1.FC) <- c(highest.names, lowest.names)
 highest.names <- row.names(highest.FC)
 lowest.names <- row.names(lowest.FC)
+
 biomarker1 <- c(highest.names, lowest.names)
 
-#Kriterium 2
+#criterium 2
 is.neg = FC.cisplatin<0
 i =1
 j=1
@@ -95,7 +101,7 @@ while(j<13300){
   j=j+1}
 
 #das sind jetzt die nrow von Genen dich sich unter cisplatin
-#in 50 von 55 Faellen in die gleiche Richtung ver?ndern
+#in 50 von 55 Faellen in die gleiche Richtung veraendern
 biomarker2 = row.names(FC.cisplatin[c(biomarker2.down, biomarker2.up),])
 
 #do we find the same biomarkers for cisplatin with both criteria? 
@@ -125,6 +131,7 @@ untreated.cisplatin <- untreated.scaled[,grep("cisplatin", colnames(treated.scal
 # 1. checking normality example BBS9
 qqnorm(treated.cisplatin["BBS9", ], main = "BBS9")
 qqline(treated.cisplatin["BBS9", ])
+
 # 2. Welch two sample t-test
 pvalues.welch <- sapply(double.biomarker, function(x){
        t.test(treated.cisplatin[x,], untreated.cisplatin[x,],paired= T)$p.value
@@ -142,43 +149,30 @@ double.biomarker.FC = FC.cisplatin[double.biomarker,]
 colfunc <- colorRampPalette(c("firebrick","firebrick3","lightcoral",
                               "lightyellow","lightskyblue1","steelblue1",
                               "steelblue3", "darkblue"))
-colfunc(25)
-heatmap.2(double.biomarker.FC,
-          dendrogram = "both",
-          col = colfunc(25),
-          scale="column",
-          margins=c(6,10),
-          xlab= "celllines",
-          ylab ="biomarker for cisplatin",
-          labCol = FALSE,
-          trace = "none",
-          key =TRUE,
-          keysize = 0.5,
-          density.info = "histogram",
-          key.title = "red = downregulation, blue =upregulation",
-          key.ylab = "count",
-          lmat=rbind( c(0, 3), c(2,1), c(0,4) ),
-          lhei = c(0.2,0.5,0.2))
-title("Influence of cisplatin on the biomarkers gene expression", line =10)
 
-#different version of the heatmap 
+#heatmap 
 pheatmap(double.biomarker.FC,
          color = colfunc(25),
          cluster_cols = TRUE,
          clustering_rows = TRUE,
-         clustering_distance_cols = "euclidean",
-         clustering_distance_rows = "euclidean",
          clustering_method ="ward.D2",
          treeheight_row = 20,
          treeheight_col = 30,
          legend =TRUE,
-         legend_labels = c("blue= upregulation", "red = downregulation"),
+         legend_breaks = c(-3:3),
+         legend_labels = c("red= downregulation","","","","","","blue= upregulation"),
          show_colnames = FALSE,
          cutree_rows = 2,
          cutree_cols = 5,
          border_color = "white",
          scale = "column",
          main = "Influence of cisplatin on the biomarkers gene expression")
+
+#checking if number of cluster is accurate (elbow plot) 
+wss = sapply(2:8, function(k) {
+  kmeans(x = t(double.biomarker.FC), centers = k)$tot.withinss
+})
+plot(2:8, wss, type = "b", pch = 19, xlab = "Number of clusters K", ylab = "Total within-clusters sum of squares")
 
 
 #further analysis of biomarker
@@ -196,38 +190,26 @@ copynumber.quali = ifelse(copynumber.biomarker < (quantiles[2,1]), (-1), ifelse 
 #heatmap variante 1
 colfunc2 <- colorRampPalette(c("firebrick2", "grey88", "deepskyblue3"))
 colfunc2(3)
+
 pheatmap(copynumber.quali,
          color = colfunc2(3),
          cluster_rows = TRUE,
          cluster_cols = TRUE,
          clustering_method = "ward.D2",
-         clustering_distance_cols = drows,
-         clustering_distance_rows = dcols,
+         legend = TRUE,
+         legend_breaks = c(-3:3),
+         legend_labels = c("red=deletion","","","", "", "", "blue=amplification"),
          scale = "column",
          border_color = "white",
          show_colnames = FALSE,
-         main =  "red= deletation, blue = amplification")
+         main =  "Connection between biomarker and gene alterations")
 
-#checking if clustering was successful 
+#checking the optimal number of cluster (elbow plot) 
 wss = sapply(2:7, function(k) {
   kmeans(x = t(copynumber.biomarker), centers = k)$tot.withinss
 })
-plot(1:7, wss, type = "b", pch = 19, xlab = "Number of clusters K", ylab = "Total within-clusters sum of squares")
+plot(2:7, wss, type = "b", pch = 19, xlab = "Number of clusters K", ylab = "Total within-clusters sum of squares")
 kmeans(x = t(copynumber.biomarker), centers = 4, nstart = 10)
 
-#heatmap variante 2
-heatmap.2(copynumber.quali,
-          dendrogram = "none",
-          labCol = FALSE,
-          col = colfunc2(3),
-          scale="column",
-          margins=c(4,9),
-          trace = "none",
-          key =TRUE,
-          keysize = 0.25,
-          key.title = "red = deletion, blue = amplification",
-          key.ylab = "count",
-          lmat=rbind( c(0, 3), c(2,1), c(0,4) ),
-          lhei = c(0.5,1,0.5))
-title("Connection between biomarker and gene alterations", line =1)
+
 
