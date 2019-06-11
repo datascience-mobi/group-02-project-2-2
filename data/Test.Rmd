@@ -47,6 +47,18 @@ treated.scaled <- scale(treated)
 untreated.scaled <- scale(untreated)
 ```
 
+## Coloring every drug
+Creating color vector
+```{r}
+colorvector = c("firebrick", "forestgreen", "blue", "orange", "black", "lightblue", "pink", "violet", "grey", "lightgreen", "navy", "gold", "yellow", "red", "peru")
+drugnames <- drug
+rownames(drugnames) = drugnames$Drug
+drugcolor <- cbind(colorvector, rownames(drugnames))
+drugcolorvector <- sapply(rownames(meta), function(x){
+   unname(drugcolor[meta[x, 3]], force = FALSE)
+ })
+```
+
 ## Boxplot treated without scaling
 Looking at the boxplot without scaling, 15 different batches can be seen. Colouring each drug will follow. 
 ```{r}
@@ -56,7 +68,7 @@ boxplot(treated, xlab = "Samples", horizontal = F, main = "Gene Expression Treat
 ## Boxplot treated with scaling
 Looking at the boxplot of scaled data, the 15 different batches disappeared. Colouring each drug will follow.
 ```{r}
-boxplot(treated.scaled, xlab="Samples", horizontal =F, main = "Gene Expression Treated Scaled")
+boxplot(treated.scaled, xlab="Samples", horizontal = F, main = "Gene Expression Treated Scaled")
 ```
 
 ## Fold Change Treated/Untreated
