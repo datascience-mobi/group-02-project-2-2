@@ -97,7 +97,7 @@ drug.added <- cbind(drug, targeted.chemo)
 chemocolor <- ifelse(drug.added$targeted.chemo=="chemo", "firebrick", "forestgreen")
 chemocolordrugs <- cbind(chemocolor, rownames(drugnames))
 chemocolorvector <- sapply(rownames(meta), function(x){
-       unname(tyrosincolor[meta[x, 3]], force = FALSE)
+       unname(chemocolordrugs[meta[x, 3]], force = FALSE)
    })
 # 2. while loop
 list.chemo = list("cisplatin","dasatinib","doxorubicin","geldanamycin","gemcitibine","lapatinib","paclitaxel","sorafenib","sunitinib","topotecan")
