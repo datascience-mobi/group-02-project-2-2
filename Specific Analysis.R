@@ -201,10 +201,19 @@ pheatmap(copynumber.quali,
          cluster_rows = TRUE,
          cluster_cols = TRUE,
          clustering_method = "ward.D2",
+         clustering_distance_cols = drows,
+         clustering_distance_rows = dcols,
          scale = "column",
          border_color = "white",
          show_colnames = FALSE,
          main =  "red= deletation, blue = amplification")
+
+#checking if clustering was successful 
+wss = sapply(2:7, function(k) {
+  kmeans(x = t(copynumber.biomarker), centers = k)$tot.withinss
+})
+plot(1:7, wss, type = "b", pch = 19, xlab = "Number of clusters K", ylab = "Total within-clusters sum of squares")
+kmeans(x = t(copynumber.biomarker), centers = 4, nstart = 10)
 
 #heatmap variante 2
 heatmap.2(copynumber.quali,
