@@ -23,7 +23,7 @@ meta <- read.delim("C:/Users/Dori/Documents/cellline_annotation.tsv", header = T
 drug <- read.delim("C:/Users/Dori/Documents/drug_annotation.tsv", header = TRUE, sep = "\t")
 ```
 ## Remove NAs
-In order to clean up our data, we created a loop for proving every matrix. Then, two coloumns, which only contained of NAs were removed out of the mutations matrix.
+In order to clean up our data, we created a loop for checking the amount of NAs in every matrix. Then, two coloumns, which only contained of NAs were removed out of the mutations matrix.
 ```{r}
 list.na = list("treated"=treated, "untreated"=untreated, "mutations"=mutations, "basalexp" = basalexp, "cellline"=cellline, "copynumber"=copynumber, "ic50"=ic50, "meta"=meta)
 myfunc = function(x){sum(is.na(x))}
@@ -48,7 +48,7 @@ untreated.scaled <- scale(untreated)
 ```
 
 ## Coloring every drug
-Creating color vector
+In order to color following plots with a different color for each drug a vector was created. 
 ```{r}
 colorvector = c("firebrick", "forestgreen", "blue", "orange", "black", "lightblue", "pink", "violet", "grey", "lightgreen", "navy", "gold", "yellow", "red", "peru")
 drugnames <- drug
@@ -60,19 +60,21 @@ drugcolorvector <- sapply(rownames(meta), function(x){
 ```
 
 ## Boxplot treated without scaling
-Looking at the boxplot without scaling, 15 different batches can be seen. Colouring each drug will follow. 
+In order to get an overview a boxplot of the treated data was computed. There was a visible difference between the 15 batches. 
+###each drug is colored in a different color
 ```{r}
 boxplot(treated, xlab = "Samples", horizontal = F, main = "Gene Expression Treated")
 ```
 
 ## Boxplot treated with scaling
-Looking at the boxplot of scaled data, the 15 different batches disappeared. Colouring each drug will follow.
+Through scaling the data the different batches dissapeared.
+####color
 ```{r}
 boxplot(treated.scaled, xlab="Samples", horizontal = F, main = "Gene Expression Treated Scaled")
 ```
 
 ## Fold Change Treated/Untreated
-For analyse of changed gene expression from untreated to treated, fold change was computed. The distribution can be observed by looking at the density plot of the log2 FC matrix.
+In order to analyse the gene expression change from untreated to treated, log2 fold change values were computed. The distribution was checked through a density plot.
 ```{r}
 log2FC.treated.untreated <- log2(treated.scaled/untreated.scaled)
 is.nan.data.frame <- function(x)      #NaN durch 0 ersetzen
@@ -82,7 +84,10 @@ plot(density(log2FC.treated.untreated), main = "Log2 FC Treated/Untreated")
 ```
 
 ## PCA
-For a dimensional reduction, a principal component analysis was performed. By plotting PC1 against PC2 and Pc3 against PC4, clusters of drugs can be observed. Colouring every drug, targeted/chemo and tyrosine kinase inhibitors will follow.
+For a dimensional reduction, a principal component analysis was performed. The PCA was interpreted by plotting the first four components and coloring different groups of data.
+First chemotherapeutics and targeted drugs were colored in both plots. This did not seperate the data in visible groups. 
+Next each drug was colored in a different color, the color scheme remained the same as bevore. Here PC3 and PC4 seem to seperate the diffenrent drugs. Especially vorinostat was seperated from the rest of the data.
+Lastly 4 tyrosine kinase inhibitors drugs were colored. There was no seperation visible.
 ```{r}
 PCA.FC <- prcomp(log2FC.treated.untreated, center=F , scale.=F)
 plot(PCA.FC, type ="lines")
