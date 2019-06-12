@@ -86,6 +86,7 @@ plot(density(log2FC.treated.untreated), main = "Log2 FC Treated/Untreated")
 PCA.FC <- prcomp(log2FC.treated.untreated, center=F , scale=F)
 plot(PCA.FC, type ="lines")
 plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], xlab = "PC1", ylab = "PC2", pch=19, main = "PCA Treated/Untreated")
+plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], xlab = "PC3", ylab = "PC4", pch=19, main = "PCA Treated/Untreated")
 # wie viel Varianz wird durch components erklaert?
 Varianz.PCA=PCA.FC$sdev^2
 
