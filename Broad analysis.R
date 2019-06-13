@@ -160,6 +160,6 @@ while(i<16)
 #plot tyrosin kinase PCA
 colnames(FC.named)[tyrosin] <- "tyrosin"
 color.tyrosin <- ifelse(colnames(FC.named)=="tyrosin", "brown2","darkolivegreen4")
-plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=color.tyrosin, xlab = "PC1", ylab = "PC2", pch=19, main = "PCA Tyrosin Kinase Inhibitor")
-plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=color.tyrosin, xlab = "PC1", ylab = "PC2", pch=19, main = "PCA Tyrosin Kinase Inhibitor")
+plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=tyrosincolorvector, xlab = "PC1", ylab = "PC2", pch=19, main = "PCA Tyrosin Kinase Inhibitor")
+plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=tyrosincolorvector, xlab = "PC3", ylab = "PC4", pch=19, main = "PCA Tyrosin Kinase Inhibitor")
 
