@@ -196,10 +196,7 @@ pheatmap(double.biomarker.FC,
          treeheight_row = 20,
          treeheight_col = 30,
          annotation_col = annotation,
-         cutree_cols = 5,
-         cutree_rows = 2, 
          legend =TRUE,
-         show_colnames = FALSE, 
          legend_breaks = c(-3:3),
          legend_labels = c("red= downregulation","","","","","","blue= upregulation"),
          show_colnames = FALSE,
@@ -208,13 +205,6 @@ pheatmap(double.biomarker.FC,
          border_color = "white",
          scale = "column",
          main = "Influence of cisplatin on the biomarkers gene expression")
-
-
-#checking if number of cluster is accurate (elbow plot) 
-wss = sapply(2:8, function(k) {
-  kmeans(x = t(double.biomarker.FC), centers = k)$tot.withinss
-})
-plot(2:8, wss, type = "b", pch = 19, xlab = "Number of clusters K", ylab = "Total within-clusters sum of squares")
 
 
 
@@ -226,6 +216,7 @@ copynumber.biomarker = copynumber.biomarker[-11,]
 copynumber.biomarker = as.matrix(copynumber.biomarker)
 
 
+#80:20 quantiles
 quantiles = as.matrix(quantile(copynumber.biomarker, probs= c(0, 0.2, 0.25, 0.5, 0.75, 0.8,1)))
 plot(density(copynumber.biomarker))
 abline(v= quantiles[c(2,6),1], col= c("red", "blue"), lty =2)
@@ -248,13 +239,14 @@ pheatmap(copynumber.quali,
          show_colnames = FALSE,
          cutree_rows = 2,
          cutree_cols = 3,
-         main =  "Connection between biomarker and gene alterations")
+         main =  "Connection between biomarker and gene alterations (80:20)")
 
 
 
 #heatmap with 75:25 quantile
-
 quantiles2 = as.matrix(quantile(copynumber.biomarker))
+plot(density(copynumber.biomarker))
+abline(v= quantiles2[c(2,4),1], col= c("red", "blue"), lty =2)
 copynumber.quali2 = ifelse(copynumber.biomarker < (quantiles2[2,1]), (-1), ifelse (copynumber.biomarker > (quantiles2[4,1]), 1, 0))
 
 colfunc2 <- colorRampPalette(c("firebrick2", "grey88", "deepskyblue3"))
@@ -272,16 +264,8 @@ pheatmap(copynumber.quali2,
          show_colnames = FALSE,
          cutree_rows = 2,
          cutree_cols = 3,
-         main =  "Connection between biomarker and gene alterations")
+         main =  "Connection between biomarker and gene alterations (75:25)")
 
-
-#checking the optimal number of cluster (elbow plot) 
-wss = sapply(2:7, function(k) {
-  kmeans(x = t(copynumber.quali), centers = k)$tot.withinss
-})
-plot(2:7, wss, type = "b", pch = 19, xlab = "Number of clusters K", ylab = "Total within-clusters sum of squares")
-
-kmeans= kmeans(x = t(copynumber.quali), centers = 4, nstart = 10)
 
 
 #heatmap with annotation
@@ -293,10 +277,18 @@ pheatmap(copynumber.quali,
          cutree_cols = 3,
          cutree_rows = 3,
          annotation = annotation,
+         show_colnames = FALSE,
          legend = TRUE,
          legend_breaks = c(-3:3),
          legend_labels = c("red=deletion","","","", "", "", "blue=amplification"),
          scale = "column",
          border_color = "white",
-         show_colnames = FALSE,
-         main =  "Connection between biomarker and gene alterations")
+         main =  "Connection between biomarker and gene alterations (80:20)")
+
+#checking the optimal number of cluster (elbow plot) 
+wss = sapply(2:7, function(k) {
+  kmeans(x = t(copynumber.quali), centers = k)$tot.withinss
+})
+plot(2:7, wss, type = "b", pch = 19, xlab = "Number of clusters K", ylab = "Total within-clusters sum of squares")
+
+kmeans= kmeans(x = t(copynumber.quali), centers = 4, nstart = 10)
