@@ -30,6 +30,8 @@ log2FC.treated.untreated[is.nan(log2FC.treated.untreated)] <- 0
 
 ##Specific analysis
 
+## Step 1 (a)
+
 #Find Biomarker for cisplatin through FC (criterium 1)
 cisplatin.col=c()
 j=1
@@ -74,10 +76,9 @@ barplot(highest.FC,
 highest.FC = as.matrix(highest.FC) 
 lowest.FC = as.matrix(lowest.FC)
 biomarker1.FC = as.matrix(c(highest.FC, lowest.FC))
-row.names(biomarker1.FC) <- c(highest.names, lowest.names)
 highest.names <- row.names(highest.FC)
 lowest.names <- row.names(lowest.FC)
-
+row.names(biomarker1.FC) <- c(highest.names, lowest.names)
 biomarker1 <- c(highest.names, lowest.names)
 
 #criterium 2
@@ -123,6 +124,8 @@ while(i<41)
           a=a+1
 }
 
+
+## Step 1 (b)
 # ttest to verify significance of the biomarker
 #Creating seperated matrices containing cisplatin
 treated.cisplatin <- treated.scaled[,grep ("cisplatin", colnames(treated.scaled))]
@@ -144,13 +147,15 @@ pvalues.wilcoxon <- sapply(double.biomarker, function(x){
 cbind(pvalues.welch, pvalues.wilcoxon)
 
 
+
+#Step 2
 #influence of cisplatin on the biomarkers gene expression in different cell lines
 double.biomarker.FC = FC.cisplatin[double.biomarker,]
 colfunc <- colorRampPalette(c("firebrick","firebrick3","lightcoral",
                               "lightyellow","lightskyblue1","steelblue1",
                               "steelblue3", "darkblue"))
 
-#heatmap 
+#heatmap
 pheatmap(double.biomarker.FC,
          color = colfunc(25),
          cluster_cols = TRUE,
@@ -158,15 +163,40 @@ pheatmap(double.biomarker.FC,
          clustering_method ="ward.D2",
          treeheight_row = 20,
          treeheight_col = 30,
+         cutree_cols = 5,
+         cutree_rows = 2, 
          legend =TRUE,
+         show_colnames = FALSE,
          legend_breaks = c(-3:3),
          legend_labels = c("red= downregulation","","","","","","blue= upregulation"),
-         show_colnames = FALSE,
-         cutree_rows = 2,
+         border_color = FALSE,
+         scale = "column",
+         main = "Influence of cisplatin on the biomarkers gene expression")
+
+#heatmap with annotation
+colnames(double.biomarker.FC) <- meta[95:149,2]
+annotation = data.frame(Cancertype = cellline$Cancer_type)
+rownames(annotation) = cellline$Cell_Line_Name
+
+
+pheatmap(double.biomarker.FC,
+         color = colfunc(25),
+         cluster_cols = TRUE,
+         clustering_rows = TRUE,
+         clustering_method ="ward.D2",
+         treeheight_row = 20,
+         treeheight_col = 30,
+         annotation_col = annotation,
          cutree_cols = 5,
+         cutree_rows = 2, 
+         legend =TRUE,
+         show_colnames = FALSE, 
+         legend_breaks = c(-3:3),
+         legend_labels = c("red= downregulation","","","","","","blue= upregulation"),
          border_color = "white",
          scale = "column",
          main = "Influence of cisplatin on the biomarkers gene expression")
+
 
 #checking if number of cluster is accurate (elbow plot) 
 wss = sapply(2:8, function(k) {
@@ -175,6 +205,9 @@ wss = sapply(2:8, function(k) {
 plot(2:8, wss, type = "b", pch = 19, xlab = "Number of clusters K", ylab = "Total within-clusters sum of squares")
 
 
+
+
+##Step 3
 #further analysis of biomarker
 #amplification, deletation or neutral gene copy number
 copynumber.biomarker = copynumber[double.biomarker,]
@@ -182,12 +215,14 @@ copynumber.biomarker = copynumber.biomarker[-11,]
 copynumber.biomarker = as.matrix(copynumber.biomarker)
 
 
-quantiles = as.matrix(quantile(copynumber.biomarker))
+quantiles = as.matrix(quantile(copynumber.biomarker, probs= c(0, 0.2, 0.25, 0.5, 0.75, 0.8,1)))
 plot(density(copynumber.biomarker))
-abline(v= quantiles[c(2,4),1], col= c("red", "blue"), lty =2)
-copynumber.quali = ifelse(copynumber.biomarker < (quantiles[2,1]), (-1), ifelse (copynumber.biomarker > (quantiles[4,1]), 1, 0))
+abline(v= quantiles[c(2,6),1], col= c("red", "blue"), lty =2)
+copynumber.quali = ifelse(copynumber.biomarker < (quantiles[2,1]), (-1), ifelse (copynumber.biomarker > (quantiles[6,1]), 1, 0))
 
-#heatmap variante 1
+
+
+#heatmap
 colfunc2 <- colorRampPalette(c("firebrick2", "grey88", "deepskyblue3"))
 colfunc2(3)
 
@@ -196,6 +231,8 @@ pheatmap(copynumber.quali,
          cluster_rows = TRUE,
          cluster_cols = TRUE,
          clustering_method = "ward.D2",
+         cutree_rows = 3,
+         cutree_cols = 3, 
          legend = TRUE,
          legend_breaks = c(-3:3),
          legend_labels = c("red=deletion","","","", "", "", "blue=amplification"),
@@ -209,7 +246,22 @@ wss = sapply(2:7, function(k) {
   kmeans(x = t(copynumber.biomarker), centers = k)$tot.withinss
 })
 plot(2:7, wss, type = "b", pch = 19, xlab = "Number of clusters K", ylab = "Total within-clusters sum of squares")
-kmeans(x = t(copynumber.biomarker), centers = 4, nstart = 10)
 
+kmeans= kmeans(x = t(copynumber.biomarker), centers = 3, nstart = 10)
 
-
+#heatmap with annotation
+pheatmap(copynumber.quali,
+         color = colfunc2(3),
+         cluster_rows = TRUE,
+         cluster_cols = TRUE,
+         clustering_method = "ward.D2",
+         cutree_cols = 3,
+         cutree_rows = 3,
+         annotation = annotation,
+         legend = TRUE,
+         legend_breaks = c(-3:3),
+         legend_labels = c("red=deletion","","","", "", "", "blue=amplification"),
+         scale = "column",
+         border_color = "white",
+         show_colnames = FALSE,
+         main =  "Connection between biomarker and gene alterations")
