@@ -81,7 +81,7 @@ lowest.names <- row.names(lowest.FC)
 row.names(biomarker1.FC) <- c(highest.names, lowest.names)
 biomarker1 <- c(highest.names, lowest.names)
 
-#criterium 2
+#sort out biomarker that don´t change in the same "direction" for most cell lines
 is.neg = FC.cisplatin<0
 i =1
 j=1
@@ -131,22 +131,16 @@ while(i<41)
 treated.cisplatin <- treated.scaled[,grep ("cisplatin", colnames(treated.scaled))]
 untreated.cisplatin <- untreated.scaled[,grep("cisplatin", colnames(treated.scaled))]
 
-# 1. checking normality example BBS9
-qqnorm(treated.cisplatin["BBS9", ], main = "BBS9")
-qqline(treated.cisplatin["BBS9", ])
+# 1. Normality was checked for all biomarkers through QQplots. This is an example.
+qqnorm(treated.cisplatin["POLR3B", ], main = "POLR3B")
+qqline(treated.cisplatin["POLR3B", ])
 
 
-# 2. Welch two sample t-test
+# 2. Welch two sample t-test. Check if the expressional change of biomarkers is significant. 
 pvalues.welch <- sapply(double.biomarker, function(x){
        t.test(treated.cisplatin[x,], untreated.cisplatin[x,],paired= T)$p.value
    })
-# 3. Wlicoxon rank sum test
-pvalues.wilcoxon <- sapply(double.biomarker, function(x){
-          wilcox.test(treated.cisplatin[x,], untreated.cisplatin[x,],paired= T)$p.value
-      })
-# Comparison t-tests
-cbind(pvalues.welch, pvalues.wilcoxon)
-
+plot(density(pvalues.welch))
 
 
 #Step 2
