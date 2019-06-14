@@ -135,6 +135,7 @@ untreated.cisplatin <- untreated.scaled[,grep("cisplatin", colnames(treated.scal
 qqnorm(treated.cisplatin["BBS9", ], main = "BBS9")
 qqline(treated.cisplatin["BBS9", ])
 
+
 # 2. Welch two sample t-test
 pvalues.welch <- sapply(double.biomarker, function(x){
        t.test(treated.cisplatin[x,], untreated.cisplatin[x,],paired= T)$p.value
@@ -231,16 +232,7 @@ abline(v= quantiles[c(2,6),1], col= c("red", "blue"), lty =2)
 copynumber.quali = ifelse(copynumber.biomarker < (quantiles[2,1]), (-1), ifelse (copynumber.biomarker > (quantiles[6,1]), 1, 0))
 
 
-
-#checking the optimal number of cluster (elbow plot) 
-wss = sapply(2:7, function(k) {
-  kmeans(x = t(copynumber.biomarker), centers = k)$tot.withinss
-})
-plot(2:7, wss, type = "b", pch = 19, xlab = "Number of clusters K", ylab = "Total within-clusters sum of squares")
-kmeans(x = t(copynumber.biomarker), centers = 4, nstart = 10)
-
-
-#heatmap
+#heatmap with 80:20 quantile
 colfunc2 <- colorRampPalette(c("firebrick2", "grey88", "deepskyblue3"))
 colfunc2(3)
 pheatmap(copynumber.quali,
@@ -248,8 +240,6 @@ pheatmap(copynumber.quali,
          cluster_rows = TRUE,
          cluster_cols = TRUE,
          clustering_method = "ward.D2",
-         cutree_rows = 3,
-         cutree_cols = 3, 
          legend = TRUE,
          legend_breaks = c(-3:3),
          legend_labels = c("red=deletion","","","", "", "", "blue=amplification"),
@@ -260,14 +250,39 @@ pheatmap(copynumber.quali,
          cutree_cols = 3,
          main =  "Connection between biomarker and gene alterations")
 
+
+
+#heatmap with 75:25 quantile
+
+quantiles2 = as.matrix(quantile(copynumber.biomarker))
+copynumber.quali2 = ifelse(copynumber.biomarker < (quantiles2[2,1]), (-1), ifelse (copynumber.biomarker > (quantiles2[4,1]), 1, 0))
+
+colfunc2 <- colorRampPalette(c("firebrick2", "grey88", "deepskyblue3"))
+colfunc2(3)
+pheatmap(copynumber.quali2,
+         color = colfunc2(3),
+         cluster_rows = TRUE,
+         cluster_cols = TRUE,
+         clustering_method = "ward.D2",
+         legend = TRUE,
+         legend_breaks = c(-3:3),
+         legend_labels = c("red=deletion","","","", "", "", "blue=amplification"),
+         scale = "column",
+         border_color = "white",
+         show_colnames = FALSE,
+         cutree_rows = 2,
+         cutree_cols = 3,
+         main =  "Connection between biomarker and gene alterations")
+
+
 #checking the optimal number of cluster (elbow plot) 
 wss = sapply(2:7, function(k) {
-  kmeans(x = t(copynumber.biomarker), centers = k)$tot.withinss
+  kmeans(x = t(copynumber.quali), centers = k)$tot.withinss
 })
 plot(2:7, wss, type = "b", pch = 19, xlab = "Number of clusters K", ylab = "Total within-clusters sum of squares")
 
+kmeans= kmeans(x = t(copynumber.quali), centers = 4, nstart = 10)
 
-kmeans= kmeans(x = t(copynumber.biomarker), centers = 3, nstart = 10)
 
 #heatmap with annotation
 pheatmap(copynumber.quali,
