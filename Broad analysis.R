@@ -15,10 +15,11 @@ drug = read.delim(paste0(wd, "/data/drug_annotation.tsv"), header = TRUE, sep = 
 #color drug: all drugs
 # 2 versions
 # 1. sapply
-colorvector = c("firebrick", "forestgreen", "blue", "orange", "black", "lightblue", "pink", "violet", "grey", "lightgreen", "navy", "gold", "yellow", "red", "peru")
+colorvector = c("firebrick", "forestgreen", "blue", "orange", "black", "lightblue", "pink", "violet", "grey", "lightgreen", "darkblue", "gold", "yellow", "red", "peru")
 drugnames <- drug
 rownames(drugnames) = drugnames$Drug
-drugcolor <- cbind(colorvector, rownames(drugnames))
+drugnames.ordered <- drugnames[order(drugnames$Drug),]
+drugcolor <- cbind(colorvector, rownames(drugnames.ordered))
 drugcolorvector <- sapply(rownames(meta), function(x){
   unname(drugcolor[meta[x, 3]], force = FALSE)
 })
@@ -85,6 +86,7 @@ plot(density(log2FC.treated.untreated), main = "Log2 FC Treated/Untreated")
 PCA.FC <- prcomp(log2FC.treated.untreated, center=F , scale=F)
 plot(PCA.FC, type ="lines")
 plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], xlab = "PC1", ylab = "PC2", pch=19, main = "PCA Treated/Untreated")
+plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], xlab = "PC3", ylab = "PC4", pch=19, main = "PCA Treated/Untreated")
 # wie viel Varianz wird durch components erklaert?
 Varianz.PCA=PCA.FC$sdev^2
 
@@ -94,7 +96,8 @@ Varianz.PCA=PCA.FC$sdev^2
 #spalte ergänzen drug chemo
 targeted.chemo <- c("targeted", "targeted", "chemo", "chemo", "chemo", "chemo", "chemo", "targeted", "targeted", "chemo", "chemo", "chemo", "chemo", "targeted", "chemo")
 drug.added <- cbind(drug, targeted.chemo)
-chemocolor <- ifelse(drug.added$targeted.chemo=="chemo", "firebrick", "forestgreen")
+drug.added.ordered <- drug.added[order(drug.added$Drug),]
+chemocolor <- ifelse(drug.added.ordered$targeted.chemo=="chemo", "firebrick", "forestgreen")
 chemocolordrugs <- cbind(chemocolor, rownames(drugnames))
 chemocolorvector <- sapply(rownames(meta), function(x){
        unname(chemocolordrugs[meta[x, 3]], force = FALSE)
@@ -131,11 +134,11 @@ plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=drug.color.vector, xlab = "
 #color: tyrosine kinase inhibitor
 # 2 versions
 # 1. sapply
-tyrosincolor <- ifelse(drug$Mechanism=="Tyrosine kinase inhibitor", "brown2", "darkolivegreen4")
-tyrosincolordrugs <- cbind(tyrosincolor, rownames(drugnames))
+tyrosincolor <- ifelse(drugnames.ordered$Mechanism=="Tyrosine kinase inhibitor", "brown2", "darkolivegreen4")
+tyrosincolordrugs <- cbind(tyrosincolor, rownames(drugnames.ordered))
 tyrosincolorvector <- sapply(rownames(meta), function(x){
-       unname(tyrosincolor[meta[x, 3]], force = FALSE)
-   })
+          unname(tyrosincolor[meta[x, 3]], force = FALSE)
+      })
 # 2. while loop
 list.tyrosin = list("dasatinib", "sunitinib", "lapatinib", "sorafenib")
 tyrosin = c()
@@ -157,10 +160,6 @@ while(i<16)
 #plot tyrosin kinase PCA
 colnames(FC.named)[tyrosin] <- "tyrosin"
 color.tyrosin <- ifelse(colnames(FC.named)=="tyrosin", "brown2","darkolivegreen4")
-plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=color.tyrosin, xlab = "PC1", ylab = "PC2", pch=19, main = "PCA Tyrosin Kinase Inhibitor")
-plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=color.tyrosin, xlab = "PC1", ylab = "PC2", pch=19, main = "PCA Tyrosin Kinase Inhibitor")
-
-
-
-
+plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=tyrosincolorvector, xlab = "PC1", ylab = "PC2", pch=19, main = "PCA Tyrosin Kinase Inhibitor")
+plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=tyrosincolorvector, xlab = "PC3", ylab = "PC4", pch=19, main = "PCA Tyrosin Kinase Inhibitor")
 

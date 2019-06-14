@@ -155,7 +155,15 @@ colfunc <- colorRampPalette(c("firebrick","firebrick3","lightcoral",
                               "lightyellow","lightskyblue1","steelblue1",
                               "steelblue3", "darkblue"))
 
-#heatmap
+
+#checking how many clusters we will need in the heatmap (elbow plot) 
+wss = sapply(2:8, function(k) {
+  kmeans(x = t(double.biomarker.FC), centers = k)$tot.withinss
+})
+plot(2:8, wss, type = "b", pch = 19, xlab = "Number of clusters K", ylab = "Total within-clusters sum of squares")
+
+
+#heatmap 
 pheatmap(double.biomarker.FC,
          color = colfunc(25),
          cluster_cols = TRUE,
@@ -193,6 +201,9 @@ pheatmap(double.biomarker.FC,
          show_colnames = FALSE, 
          legend_breaks = c(-3:3),
          legend_labels = c("red= downregulation","","","","","","blue= upregulation"),
+         show_colnames = FALSE,
+         cutree_rows = 2,
+         cutree_cols = 3,
          border_color = "white",
          scale = "column",
          main = "Influence of cisplatin on the biomarkers gene expression")
@@ -203,7 +214,6 @@ wss = sapply(2:8, function(k) {
   kmeans(x = t(double.biomarker.FC), centers = k)$tot.withinss
 })
 plot(2:8, wss, type = "b", pch = 19, xlab = "Number of clusters K", ylab = "Total within-clusters sum of squares")
-
 
 
 
@@ -222,10 +232,17 @@ copynumber.quali = ifelse(copynumber.biomarker < (quantiles[2,1]), (-1), ifelse 
 
 
 
+#checking the optimal number of cluster (elbow plot) 
+wss = sapply(2:7, function(k) {
+  kmeans(x = t(copynumber.biomarker), centers = k)$tot.withinss
+})
+plot(2:7, wss, type = "b", pch = 19, xlab = "Number of clusters K", ylab = "Total within-clusters sum of squares")
+kmeans(x = t(copynumber.biomarker), centers = 4, nstart = 10)
+
+
 #heatmap
 colfunc2 <- colorRampPalette(c("firebrick2", "grey88", "deepskyblue3"))
 colfunc2(3)
-
 pheatmap(copynumber.quali,
          color = colfunc2(3),
          cluster_rows = TRUE,
@@ -239,6 +256,8 @@ pheatmap(copynumber.quali,
          scale = "column",
          border_color = "white",
          show_colnames = FALSE,
+         cutree_rows = 2,
+         cutree_cols = 3,
          main =  "Connection between biomarker and gene alterations")
 
 #checking the optimal number of cluster (elbow plot) 
@@ -246,6 +265,7 @@ wss = sapply(2:7, function(k) {
   kmeans(x = t(copynumber.biomarker), centers = k)$tot.withinss
 })
 plot(2:7, wss, type = "b", pch = 19, xlab = "Number of clusters K", ylab = "Total within-clusters sum of squares")
+
 
 kmeans= kmeans(x = t(copynumber.biomarker), centers = 3, nstart = 10)
 
