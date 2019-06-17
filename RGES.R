@@ -21,12 +21,12 @@ nbinomTestForMatrices(treated, untreated, ...)
 
 ### drug_signature Doris Versuch
 mode(treated) <- "integer"
-cds.treated <- newCountDataSet(countData=treated, condition=c(rep(1,819))) 
+cds.treated <- newCountDataSet(countData=treated, condition=c(rep("treated",819))) 
 cds.treated <- estimateSizeFactors(cds.treated)
 cds.treated <- estimateDispersions(cds.treated, method="per-condition")
 
 mode(untreated) <- "integer"
-cds.untreated <- newCountDataSet(countData = untreated, condition = c(rep(1,819)))
+cds.untreated <- newCountDataSet(countData = untreated, condition = c(rep("untreated",819)))
 cds.untreated <- estimateSizeFactors(cds.untreated)
 cds.untreated <- estimateDispersions(cds.untreated, method="per-condition")
 # glaub brauchen wir eigentlich nicht von hier:
@@ -41,5 +41,20 @@ treated.dispersions <- fData(cds.treated)
 str( fitInfo( cds.untreated ) )
 untreated.dispersions <- fData(cds.untreated)
 
-pvalues <- nbinomTestForMatrices(counts(cds.treated), counts(cds.untreated), sizeFactors(cds.treated), sizeFactors(cds.untreated), treated.dispersions[,1], untreated.dispersions[,1] )
-names(pvalues) <- row.names(counts(cds.treated))
+p.values <- nbinomTestForMatrices(counts(cds.treated), counts(cds.untreated), sizeFactors(cds.treated), sizeFactors(cds.untreated), treated.dispersions[,1], untreated.dispersions[,1] )
+names(p.values) <- row.names(counts(cds.treated))
+
+# anderer Ansatz
+mode(treated) <- "integer"
+mode(untreated) <- "integer"
+treated.untreated <- cbind(treated,untreated)
+cds = newCountDataSet(countData = treated.untreated, conditions = c(rep("treated",819),rep("untreated",819)))
+cds = estimateSizeFactors(cds)
+cds = estimateDispersions(cds)
+str( fitInfo(cds) )
+plotDispEsts(cds)
+fData(cds)
+nbinom.treated.untreated = nbinomTest(cds, "treated", "untreated")
+plotMA(nbinom.treated.untreated)
+hist(nbinom.treated.untreated$pval, breaks=100, col="skyblue", border="slateblue", main="p-values nbinom")
+
