@@ -13,6 +13,7 @@ library(viridis)
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
 ## Load Data
 The given data is integrated as follows:
 ```{r}
@@ -26,6 +27,7 @@ cellline <- read.delim("C:/Users/Dori/Documents/cellline_annotation.tsv", header
 meta <- read.delim("C:/Users/Dori/Documents/cellline_annotation.tsv", header = TRUE, sep = "\t")
 drug <- read.delim("C:/Users/Dori/Documents/drug_annotation.tsv", header = TRUE, sep = "\t")
 ```
+
 ## Remove NAs
 In order to clean up our data, we created a loop for checking the amount of NAs in every matrix. Then, two coloumns, which only contained of NAs were removed out of the mutations matrix.
 ```{r}
@@ -42,6 +44,7 @@ while(i<9)
 
 mutations.removed = mutations[, -(12:13)]
 ```
+
 ## Scaling
 For normalizing our data, scale was used. 
 ```{r}
@@ -54,18 +57,23 @@ untreated.scaled <- scale(untreated)
 ## Coloring every drug
 In order to color following plots with a different color for each drug a vector was created. 
 ```{r}
-colorvector = viridis(15)
+cols15 <- c("#d7ff2e","#2f0085","#02ee81","#f357ff",
+            "#86ae00","#ff2f86","#008118","#ff443e",
+            "#008b9d","#ffcd77","#1a001e","#f8ffb4",
+            "#b6a7ff","#572a00","#c8fff7")
 drugnames <- drug
 rownames(drugnames) = drugnames$Drug
 drugnames.ordered <- drugnames[order(drugnames$Drug),]
-drugcolor <- cbind(colorvector, rownames(drugnames.ordered))
-drugcolorvector <- sapply(rownames(meta), function(x){
+drugcolor <- cbind(cols15, rownames(drugnames.ordered))
+colnames(drugcolor) <- c("color", "drug")
+drugcolorvector <- sapply(seq_along(meta[,3]), function(x){
   unname(drugcolor[meta[x, 3]], force = FALSE)
 })
 ```
 
 ## Boxplot treated without scaling
 In order to get an overview a boxplot of the treated data was computed. There was a visible difference between the 15 batches. 
+
 ###each drug is colored in a different color
 ```{r}
 boxplot(treated, xlab = "Samples", horizontal = F, border = drugcolorvector, main = "Gene Expression Treated")
@@ -73,6 +81,7 @@ boxplot(treated, xlab = "Samples", horizontal = F, border = drugcolorvector, mai
 
 ## Boxplot treated with scaling
 Through scaling the data the different batches dissapeared.
+
 ####color
 ```{r}
 boxplot(treated.scaled, xlab="Samples", horizontal = F, border = drugcolorvector, main = "Gene Expression Treated Scaled")
