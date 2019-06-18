@@ -2,9 +2,13 @@
 title: "Project 2 - Group 2"
 author: "Dorothee Mersch"
 date: "5 Juni 2019"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
-
+```{r}
+library(viridis)
+```
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -50,27 +54,28 @@ untreated.scaled <- scale(untreated)
 ## Coloring every drug
 In order to color following plots with a different color for each drug a vector was created. 
 ```{r}
-colorvector = c("firebrick", "forestgreen", "blue", "orange", "black", "lightblue", "pink", "violet", "grey", "lightgreen", "navy", "gold", "yellow", "red", "peru")
+colorvector = viridis(15)
 drugnames <- drug
 rownames(drugnames) = drugnames$Drug
-drugcolor <- cbind(colorvector, rownames(drugnames))
+drugnames.ordered <- drugnames[order(drugnames$Drug),]
+drugcolor <- cbind(colorvector, rownames(drugnames.ordered))
 drugcolorvector <- sapply(rownames(meta), function(x){
-   unname(drugcolor[meta[x, 3]], force = FALSE)
- })
+  unname(drugcolor[meta[x, 3]], force = FALSE)
+})
 ```
 
 ## Boxplot treated without scaling
 In order to get an overview a boxplot of the treated data was computed. There was a visible difference between the 15 batches. 
 ###each drug is colored in a different color
 ```{r}
-boxplot(treated, xlab = "Samples", horizontal = F, main = "Gene Expression Treated")
+boxplot(treated, xlab = "Samples", horizontal = F, border = drugcolorvector, main = "Gene Expression Treated")
 ```
 
 ## Boxplot treated with scaling
 Through scaling the data the different batches dissapeared.
 ####color
 ```{r}
-boxplot(treated.scaled, xlab="Samples", horizontal = F, main = "Gene Expression Treated Scaled")
+boxplot(treated.scaled, xlab="Samples", horizontal = F, border = drugcolorvector, main = "Gene Expression Treated Scaled")
 ```
 
 ## Fold Change Treated/Untreated
@@ -98,4 +103,35 @@ plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], xlab = "PC3", ylab = "PC4", pch
 ## How many variance can be explained by the principle components?
 ```{r}
 Varianz.PCA=PCA.FC$sdev^2
+```
+
+## colored PCA (drugs)
+plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=drug.color.vector, xlab = "PC1", ylab = "PC2", pch=19, main ="PCA Drugs")
+plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=drug.color.vector, xlab = "PC3", ylab = "PC4", pch=19, main = "PCA Drugs")
+
+## colored PCA chemo/targeted
+```{r}
+targeted.chemo <- c("targeted", "targeted", "chemo", "chemo", "chemo", "chemo", "chemo", "targeted", "targeted", "chemo", "chemo", "chemo", "chemo", "targeted", "chemo")
+drug.added <- cbind(drug, targeted.chemo)
+drug.added.ordered <- drug.added[order(drug.added$Drug),]
+chemocolor <- ifelse(drug.added.ordered$targeted.chemo=="chemo", "firebrick", "forestgreen")
+chemocolordrugs <- cbind(chemocolor, rownames(drugnames))
+chemocolorvector <- sapply(rownames(meta), function(x){
+       unname(chemocolordrugs[meta[x, 3]], force = FALSE)
+   })
+#plot
+plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=chemocolorvector, xlab = "PC1", ylab = "PC2", pch=19, main ="PCA Drugs")
+plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=chemocolorvector, xlab = "PC3", ylab = "PC4", pch=19, main = "PCA Drugs")
+```
+
+## colored PCA tyrosine kinase inhibitor 
+```{r}
+tyrosincolor <- ifelse(drugnames.ordered$Mechanism=="Tyrosine kinase inhibitor", "firebrick", "forestgreen")
+tyrosincolordrugs <- cbind(tyrosincolor, rownames(drugnames.ordered))
+tyrosincolorvector <- sapply(rownames(meta), function(x){
+          unname(tyrosincolor[meta[x, 3]], force = FALSE)
+      })
+#plot
+plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=tyrosincolorvector, xlab = "PC1", ylab = "PC2", pch=19, main = "PCA Tyrosin Kinase Inhibitor")
+plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=tyrosincolorvector, xlab = "PC3", ylab = "PC4", pch=19, main = "PCA Tyrosin Kinase Inhibitor")
 ```
