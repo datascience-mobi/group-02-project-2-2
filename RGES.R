@@ -12,12 +12,10 @@ treated = readRDS(paste0(wd, "/data/NCI_TPW_gep_treated.RDS"))
 basalexp = readRDS(paste0(wd, "/data/CCLE_basalexpression.RDS"))
 library(DESeq)
 
-### drug_signature
-treated=estimateSizeFactorsForMatrix(treated)
-treated=estimateDispersions(treated, method= "per-condition") #problem
-untreated=estimateSizeFactorsForMatrix(untreated)
-untreated=estimateDispersions(untreated, method="per-condition") #problem
-nbinomTestForMatrices(treated, untreated, ...)
+#scale data
+treated <- scale(treated)
+untreated <- scale(untreated)
+#basal auch scale
 
 ### drug_signature Doris Versuch
 mode(treated) <- "integer"
@@ -71,3 +69,23 @@ output.dataset <- sapply(seq_along(new.basal.names), function(a) {
 })
 
 colnames(output.dataset) <- new.basal.names
+
+
+#signature genes
+#die Kriterien von Bin Chen schmeißen bei uns alle Gene raus
+#for the RGESexample code they use 978 genes so we aim for the same number of genes
+#log2 Kriterium ganz raus weil dafür sind unsere Werte viel zu klein
+dz_signature <- subset(nbinom.treated.untreated, !is.na(padj) & !is.na(id) & id !='?' & padj < 0.5  & abs(log2FoldChange) != Inf )
+dim(dz_signature)
+gene.list = c(dz_signature[,1])
+  
+#log2FC 
+#natürlich auch noch die für untreated/basal das muss dann signature heißen
+drug_signature <- log2(treated/untreated)
+is.nan.data.frame <- function(x)     
+  do.call(cbind, lapply(x, is.nan))
+drug_signature[is.nan(drug_signature)] <- 0
+
+#only keep FC values for dz_signature genes 
+drug_signature = subset(drug_signature, rownames(drug_signature) %in% gene.list)
+signature = subset(signature, rownames(signature) %in% gene.list)
