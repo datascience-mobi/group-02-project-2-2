@@ -58,3 +58,16 @@ nbinom.treated.untreated = nbinomTest(cds, "treated", "untreated")
 plotMA(nbinom.treated.untreated)
 hist(nbinom.treated.untreated$pval, breaks=100, col="skyblue", border="slateblue", main="p-values nbinom")
 
+
+
+#basal anpassen - jojos versuch
+dataset.basal = as.matrix(basalexp)
+
+new.basal.names <- as.character(meta[1:819,2])
+output.dataset <- sapply(seq_along(new.basal.names), function(a) {
+  name_picker <- new.basal.names[a]
+  out <- dataset.basal[,which(colnames(dataset.basal) == name_picker)]
+  return(out)
+})
+
+colnames(output.dataset) <- new.basal.names
