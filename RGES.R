@@ -28,18 +28,27 @@ hist(nbinom.treated.untreated$pval, breaks=100, col="skyblue", border="slateblue
 
 
 
-#basal anpassen - jojos versuch
-dataset.basal = as.matrix(basalexp)
+###basal anpassen - jojos versuch - die neue heisst jetzt basal.fitted.untreated
+# nurnoch die Gene dalassen welche in basal und untreated sind
+basal.fit = subset(basalexp, rownames(basalexp) %in% rownames(untreated))
+untreated.fit = subset(untreated, rownames(untreated) %in% rownames(basalexp))
 
-new.basal.names <- as.character(meta[1:819,2])
+meta.matrix <- as.matrix(meta)
+dataset.basal <- as.matrix(basal.fit)
+
+new.basal.names <- as.character(meta.matrix[1:819,2])
 output.dataset <- sapply(seq_along(new.basal.names), function(a) {
   name_picker <- new.basal.names[a]
   out <- dataset.basal[,which(colnames(dataset.basal) == name_picker)]
   return(out)
 })
 
-colnames(output.dataset) <- new.basal.names
+#als Matrix umformatieren und umnennen damit wir es erkennen
+basal.fitted.untreated <- matrix(unlist(output.dataset), nrow = 11461, ncol = 819, byrow=FALSE, dimnames = NULL)
+colnames(basal.fitted.untreated) <- new.basal.names
 
+# rownames: gene einfügen
+rownames(basal.fitted.untreated)=rownames(basal.fit)
 
 #signature genes
 #die Kriterien von Bin Chen schmeißen bei uns alle Gene raus
