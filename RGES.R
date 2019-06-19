@@ -45,10 +45,25 @@ output.dataset <- sapply(seq_along(new.basal.names), function(a) {
 
 #als Matrix umformatieren und umnennen damit wir es erkennen
 basal.fitted.untreated <- matrix(unlist(output.dataset), nrow = 11461, ncol = 819, byrow=FALSE, dimnames = NULL)
-colnames(basal.fitted.untreated) <- new.basal.names
+colnames(basal.fitted.untreated) <- make.names(new.basal.names, unique = TRUE)
 
 # rownames: gene einfügen
-rownames(basal.fitted.untreated)=rownames(basal.fit)
+rownames(basal.fitted.untreated)= make.names(rownames(basal.fit), unique = TRUE)
+
+#disease signature
+#gleiches prinzip wie oben, jetzt zwischen basal.fitted.untreated und untreated.fit
+mode(basal.fitted.untreated) <- "integer"
+mode(untreated.fit) <- "integer"
+basal.untreated <- cbind(basal.fitted.untreated, untreated.fit)
+cds = newCountDataSet(countData = basal.untreated, conditions = c(rep("basal",819),rep("untreated",819)))
+cds = estimateSizeFactors(cds)
+cds = estimateDispersions(cds)
+str( fitInfo(cds) )
+plotDispEsts(cds)
+dispersion.values <- fData(cds)
+nbinom.basal.untreated = nbinomTest(cds, "basal", "untreated")
+plotMA(nbinom.basal.untreated)
+hist(nbinom.basal.untreated$pval, breaks=100, col="skyblue", border="slateblue", main="p-values nbinom")
 
 #signature genes
 #die Kriterien von Bin Chen schmeißen bei uns alle Gene raus
@@ -57,7 +72,7 @@ rownames(basal.fitted.untreated)=rownames(basal.fit)
 dz_signature <- subset(nbinom.treated.untreated, !is.na(padj) & !is.na(id) & id !='?' & padj < 0.5  & abs(log2FoldChange) != Inf )
 dim(dz_signature)
 gene.list = c(dz_signature[,1])
-  
+
 #log2FC 
 #natürlich auch noch die für untreated/basal das muss dann signature heißen
 drug_signature <- log2(treated/untreated)
