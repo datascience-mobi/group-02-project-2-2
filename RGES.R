@@ -12,10 +12,13 @@ treated = readRDS(paste0(wd, "/data/NCI_TPW_gep_treated.RDS"))
 basalexp = readRDS(paste0(wd, "/data/CCLE_basalexpression.RDS"))
 library(DESeq)
 
+untreated.fit = subset(untreated, rownames(untreated) %in% rownames(basalexp))
+treated.fit = subset(untreated, rownames(treated) %in% rownames(basalexp))
+
 # anderer Ansatz
-mode(treated) <- "integer"
-mode(untreated) <- "integer"
-treated.untreated <- cbind(treated,untreated)
+mode(treated.fit) <- "integer"
+mode(untreated.fit) <- "integer"
+treated.untreated <- cbind(treated.fit,untreated.fit)
 cds = newCountDataSet(countData = treated.untreated, conditions = c(rep("treated",819),rep("untreated",819)))
 cds = estimateSizeFactors(cds)
 cds = estimateDispersions(cds)
@@ -28,10 +31,9 @@ hist(nbinom.treated.untreated$pval, breaks=100, col="skyblue", border="slateblue
 
 
 
-###basal anpassen - jojos versuch - die neue heisst jetzt basal.fitted.untreated
+###basal anpassen - die neue heisst jetzt basal.fitted.untreated
 # nurnoch die Gene dalassen welche in basal und untreated sind
 basal.fit = subset(basalexp, rownames(basalexp) %in% rownames(untreated))
-untreated.fit = subset(untreated, rownames(untreated) %in% rownames(basalexp))
 
 meta.matrix <- as.matrix(meta)
 dataset.basal <- as.matrix(basal.fit)
@@ -71,15 +73,26 @@ hist(nbinom.basal.untreated$pval, breaks=100, col="skyblue", border="slateblue",
 #log2 Kriterium ganz raus weil dafür sind unsere Werte viel zu klein
 dz_signature <- subset(nbinom.treated.untreated, !is.na(padj) & !is.na(id) & id !='?' & padj < 0.5  & abs(log2FoldChange) != Inf )
 dim(dz_signature)
-gene.list = c(dz_signature[,1])
+gene.list.1 = c(dz_signature[,1])
 
-#log2FC 
-#natürlich auch noch die für untreated/basal das muss dann signature heißen
-drug_signature <- log2(treated/untreated)
+dr_signature <- subset(nbinom.basal.untreated, !is.na(padj) & !is.na(id) & id !='?' & padj < 0.5  & abs(log2FoldChange) != Inf )
+dim(dr_signature)
+gene.list.2 = c(dr_signature[,1])
+
+gene.list.final = Reduce(intersect, list(gene.list.1, gene.list.2))
+length(gene.list.final)
+
+#log2FC    ##scale!
+drug_signature <- log2(treated.fit/untreated.fit)
 is.nan.data.frame <- function(x)     
   do.call(cbind, lapply(x, is.nan))
 drug_signature[is.nan(drug_signature)] <- 0
 
+signature <- log2(untreated.fit/basal.fitted.untreated)
+is.nan.data.frame <- function(x)     
+  do.call(cbind, lapply(x, is.nan))
+signature[is.nan(signature)] <- 0
+
 #only keep FC values for dz_signature genes 
-drug_signature = subset(drug_signature, rownames(drug_signature) %in% gene.list)
-signature = subset(signature, rownames(signature) %in% gene.list)
+drug_signature = subset(drug_signature, rownames(drug_signature) %in% gene.list.final)
+signature = subset(signature, rownames(signature) %in% gene.list.final)
