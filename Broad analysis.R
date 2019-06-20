@@ -53,7 +53,7 @@ drug.color.vector = c(do.call("cbind",drug.color))
 #colored boxplot without scaling
 boxplot(treated, xlab = "Samples", horizontal = F, border=drug.color.vector, main = "Gene Expression Treated", ylab= "Gene expression")
 par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
-legend( x= "right" ,inset=-0.6  , legend=rownames(drugnames.ordered), fill=colorvector, horiz=FALSE, cex=0.8, bty = "n")
+legend( x= "right" ,inset=-0.3  , legend=rownames(drugnames.ordered), fill=colorvector, horiz=FALSE, cex=0.8, bty = "n")
 
 #loop for NA values
 list.na = list("treated"=treated, "untreated"=untreated, "mutations"=mutations, "basalexp" = basalexp, "cellline"=cellline, "copynumber"=copynumber, "ic50"=ic50, "meta"=meta)
@@ -77,7 +77,7 @@ untreated.scaled <- scale(untreated)
 #colored boxplot with scaling
 boxplot(treated.scaled, xlab="Samples", horizontal =F, border=drug.color.vector, main = "Gene Expression Treated Scaled")
 par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
-legend( x= "right" ,inset=-0.6  , legend=rownames(drugnames.ordered), fill=colorvector, horiz=FALSE, cex=0.8, bty = "n")
+legend( x= "right" ,inset=-0.2  , legend=rownames(drugnames.ordered), fill=colorvector, horiz=FALSE, cex=0.8, bty = "n")
 
 #FC
 log2FC.treated.untreated <- log2(treated.scaled/untreated.scaled)
@@ -88,7 +88,7 @@ plot(density(log2FC.treated.untreated), xlab= "log2 fold change values", main = 
 
 #PCA
 PCA.FC <- prcomp(log2FC.treated.untreated, center=F , scale=F)
-plot(PCA.FC, type ="lines", xlab ="principal component")
+plot(PCA.FC, type ="lines", main = "Elbow plot of PCA")
 plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], xlab = "PC1", ylab = "PC2", pch=19, main = "PCA for log2 fold change treated/untreated")
 plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], xlab = "PC3", ylab = "PC4", pch=19, main = "PCA for log2 fold change treated/untreated")
 # wie viel Varianz wird durch components erklaert?
@@ -131,20 +131,20 @@ color.chemo <- ifelse(colnames(FC.named)=="chemo", "firebrick","forestgreen")
 
 plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=color.chemo, xlab = "PC1", ylab = "PC2", pch=19, main = "PCA for log2 fold change treated/untreated")
 par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
-legend( x= "right" ,inset=-0.7  , legend=c("chemotherapy agent","targeted therapie"), fill=c("firebrick", "forestgreen"), horiz=FALSE, cex=0.8, bty = "n")
+legend( x= "right" ,inset=-0.33  , legend=c("chemotherapy","targeted therapy"), fill=c("firebrick", "forestgreen"), horiz=FALSE, cex=0.8, bty = "n")
 
 plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=color.chemo, xlab = "PC3", ylab = "PC4", pch = 19, main = "PCA for log2 fold change treated/untreated")
 par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
-legend( x= "right" ,inset=-0.7  , legend=c("chemotherapy agent","targeted therapie"), fill=c("firebrick", "forestgreen"), horiz=FALSE, cex=0.8, bty = "n")
+legend( x= "right" ,inset=-0.33  , legend=c("chemotherapy","targeted therapy"), fill=c("firebrick", "forestgreen"), horiz=FALSE, cex=0.8, bty = "n")
 
 #plot colored PCA
 plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=drug.color.vector, xlab = "PC1", ylab = "PC2", pch=19, main ="PCA for log2 fold change treated/untreated")
 par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
-legend( x= "right" ,inset=-0.6  , legend=rownames(drugnames.ordered), fill=colorvector, horiz=FALSE, cex=0.8, bty = "n")
+legend( x= "right" ,inset=-0.3  , legend=rownames(drugnames.ordered), fill=colorvector, horiz=FALSE, cex=0.8, bty = "n")
 
 plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=drug.color.vector, xlab = "PC3", ylab = "PC4", pch=19, main = "PCA for log2 fold change treated/untreated")
 par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
-legend( x= "right" ,inset=-0.6  , legend=rownames(drugnames.ordered), fill=colorvector, horiz=FALSE, cex=0.8, bty = "n")
+legend( x= "right" ,inset=-0.3  , legend=rownames(drugnames.ordered), fill=colorvector, horiz=FALSE, cex=0.8, bty = "n")
 
 #color: tyrosine kinase inhibitor
 # 2 versions
@@ -178,9 +178,9 @@ color.tyrosin <- ifelse(colnames(FC.named)=="tyrosin", "brown2","darkolivegreen4
 
 plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=tyrosincolorvector, xlab = "PC1", ylab = "PC2", pch=19, main = "PCA Tyrosin Kinase Inhibitor")
 par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
-legend( x= "right" ,inset=-0.7  , legend=c("tyrosin kinase inhibitor","other"), fill=c("brown2", "darkolivegreen4"), horiz=FALSE, cex=0.8, bty = "n")
+legend( x= "right" ,inset=-0.27  , legend=c("TK inhibitor","other"), fill=c("brown2", "darkolivegreen4"), horiz=FALSE, cex=0.8, bty = "n")
 
 plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=tyrosincolorvector, xlab = "PC3", ylab = "PC4", pch=19, main = "PCA Tyrosin Kinase Inhibitor")
 par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
-legend( x= "right" ,inset=-0.7  , legend=c("tyrosin kinase inhibitor","other"), fill=c("brown2", "darkolivegreen4"), horiz=FALSE, cex=0.8, bty = "n")
+legend( x= "right" ,inset=-0.27  , legend=c("TK inhibitor","other"), fill=c("brown2", "darkolivegreen4"), horiz=FALSE, cex=0.8, bty = "n")
 
