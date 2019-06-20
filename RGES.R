@@ -13,9 +13,9 @@ basalexp = readRDS(paste0(wd, "/data/CCLE_basalexpression.RDS"))
 library(DESeq)
 
 untreated.fit = subset(untreated, rownames(untreated) %in% rownames(basalexp))
-treated.fit = subset(untreated, rownames(treated) %in% rownames(basalexp))
+treated.fit = subset(treated, rownames(treated) %in% rownames(basalexp))
 
-# anderer Ansatz
+#drug signature DSEq
 mode(treated.fit) <- "integer"
 mode(untreated.fit) <- "integer"
 treated.untreated <- cbind(treated.fit,untreated.fit)
@@ -24,14 +24,14 @@ cds = estimateSizeFactors(cds)
 cds = estimateDispersions(cds)
 str( fitInfo(cds) )
 plotDispEsts(cds)
-fData(cds)
+dispersion.values = fData(cds)
 nbinom.treated.untreated = nbinomTest(cds, "treated", "untreated")
 plotMA(nbinom.treated.untreated)
 hist(nbinom.treated.untreated$pval, breaks=100, col="skyblue", border="slateblue", main="p-values nbinom")
 
 
 
-###basal anpassen - die neue heisst jetzt basal.fitted.untreated
+###basal anpassen an untreated - die neue heisst jetzt basal.fitted.untreated
 # nurnoch die Gene dalassen welche in basal und untreated sind
 basal.fit = subset(basalexp, rownames(basalexp) %in% rownames(untreated))
 
@@ -49,7 +49,7 @@ output.dataset <- sapply(seq_along(new.basal.names), function(a) {
 basal.fitted.untreated <- matrix(unlist(output.dataset), nrow = 11461, ncol = 819, byrow=FALSE, dimnames = NULL)
 colnames(basal.fitted.untreated) <- make.names(new.basal.names, unique = TRUE)
 
-# rownames: gene einfügen
+# rownames: gene einf?gen
 rownames(basal.fitted.untreated)= make.names(rownames(basal.fit), unique = TRUE)
 
 #disease signature
@@ -68,9 +68,9 @@ plotMA(nbinom.basal.untreated)
 hist(nbinom.basal.untreated$pval, breaks=100, col="skyblue", border="slateblue", main="p-values nbinom")
 
 #signature genes
-#die Kriterien von Bin Chen schmeißen bei uns alle Gene raus
+#die Kriterien von Bin Chen schmei?en bei uns alle Gene raus
 #for the RGESexample code they use 978 genes so we aim for the same number of genes
-#log2 Kriterium ganz raus weil dafür sind unsere Werte viel zu klein
+#log2 Kriterium ganz raus weil daf?r sind unsere Werte viel zu klein
 dz_signature <- subset(nbinom.treated.untreated, !is.na(padj) & !is.na(id) & id !='?' & padj < 0.5  & abs(log2FoldChange) != Inf )
 dim(dz_signature)
 gene.list.1 = c(dz_signature[,1])
