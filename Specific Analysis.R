@@ -50,26 +50,31 @@ sorted.mean = sort(mean.FC.rows, decreasing = TRUE)
 
 #finding/visualizing most extreme FC values for cisplatin
 lowest.FC <- sorted.mean[13280:13299]
-par(mar = c(5, 5, 5, 5))
+par(mar = c(5, 7, 5, 5))
 barplot(lowest.FC,
         horiz = TRUE,
-        xlim = c(-1.3,0),
+        xlim = c(-1.2,0),
         main= "lowest log2 FC-values for cisplatin",
         xlab= "mean log2FC values in different celllines",
         col= "firebrick",
         las=1,
+        border = "white", 
         cex.names =0.8)
+legend(-1.4, 27, legend= "biomarker", box.lty=1, cex =0.8)
+
 
 highest.FC <- sorted.mean[1:20]
-par(mar = c(5, 5, 5, 5))
+par(mar = c(5, 10, 5, 5))
 barplot(highest.FC,
         horiz = TRUE,
-        xlim = c(0,1.8),
+        xlim = c(0,2),
         main= "highest log2 FC-values for cisplatin",
         xlab= "mean log2FC values in different celllines",
         col= "lightgreen",
         las=1,
+        border = "white",
         cex.names =0.8)
+legend(-0.5, 27, legend= "biomarker", box.lty=1, cex =0.8)
 
 
 #matrix containing the biomarker found through the FC 
@@ -81,7 +86,7 @@ lowest.names <- row.names(lowest.FC)
 row.names(biomarker1.FC) <- c(highest.names, lowest.names)
 biomarker1 <- c(highest.names, lowest.names)
 
-#sort out biomarker that don´t change in the same "direction" for most cell lines
+#sort out biomarker that don?t change in the same "direction" for most cell lines
 is.neg = FC.cisplatin<0
 i =1
 j=1
@@ -132,8 +137,12 @@ treated.cisplatin <- treated.scaled[,grep ("cisplatin", colnames(treated.scaled)
 untreated.cisplatin <- untreated.scaled[,grep("cisplatin", colnames(treated.scaled))]
 
 # 1. Normality was checked for all biomarkers through QQplots. This is an example.
-qqnorm(treated.cisplatin["POLR3B", ], main = "POLR3B")
+par(mar = c(5, 5, 5, 5))
+qqnorm(treated.cisplatin["POLR3B", ], main = "QQplot to check normality of the POLR3B gene")
 qqline(treated.cisplatin["POLR3B", ])
+legend(-2.5, 1.1,  cex = 0.9, box.lty = 0,
+legend = "Gene expression values for POLR3B
+in different celllines after cisplatin treatment.")
 
 
 # 2. Welch two sample t-test. Check if the expressional change of biomarkers is significant. 
@@ -155,10 +164,15 @@ colfunc <- colorRampPalette(c("firebrick","firebrick3","lightcoral",
 wss = sapply(2:8, function(k) {
   kmeans(x = t(double.biomarker.FC), centers = k)$tot.withinss
 })
-plot(2:8, wss, type = "b", pch = 19, xlab = "Number of clusters K", ylab = "Total within-clusters sum of squares")
+plot(2:8, wss, type = "b",
+     pch = 19,
+     xlab = "Number of clusters K",
+     ylab = "Total within-clusters sum of squares",
+     main = "Elbow plot for kmeans clustering of celllines")
 
 
-#heatmap 
+#heatmap
+par(mar = c(10,5,7,5))
 pheatmap(double.biomarker.FC,
          color = colfunc(25),
          cluster_cols = TRUE,
@@ -166,15 +180,16 @@ pheatmap(double.biomarker.FC,
          clustering_method ="ward.D2",
          treeheight_row = 20,
          treeheight_col = 30,
-         cutree_cols = 5,
+         cutree_cols = 4,
          cutree_rows = 2, 
          legend =TRUE,
-         show_colnames = FALSE,
+         show_colnames = F,
          legend_breaks = c(-3:3),
          legend_labels = c("red= downregulation","","","","","","blue= upregulation"),
-         border_color = FALSE,
+         border_color = "white",
          scale = "column",
          main = "Influence of cisplatin on the biomarkers gene expression")
+
 
 #heatmap with annotation
 colnames(double.biomarker.FC) <- meta[95:149,2]
@@ -209,11 +224,25 @@ copynumber.biomarker = copynumber[double.biomarker,]
 copynumber.biomarker = copynumber.biomarker[-11,]
 copynumber.biomarker = as.matrix(copynumber.biomarker)
 
+#checking the optimal number of cluster (elbow plot) 
+wss = sapply(2:7, function(k) {
+  kmeans(x = t(copynumber.quali), centers = k)$tot.withinss
+})
+plot(2:7, wss, 
+     type = "b", pch = 19, 
+     xlab = "Number of clusters K",
+     ylab = "Total within-clusters sum of squares",
+     main = "Elbowplot kmeans clustering - biomarker gene alterations")
+
+kmeans= kmeans(x = t(copynumber.quali), centers = 4, nstart = 10)
+
 
 #80:20 quantiles
 quantiles = as.matrix(quantile(copynumber.biomarker, probs= c(0, 0.2, 0.25, 0.5, 0.75, 0.8,1)))
 plot(density(copynumber.biomarker))
 abline(v= quantiles[c(2,6),1], col= c("red", "blue"), lty =2)
+legend(-7, 1.2, legend = c("20 % quantile", "80% quantile"), col = c("red", "blue"), lty = 1:2)
+
 copynumber.quali = ifelse(copynumber.biomarker < (quantiles[2,1]), (-1), ifelse (copynumber.biomarker > (quantiles[6,1]), 1, 0))
 
 
@@ -241,6 +270,8 @@ pheatmap(copynumber.quali,
 quantiles2 = as.matrix(quantile(copynumber.biomarker))
 plot(density(copynumber.biomarker))
 abline(v= quantiles2[c(2,4),1], col= c("red", "blue"), lty =2)
+legend(-7, 1.2, legend = c("25 % quantile", "75% quantile"), col = c("red", "blue"), lty = 1:2)
+
 copynumber.quali2 = ifelse(copynumber.biomarker < (quantiles2[2,1]), (-1), ifelse (copynumber.biomarker > (quantiles2[4,1]), 1, 0))
 
 colfunc2 <- colorRampPalette(c("firebrick2", "grey88", "deepskyblue3"))
@@ -278,11 +309,3 @@ pheatmap(copynumber.quali,
          scale = "column",
          border_color = "white",
          main =  "Connection between biomarker and gene alterations (80:20)")
-
-#checking the optimal number of cluster (elbow plot) 
-wss = sapply(2:7, function(k) {
-  kmeans(x = t(copynumber.quali), centers = k)$tot.withinss
-})
-plot(2:7, wss, type = "b", pch = 19, xlab = "Number of clusters K", ylab = "Total within-clusters sum of squares")
-
-kmeans= kmeans(x = t(copynumber.quali), centers = 4, nstart = 10)
