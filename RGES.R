@@ -12,6 +12,7 @@ treated = readRDS(paste0(wd, "/data/NCI_TPW_gep_treated.RDS"))
 basalexp = readRDS(paste0(wd, "/data/CCLE_basalexpression.RDS"))
 library(DESeq)
 
+
 untreated.fit = subset(untreated, rownames(untreated) %in% rownames(basalexp))
 treated.fit = subset(treated, rownames(treated) %in% rownames(basalexp))
 
@@ -49,8 +50,10 @@ output.dataset <- sapply(seq_along(new.basal.names), function(a) {
 basal.fitted.untreated <- matrix(unlist(output.dataset), nrow = 11461, ncol = 819, byrow=FALSE, dimnames = NULL)
 colnames(basal.fitted.untreated) <- make.names(new.basal.names, unique = TRUE)
 
-# rownames: gene einf?gen
+# rownames: gene einfuegen
 rownames(basal.fitted.untreated)= make.names(rownames(basal.fit), unique = TRUE)
+
+
 
 #disease signature
 #gleiches prinzip wie oben, jetzt zwischen basal.fitted.untreated und untreated.fit
@@ -62,37 +65,55 @@ cds = estimateSizeFactors(cds)
 cds = estimateDispersions(cds)
 str( fitInfo(cds) )
 plotDispEsts(cds)
-dispersion.values <- fData(cds)
+dispersion.values2 <- fData(cds)
 nbinom.basal.untreated = nbinomTest(cds, "basal", "untreated")
 plotMA(nbinom.basal.untreated)
 hist(nbinom.basal.untreated$pval, breaks=100, col="skyblue", border="slateblue", main="p-values nbinom")
 
-#signature genes
-#die Kriterien von Bin Chen schmei?en bei uns alle Gene raus
-#for the RGESexample code they use 978 genes so we aim for the same number of genes
-#log2 Kriterium ganz raus weil daf?r sind unsere Werte viel zu klein
+
+
+## signature genes nach den Kriterien von Bin Chen
+  #for the RGESexample code they use 978 genes, so we aim for the same number of genes
+  #log2 Kriterium ganz raus weil dafuer sind unsere Werte viel zu klein
+
+#disease signature
 dz_signature <- subset(nbinom.treated.untreated, !is.na(padj) & !is.na(id) & id !='?' & padj < 0.5  & abs(log2FoldChange) != Inf )
 dim(dz_signature)
 gene.list.1 = c(dz_signature[,1])
 
+#drugsignature
 dr_signature <- subset(nbinom.basal.untreated, !is.na(padj) & !is.na(id) & id !='?' & padj < 0.5  & abs(log2FoldChange) != Inf )
 dim(dr_signature)
 gene.list.2 = c(dr_signature[,1])
 
+#Liste von Genen, die nach Anwendung der Kriterien noch da sind 
 gene.list.final = Reduce(intersect, list(gene.list.1, gene.list.2))
 length(gene.list.final)
 
-#log2FC    ##scale!
-drug_signature <- log2(treated.fit/untreated.fit)
+
+##log2 Fold-change and scaling 
+untreated.fit = subset(untreated, rownames(untreated) %in% rownames(basalexp))
+treated.fit = subset(treated, rownames(treated) %in% rownames(basalexp))
+
+treated.fit <- scale(treated.fit)
+untreated.fit <- scale(untreated.fit)
+basal.fitted.untreated <- scale(basal.fitted.untreated)
+
+drug_signature = log2(treated.fit/untreated.fit)
 is.nan.data.frame <- function(x)     
   do.call(cbind, lapply(x, is.nan))
 drug_signature[is.nan(drug_signature)] <- 0
+dim(drug_signature)
 
-signature <- log2(untreated.fit/basal.fitted.untreated)
+disease_signature <- log2(untreated.fit/basal.fitted.untreated)
 is.nan.data.frame <- function(x)     
   do.call(cbind, lapply(x, is.nan))
-signature[is.nan(signature)] <- 0
+disease_signature[is.nan(disease_signature)] <- 0
+dim(drug_signature)
 
-#only keep FC values for dz_signature genes 
+
+#only keep FC values for dz_signature and dr_signature genes (also die die die Kriterien erfüllen )
 drug_signature = subset(drug_signature, rownames(drug_signature) %in% gene.list.final)
-signature = subset(signature, rownames(signature) %in% gene.list.final)
+dim(drug_signature)
+disease_signature = subset(disease_signature, rownames(disease_signature) %in% gene.list.final)
+dim(disease_signature)
