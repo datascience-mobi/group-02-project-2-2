@@ -181,9 +181,9 @@ cmap_score_new <- function(sig_up, sig_down, drug_signature) {
 
 ##CLAUDIA 
 sig.ids <- c(1:819) ### cell lines bekommen sig.ID: sig.ID=nrow(meta[,1:819])=ncol(treated usw)
-dz_genes_up <- subset(nbinom.basal.untreated, log2FoldChange < 0,select="id")
+dz_genes_up <- subset(nbinom.basal.untreated, log2FoldChange > 0,select="id")
 ##bei uns ist die ID der Name des Gens (nicht verwechseln mit sig.ID)
-dz_genes_down <- subset(nbinom.basal.untreated, log2FoldChange >0 ,select="id")
+dz_genes_down <- subset(nbinom.basal.untreated, log2FoldChange <0 ,select="id")
 gene.list <- rownames(disease_signature)
 
 dz_cmap_scores <- NULL
