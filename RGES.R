@@ -199,3 +199,4 @@ for(count in sig.ids){
 results <- data.frame(sig.ID = sig.ids, RGES = dz_cmap_scores)
 results <- cbind(results, meta[1:819,]) 
 
+saveRDS(results, file = "results.rds")
