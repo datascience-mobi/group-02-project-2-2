@@ -117,3 +117,31 @@ drug_signature = subset(drug_signature, rownames(drug_signature) %in% gene.list.
 dim(drug_signature)
 disease_signature = subset(disease_signature, rownames(disease_signature) %in% gene.list.final)
 dim(disease_signature)
+
+
+###das muss man noch schaffen dass es corefunctions automatisch für alle reinläd und dann vllt auch aus den 
+#corefunctions die Funktionen löschen die wir nicht brauchen damit das environment nicht so sinnlos 
+#voll wird
+code_dir <- "C:/Users/amvog/Documents/" ##anpassen
+source(paste(code_dir, "core_functions.R",sep=""))
+
+##CLAUDIA 
+sig.ids <- c(1:819) ### cell lines bekommen sig.ID: sig.ID=nrow(meta[,1:819])=ncol(treated usw)
+dz_genes_up <- subset(nbinom.basal.untreated, log2FoldChange < 0,select="id")
+##bei uns ist die ID der Name des Gens (nicht verwechseln mit sig.ID)
+dz_genes_down <- subset(nbinom.basal.untreated, log2FoldChange >0 ,select="id")
+gene.list <- rownames(disease_signature)
+
+dz_cmap_scores <- NULL
+count <- 0
+for(count in sig.ids){
+  print(count)
+  cmap_exp_signature <- data.frame(gene.list,  rank(-1 * disease_signature[, count], ties.method="random"))    
+  colnames(cmap_exp_signature) <- c("ids","rank") 
+  dz_cmap_scores <- c(dz_cmap_scores, cmap_score_new(dz_genes_up,dz_genes_down,cmap_exp_signature)) #hier wird der RGES berechnet
+  count <- count + 1
+}
+
+results <- data.frame(sig.ID = sig.ids, RGES = dz_cmap_scores)
+results <- merge(results, meta) 
+
