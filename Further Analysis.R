@@ -6,7 +6,7 @@ wd = dirname(rstudioapi::getSourceEditorContext()$path)
 results = readRDS(paste0(wd, "/data/results.RDS"))
 results_cisplatin = subset (results , drug == "cisplatin")
 
-# overview RGES values - damit wir besser einschätzen können was für uns gut oder schlecht ist
+# overview RGES values - damit wir besser einsch?tzen k?nnen was f?r uns gut oder schlecht ist
 quantile(results$RGES)
 quantile(results_cisplatin$RGES)
 min = min(results$RGES)
@@ -41,13 +41,78 @@ results_neg =results[which(results$RGES < 0),]
 #sind diese drugs in allen celllines gut?
 boxplot(results[which(results$drug == "bortezomib"),2], main = "RGES for bortezomib in different celllines",  ylim = c(min,max))
 boxplot(results[which(results$drug == "paclitaxel"),2], main = "RGES for paclitaxel in different celllines",  ylim = c(min,max))
-#nein es sind für beide drugs nur Ausreißer - hat es dann vllt etwas mit den celllines zu tun? 
+#nein es sind f?r beide drugs nur Ausrei?er - hat es dann vllt etwas mit den celllines zu tun? 
 boxplot(results[which(results$cell == "UACC-62"),2], main = "RGES for cellline UACC-62 (Melanoma)",  ylim = c(min,max))
 boxplot(results[which(results$cell == "OVCAR-4"),2], main = "RGES for cellline OVCAR-4 (Ovarian)",  ylim = c(min,max))
-#auch hier sind es Ausreißer. Das heißt die guten RGES Werte liegen allein an der speziellen Kombination cellline+drug
+#auch hier sind es Ausrei?er. Das hei?t die guten RGES Werte liegen allein an der speziellen Kombination cellline+drug
 #ich hab mal kurz gegoogelt und paclitaxel wird bei ovarienkarzinom verwendet, das macht also voll Sinn
-#bortezomib wird nicht für melanome eingesetzt sonder für multiples myelom. da können wir dann sagen dass das ein Hinweis sein könnte
-#das Medikament auch für Melanome zu testen
+#bortezomib wird nicht f?r melanome eingesetzt sonder f?r multiples myelom. da k?nnen wir dann sagen dass das ein Hinweis sein k?nnte
+#das Medikament auch f?r Melanome zu testen
 
+
+#Teresaaaa IC50 
+library(reshape)
+
+wd = dirname(rstudioapi::getSourceEditorContext()$path)
+results = readRDS(paste0(wd, "/data/results.RDS"))
+ic50 = readRDS(paste0(wd, "/data/NegLogGI50.RDS"))
+meta = read.delim(paste0(wd, "/data/NCI_TPW_metadata.tsv"), header = TRUE, sep = "\t") 
+
+#melt function
+ic50 = t(ic50)
+melt.data <- melt(ic50)
+melt.data = as.matrix(melt.data)
+
+#remove NAs
+rmv.rows = apply(melt.data, 1, function(x) {
+  sum(is.na(x))
+})
+melt.ic50 = melt.data[-which(rmv.rows > 0),]
+rm(melt.data)
+
+#celllines der Ic50 aussortieren - an RGES_results anpassen
+colnames(melt.ic50) = c("cell", "drug", "IC50")
+
+#zwei versuche die aber keinen Sinn machen
+output.dataset = sapply(seq_along(melt.ic50), function(a) {
+  out <- melt.ic50[,which(melt.ic50 == results$cell & melt.ic50 == results$drug)]
+  return(out)
+})
+
+melt.ic50 = as.data.frame(melt.ic50)
+output.dataset = sapply(1:894, function(a) {
+  subset(melt.ic50, melt.ic50[a,1] == results$cell & melt.ic50$drug == results$drug)
+})
+
+########## drug efficacy plots 
+#correlated to IC50
+
+ic50 <- aggregate(standard_value ~ pert_iname, lincs_drug_activity_confirmed,median)
+
+drug_activity_rges <- merge(results, ic50, by.x="cell", by.y="pert_iname")
+
+drug_activity_rges <- aggregate(cbind(RGES, standard_value) ~ name, drug_activity_rges, median)
+
+plot(drug_activity_rges$RGES, log(drug_activity_rges$standard_value, 10))
+cor_test <- cor.test(drug_activity_rges$RGES, log(drug_activity_rges$standard_value, 10))
+
+drug_activity_rges <- drug_activity_rges[order(drug_activity_rges$RGES),]
+
+lm_cmap_ic50 <- lm(RGES ~ log(standard_value, 10), drug_activity_rges)
+
+
+pdf(paste( "fig/", cancer, "rges_ic50_cmap_data_", landmark, ".pdf", sep=""))
+ggplot(drug_activity_rges, aes(RGES, log(drug_activity_rges$standard_value, 10)  )) +  theme_bw()  + 
+  theme(legend.position ="bottom", axis.text=element_text(size=18), axis.title=element_text(size=18))  +                                                                                              
+  stat_smooth(method="lm", se=F, color="black")  + geom_point(size=3) + 
+  annotate("text", label = paste(cancer, ",", "MCF7", sep=""), 
+           x = 0, y = 8.1, size = 6, colour = "black") +
+  annotate("text", label = paste("r=", format(summary(lm_cmap_ic50)$r.squared ^ 0.5, digit=2), ", ",  "P=", format(anova(lm_cmap_ic50)$`Pr(>F)`[1], digit=2), sep=""), 
+           x = 0, y = 7.7, size = 6, colour = "black") +
+  annotate("text", label = paste("rho=", format(cor_test$estimate, digit=2), ", P=", format(cor_test$p.value, digit=3, scientific=T), sep=""), x = 0, y = 7.3, size = 6, colour = "black") +
+  scale_size(range = c(2, 5)) +
+  xlab("RGES") + guides(shape=FALSE, size=FALSE) +
+  ylab("log10(IC50) nm") + coord_cartesian(xlim = c(-0.5, 0.5), ylim=c(-1, 8)) 
+dev.off()
 
 
