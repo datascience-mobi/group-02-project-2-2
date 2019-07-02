@@ -84,6 +84,20 @@ output.dataset = sapply(1:894, function(a) {
   subset(melt.ic50, melt.ic50[a,1] == results$cell & melt.ic50$drug == results$drug)
 })
 
+##neuer Versuch Jojo
+results.matrix.name = as.matrix(results)
+melt.ic50.name = melt.ic50
+rownames(results.matrix.name)= make.names(results.name[,4], unique = TRUE)
+rownames(melt.ic50.name)=make.names(melt.ic50.name[,1], unique = TRUE)
+
+names = rownames(results.matrix.name)
+output.dataset <- sapply(seq_along(names), function(a) {
+  name_picker <- names[a]
+  out <- melt.ic50.name[,which(rownames(melt.ic50.name) == name_picker)]
+  return(out)
+})
+
+
 ########## drug efficacy plots 
 #correlated to IC50
 
