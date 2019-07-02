@@ -9,15 +9,11 @@ wd = dirname(rstudioapi::getSourceEditorContext()$path)
 meta = read.delim(paste0(wd, "/data/NCI_TPW_metadata.tsv"), header = TRUE, sep = "\t") 
 untreated = readRDS(paste0(wd, "/data/NCI_TPW_gep_untreated.RDS"))
 treated = readRDS(paste0(wd, "/data/NCI_TPW_gep_treated.RDS"))
-ic50 = readRDS(paste0(wd, "/data/NegLogGI50.RDS"))
-basalexp = readRDS(paste0(wd, "/data/CCLE_basalexpression.RDS"))
 copynumber = readRDS(paste0(wd, "/data/CCLE_copynumber.RDS"))
 mutations = readRDS(paste0(wd, "/data/CCLE_mutations.RDS"))
 cellline = read.delim(paste0(wd, "/data/cellline_annotation.tsv"), header = TRUE, sep = "\t")
-drug = read.delim(paste0(wd, "/data/drug_annotation.tsv"), header = TRUE, sep = "\t")
 
 #scale
-basal.scaled <- scale(basalexp)
 treated.scaled <- scale(treated)
 untreated.scaled <- scale(untreated)
 
