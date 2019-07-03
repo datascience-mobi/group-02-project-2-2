@@ -78,10 +78,11 @@ which(rmv.rows > 0)
 melt.ic50 = melt.data[-which(rmv.rows > 0),]
 rm(melt.data)
 
+
 IC50.value = c(rep(0,819))
 results = cbind(results, IC50.value)
 
----------------------------------------------------------
+
 i=1
 j=1
 
@@ -100,7 +101,6 @@ while(i<895)
 which(results$IC50.value == 0)
 results.ic50 = results[-which(results$IC50.value == 0),]
 
-------------------------------------------------------------
 
 ########## drug efficacy plots 
 #correlated to IC50
