@@ -50,9 +50,6 @@ boxplot(results[which(results$cell == "OVCAR-4"),2], main = "RGES for cellline O
 #das Medikament auch f?r Melanome zu testen
 
 
-
-#Cellines der IC50 aussortieren um sie an RGES_results anpassen
-
 library(reshape)
 
 wd = dirname(rstudioapi::getSourceEditorContext()$path)
@@ -64,9 +61,6 @@ meta = read.delim(paste0(wd, "/data/NCI_TPW_metadata.tsv"), header = TRUE, sep =
 ic50 = t(ic50)
 melt.data <- melt(ic50)
 melt.data = as.matrix(melt.data)
-
-
-#celllines der Ic50 aussortieren - an RGES_results anpassen
 melt.ic50 = as.data.frame(melt.data)
 colnames(melt.ic50) = c("cell", "drug", "IC50")
 
@@ -78,10 +72,9 @@ which(rmv.rows > 0)
 melt.ic50 = melt.data[-which(rmv.rows > 0),]
 rm(melt.data)
 
-
-IC50.value = c(rep(0,819))
+#Cellines der IC50 aussortieren um sie an RGES_results anpassen
+IC50.value = c(rep(as.numeric(0),819))
 results = cbind(results, IC50.value)
-
 
 i=1
 j=1
@@ -91,7 +84,7 @@ while(i<895)
 {
   if(isTRUE(melt.ic50[i,1]== results[j,4])
      & (melt.ic50[i,2] == results[j,5]))
-  {results[j,9] = melt.ic50[i,3]
+  {results[j,9] = as.numeric(melt.ic50[i,3])
   }
   j = j +1
 }
@@ -99,38 +92,27 @@ while(i<895)
   i=i+1}
 
 which(results$IC50.value == 0)
-results.ic50 = results[-which(results$IC50.value == 0),]
-
+drug_activity_rges = results[-which(results$IC50.value == 0),]
 
 ########## drug efficacy plots 
 #correlated to IC50
+#IC50: The values are in -log10 scale of the concentration required for the 50% inhibition. Therefore higher values indicate that the cell line
+# is more sensitive to the drug (in contrast to RGES)
 
-ic50 <- aggregate(standard_value ~ pert_iname, lincs_drug_activity_confirmed,median)
+library(ggplot2)
 
-drug_activity_rges <- merge(results, ic50, by.x="cell", by.y="pert_iname")
+plot(drug_activity_rges$RGES, log10(drug_activity_rges$IC50.value))
+cor_test <- cor.test(drug_activity_rges$RGES, drug_activity_rges$IC50.value)
+#drug_activity_rges_ordered <- drug_activity_rges[order(drug_activity_rges$RGES),]
+lm_cmap_ic50 <- lm(RGES ~ log(IC50.value, 10), drug_activity_rges)
 
-drug_activity_rges <- aggregate(cbind(RGES, standard_value) ~ name, drug_activity_rges, median)
+ggplot(drug_activity_rges, aes(drug_activity_rges$RGES, (-drug_activity_rges$IC50.value))) +
+  geom_point(color = "blue", size = 1) +
+  scale_size(range = c(2,5)) +
+  xlab("RGES") + 
+  ylab("IC50 nm")
 
-plot(drug_activity_rges$RGES, log(drug_activity_rges$standard_value, 10))
-cor_test <- cor.test(drug_activity_rges$RGES, log(drug_activity_rges$standard_value, 10))
+range(drug_activity_rges$IC50.value)
 
-drug_activity_rges <- drug_activity_rges[order(drug_activity_rges$RGES),]
-
-lm_cmap_ic50 <- lm(RGES ~ log(standard_value, 10), drug_activity_rges)
-
-
-pdf(paste( "fig/", cancer, "rges_ic50_cmap_data_", landmark, ".pdf", sep=""))
-ggplot(drug_activity_rges, aes(RGES, log(drug_activity_rges$standard_value, 10)  )) +  theme_bw()  + 
-  theme(legend.position ="bottom", axis.text=element_text(size=18), axis.title=element_text(size=18))  +                                                                                              
-  stat_smooth(method="lm", se=F, color="black")  + geom_point(size=3) + 
-  annotate("text", label = paste(cancer, ",", "MCF7", sep=""), 
-           x = 0, y = 8.1, size = 6, colour = "black") +
-  annotate("text", label = paste("r=", format(summary(lm_cmap_ic50)$r.squared ^ 0.5, digit=2), ", ",  "P=", format(anova(lm_cmap_ic50)$`Pr(>F)`[1], digit=2), sep=""), 
-           x = 0, y = 7.7, size = 6, colour = "black") +
-  annotate("text", label = paste("rho=", format(cor_test$estimate, digit=2), ", P=", format(cor_test$p.value, digit=3, scientific=T), sep=""), x = 0, y = 7.3, size = 6, colour = "black") +
-  scale_size(range = c(2, 5)) +
-  xlab("RGES") + guides(shape=FALSE, size=FALSE) +
-  ylab("log10(IC50) nm") + coord_cartesian(xlim = c(-0.5, 0.5), ylim=c(-1, 8)) 
-dev.off()
 
 
