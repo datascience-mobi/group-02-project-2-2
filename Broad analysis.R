@@ -184,3 +184,35 @@ plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=tyrosincolorvector, xlab = 
 par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
 legend( x= "right" ,inset=-0.27  , legend=c("TK inhibitor","other"), fill=c("brown2", "darkolivegreen4"), horiz=FALSE, cex=0.8, bty = "n")
 
+
+
+
+
+
+
+
+
+##################### BABY ##########
+library(ggplot2)
+library(reshape2)
+##
+melt = melt(treated)
+drugcolor = vector()
+x=1
+while(x < 820){
+  drugcolor = c(drugcolor, rep( as.character(meta[x,3]) , 13299))
+  x=x+1
+}
+melt = cbind(melt ,drugcolor)
+
+cols15 <- c("#d7ff2e","#2f0085","#02ee81","#f357ff",
+            "#86ae00","#ff2f86","#008118","#ff443e",
+            "#008b9d","#ffcd77","#1a001e","#f8ffb4",
+            "#b6a7ff","#572a00","#c8fff7")
+
+ggplot(melt, aes(x = Var2, y = value)) + labs(y='Gene') + theme_bw() +
+  geom_boxplot(aes(fill = melt$drugcolor, color=melt$drugcolor) ,outlier.size = 0.1) +
+  ggtitle("Gene Expression Treated") +
+  scale_fill_manual(name= melt$drugcolor, values = cols15) + 
+  scale_color_manual(name = melt$drugcolor , values = cols15)
+
