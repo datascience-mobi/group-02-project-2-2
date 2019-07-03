@@ -50,7 +50,9 @@ boxplot(results[which(results$cell == "OVCAR-4"),2], main = "RGES for cellline O
 #das Medikament auch f?r Melanome zu testen
 
 
-#Teresaaaa IC50 
+
+#Cellines der IC50 aussortieren um sie an RGES_results anpassen
+
 library(reshape)
 
 wd = dirname(rstudioapi::getSourceEditorContext()$path)
@@ -63,40 +65,42 @@ ic50 = t(ic50)
 melt.data <- melt(ic50)
 melt.data = as.matrix(melt.data)
 
+
+#celllines der Ic50 aussortieren - an RGES_results anpassen
+melt.ic50 = as.data.frame(melt.data)
+colnames(melt.ic50) = c("cell", "drug", "IC50")
+
 #remove NAs
 rmv.rows = apply(melt.data, 1, function(x) {
   sum(is.na(x))
 })
+which(rmv.rows > 0)
 melt.ic50 = melt.data[-which(rmv.rows > 0),]
 rm(melt.data)
 
-#celllines der Ic50 aussortieren - an RGES_results anpassen
-colnames(melt.ic50) = c("cell", "drug", "IC50")
+IC50.value = c(rep(0,819))
+results = cbind(results, IC50.value)
 
-#zwei versuche die aber keinen Sinn machen
-output.dataset = sapply(seq_along(melt.ic50), function(a) {
-  out <- melt.ic50[,which(melt.ic50 == results$cell & melt.ic50 == results$drug)]
-  return(out)
-})
+---------------------------------------------------------
+i=1
+j=1
 
-melt.ic50 = as.data.frame(melt.ic50)
-output.dataset = sapply(1:894, function(a) {
-  subset(melt.ic50, melt.ic50[a,1] == results$cell & melt.ic50$drug == results$drug)
-})
+while(i<895)
+{while(j<820)
+{
+  if(isTRUE(melt.ic50[i,1]== results[j,4])
+     & (melt.ic50[i,2] == results[j,5]))
+  {results[j,9] = melt.ic50[i,3]
+  }
+  j = j +1
+}
+  j= 1
+  i=i+1}
 
-##neuer Versuch Jojo
-results.matrix.name = as.matrix(results)
-melt.ic50.name = melt.ic50
-rownames(results.matrix.name)= make.names(results.name[,4], unique = TRUE)
-rownames(melt.ic50.name)=make.names(melt.ic50.name[,1], unique = TRUE)
+which(results$IC50.value == 0)
+results.ic50 = results[-which(results$IC50.value == 0),]
 
-names = rownames(results.matrix.name)
-output.dataset <- sapply(seq_along(names), function(a) {
-  name_picker <- names[a]
-  out <- melt.ic50.name[,which(rownames(melt.ic50.name) == name_picker)]
-  return(out)
-})
-
+------------------------------------------------------------
 
 ########## drug efficacy plots 
 #correlated to IC50
