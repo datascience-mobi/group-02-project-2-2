@@ -100,6 +100,9 @@ which(results$IC50.value == 0)
 drug_activity_rges = results[-which(results$IC50.value == 0),]
 
 
+saveRDS(drug_activity_rges, file = "drug_activity_rges.rds")
+
+
 ########## drug efficacy plots 
 #correlated to IC50
 #IC50: The values are in -log10 scale of the concentration required for the 50% inhibition. Therefore higher values indicate that the cell line

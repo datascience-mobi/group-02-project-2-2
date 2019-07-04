@@ -1,3 +1,8 @@
+### load the data
+wd = dirname(rstudioapi::getSourceEditorContext()$path)
+drug_activity_rges = readRDS(paste0(wd, "/data/drug_activity_rges.RDS"))
+
+
 # limit the data set to numerical values
 rges.ic50 = drug_activity_rges[,c(2,9)]
 
