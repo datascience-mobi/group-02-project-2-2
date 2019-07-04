@@ -6,7 +6,8 @@ wd = dirname(rstudioapi::getSourceEditorContext()$path)
 results = readRDS(paste0(wd, "/data/results.RDS"))
 results_cisplatin = subset (results , drug == "cisplatin")
 
-# overview RGES values - damit wir besser einsch?tzen k?nnen was f?r uns gut oder schlecht ist
+###RGES analysis
+## overview RGES values - damit wir besser einschaetzen koennen was fuer uns gut oder schlecht ist
 quantile(results$RGES)
 quantile(results_cisplatin$RGES)
 min = min(results$RGES)
@@ -38,18 +39,22 @@ sapply(1:length(drug),
 
 # find negative RGES values
 results_neg =results[which(results$RGES < 0),]
+
 #sind diese drugs in allen celllines gut?
 boxplot(results[which(results$drug == "bortezomib"),2], main = "RGES for bortezomib in different celllines",  ylim = c(min,max))
 boxplot(results[which(results$drug == "paclitaxel"),2], main = "RGES for paclitaxel in different celllines",  ylim = c(min,max))
+
 #nein es sind f?r beide drugs nur Ausrei?er - hat es dann vllt etwas mit den celllines zu tun? 
 boxplot(results[which(results$cell == "UACC-62"),2], main = "RGES for cellline UACC-62 (Melanoma)",  ylim = c(min,max))
 boxplot(results[which(results$cell == "OVCAR-4"),2], main = "RGES for cellline OVCAR-4 (Ovarian)",  ylim = c(min,max))
+
 #auch hier sind es Ausrei?er. Das hei?t die guten RGES Werte liegen allein an der speziellen Kombination cellline+drug
 #ich hab mal kurz gegoogelt und paclitaxel wird bei ovarienkarzinom verwendet, das macht also voll Sinn
 #bortezomib wird nicht f?r melanome eingesetzt sonder f?r multiples myelom. da k?nnen wir dann sagen dass das ein Hinweis sein k?nnte
 #das Medikament auch f?r Melanome zu testen
 
-
+### IC50 spalte an results anfügen -> drug_activity_rges
+##loading data
 library(reshape)
 
 wd = dirname(rstudioapi::getSourceEditorContext()$path)
@@ -57,14 +62,14 @@ results = readRDS(paste0(wd, "/data/results.RDS"))
 ic50 = readRDS(paste0(wd, "/data/NegLogGI50.RDS"))
 meta = read.delim(paste0(wd, "/data/NCI_TPW_metadata.tsv"), header = TRUE, sep = "\t") 
 
-#melt function
+##melt function
 ic50 = t(ic50)
 melt.data <- melt(ic50)
 melt.data = as.matrix(melt.data)
 melt.ic50 = as.data.frame(melt.data)
 colnames(melt.ic50) = c("cell", "drug", "IC50")
 
-#remove NAs
+##remove NAs
 rmv.rows = apply(melt.data, 1, function(x) {
   sum(is.na(x))
 })
@@ -72,7 +77,7 @@ which(rmv.rows > 0)
 melt.ic50 = melt.data[-which(rmv.rows > 0),]
 rm(melt.data)
 
-#Cellines der IC50 aussortieren um sie an RGES_results anpassen
+##Cellines der IC50 aussortieren um sie an RGES_results anpassen
 IC50.value = c(rep(as.numeric(0),819))
 results = cbind(results, IC50.value)
 
@@ -93,6 +98,7 @@ while(i<895)
 
 which(results$IC50.value == 0)
 drug_activity_rges = results[-which(results$IC50.value == 0),]
+
 
 ########## drug efficacy plots 
 #correlated to IC50
