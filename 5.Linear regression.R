@@ -3,8 +3,12 @@ wd = dirname(rstudioapi::getSourceEditorContext()$path)
 drug_activity_rges = readRDS(paste0(wd, "/data/drug_activity_rges.RDS"))
 
 
-# limit the data set to numerical values
-rges.ic50 = drug_activity_rges[,c(2,9)]
+# limit the data set to numerical values, convert IC50 values as they are in -log10 scale
+#keine ahnung ob das sinn macht, was ich hier getan habe?
+ic50 = drug_activity_rges[,9]
+IC50.value = -10^ic50
+RGES = drug_activity_rges[,2]
+rges.ic50 <- as.data.frame(cbind(RGES, IC50.value))
 
 # compute correlation
 cor(rges.ic50$RGES, rges.ic50$IC50.value)
@@ -29,6 +33,7 @@ cor(rges.ic50.train$RGES, l.train$residuals)
 
 # use model to predict ic50 by rges
 pred = predict(l.train, newdata = rges.ic50.test)
+
 #compute RMSE
 n = nrow(rges.ic50.train)
 rmse.train = sqrt(1/n * sum(l.train$residuals^2))
