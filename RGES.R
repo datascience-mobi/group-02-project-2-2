@@ -13,8 +13,8 @@ basalexp = readRDS(paste0(wd, "/data/CCLE_basalexpression.RDS"))
 library(DESeq)
 
 
-untreated.fit = subset(untreated, rownames(untreated) %in% rownames(basalexp))
-treated.fit = subset(treated, rownames(treated) %in% rownames(basalexp))
+untreated.fit = 2^(subset(untreated, rownames(untreated) %in% rownames(basalexp)))
+treated.fit = 2^(subset(treated, rownames(treated) %in% rownames(basalexp)))
 
 #drug signature DSEq
 mode(treated.fit) <- "integer"
@@ -52,7 +52,7 @@ colnames(basal.fitted.untreated) <- make.names(new.basal.names, unique = TRUE)
 
 # rownames: gene einfuegen
 rownames(basal.fitted.untreated)= make.names(rownames(basal.fit), unique = TRUE)
-
+basal.fitted.untreated = 2^(basal.fitted.untreated)
 
 
 #disease signature
@@ -77,12 +77,12 @@ hist(nbinom.basal.untreated$pval, breaks=100, col="skyblue", border="slateblue",
   #log2 Kriterium ganz raus weil dafuer sind unsere Werte viel zu klein
 
 #disease signature
-dz_signature <- subset(nbinom.treated.untreated, !is.na(padj) & !is.na(id) & id !='?' & padj < 0.5  & abs(log2FoldChange) != Inf )
+dz_signature <- subset(nbinom.treated.untreated, !is.na(padj) & !is.na(id) & id !='?' & padj < 0.001  & abs(log2FoldChange) != Inf )
 dim(dz_signature)
 gene.list.1 = c(dz_signature[,1])
 
 #drugsignature
-dr_signature <- subset(nbinom.basal.untreated, !is.na(padj) & !is.na(id) & id !='?' & padj < 0.5  & abs(log2FoldChange) != Inf )
+dr_signature <- subset(nbinom.basal.untreated, !is.na(padj) & !is.na(id) & id !='?' & padj < 0.001  & abs(log2FoldChange) != Inf )
 dim(dr_signature)
 gene.list.2 = c(dr_signature[,1])
 
@@ -99,13 +99,13 @@ treated.fit <- scale(treated.fit)
 untreated.fit <- scale(untreated.fit)
 basal.fitted.untreated <- scale(basal.fitted.untreated)
 
-drug_signature = log2(treated.fit/untreated.fit)
+drug_signature = (treated.fit - untreated.fit)
 is.nan.data.frame <- function(x)     
   do.call(cbind, lapply(x, is.nan))
 drug_signature[is.nan(drug_signature)] <- 0
 dim(drug_signature)
 
-disease_signature <- log2(untreated.fit/basal.fitted.untreated)
+disease_signature <- (untreated.fit - basal.fitted.untreated)
 is.nan.data.frame <- function(x)     
   do.call(cbind, lapply(x, is.nan))
 disease_signature[is.nan(disease_signature)] <- 0
@@ -199,4 +199,4 @@ for(count in sig.ids){
 results <- data.frame(sig.ID = sig.ids, RGES = dz_cmap_scores)
 results <- cbind(results, meta[1:819,]) 
 
-saveRDS(results, file = "results.rds")
+saveRDS(results, file = "resultsnew.rds")
