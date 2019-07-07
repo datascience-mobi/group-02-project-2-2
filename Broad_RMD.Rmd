@@ -1,6 +1,5 @@
 ---
-title: "Project 2 - Group 2"
-author: "Dorothee Mersch"
+title: "Broad Analysis"
 date: "5 Juni 2019"
 output:
   html_document: default
@@ -17,15 +16,15 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Load Data
 The given data is integrated as follows:
 ```{r}
-treated <- readRDS("C:/Users/Dori/Documents/NCI_TPW_gep_treated.rds")
-untreated <- readRDS("C:/Users/Dori/Documents/NCI_TPW_gep_untreated.rds")
-ic50 <- readRDS("C:/Users/Dori/Documents/NegLogGI50.rds")
-basalexp <- readRDS("C:/Users/Dori/Documents/CCLE_basalexpression.rds")
-copynumber <- readRDS("C:/Users/Dori/Documents/CCLE_copynumber.rds")
-mutations <- readRDS("C:/Users/Dori/Documents/CCLE_mutations.rds")
-cellline <- read.delim("C:/Users/Dori/Documents/cellline_annotation.tsv", header = TRUE, sep = "\t")
-meta <- read.delim("C:/Users/Dori/Documents/cellline_annotation.tsv", header = TRUE, sep = "\t")
-drug <- read.delim("C:/Users/Dori/Documents/drug_annotation.tsv", header = TRUE, sep = "\t")
+treated <- readRDS("C:/Users/johan/Documents/Bioinfo_project/NCI_TPW_gep_treated.rds")
+untreated <- readRDS("C:/Users/johan/Documents/Bioinfo_project/NCI_TPW_gep_untreated.rds")
+ic50 <- readRDS("C:/Users/johan/Documents/Bioinfo_project/NegLogGI50.rds")
+basalexp <- readRDS("C:/Users/johan/Documents/Bioinfo_project/CCLE_basalexpression.rds")
+copynumber <- readRDS("C:/Users/johan/Documents/Bioinfo_project/CCLE_copynumber.rds")
+mutations <- readRDS("C:/Users/johan/Documents/Bioinfo_project/CCLE_mutations.rds")
+cellline <- read.delim("C:/Users/johan/Documents/Bioinfo_project/cellline_annotation.tsv", header = TRUE, sep = "\t")
+meta <- read.delim("C:/Users/johan/Documents/Bioinfo_project/cellline_annotation.tsv", header = TRUE, sep = "\t")
+drug <- read.delim("C:/Users/johan/Documents/Bioinfo_project/drug_annotation.tsv", header = TRUE, sep = "\t")
 ```
 
 ## Remove NAs
@@ -55,21 +54,31 @@ untreated.scaled <- scale(untreated)
 ```
 
 ## Coloring every drug
-In order to color following plots with a different color for each drug a vector was created. 
 ```{r}
+library(ggplot2)
+library(reshape2)
+
+melt = melt(treated)
+drugcolor = vector()
+x=1
+while(x < 820){
+  drugcolor = c(drugcolor, rep( as.character(meta[x,3]) , 13299))
+  x=x+1
+}
+melt = cbind(melt ,drugcolor)
+
 cols15 <- c("#d7ff2e","#2f0085","#02ee81","#f357ff",
             "#86ae00","#ff2f86","#008118","#ff443e",
             "#008b9d","#ffcd77","#1a001e","#f8ffb4",
             "#b6a7ff","#572a00","#c8fff7")
-drugnames <- drug
-rownames(drugnames) = drugnames$Drug
-drugnames.ordered <- drugnames[order(drugnames$Drug),]
-drugcolor <- cbind(cols15, rownames(drugnames.ordered))
-colnames(drugcolor) <- c("color", "drug")
-drugcolorvector <- sapply(seq_along(meta[,3]), function(x){
-  unname(drugcolor[meta[x, 3]], force = FALSE)
-})
+
+ggplot(melt, aes(x = Var2, y = value)) + labs(y='Gene') + theme_bw() +
+  geom_boxplot(aes(fill = melt$drugcolor, color=melt$drugcolor) ,outlier.size = 0.1) +
+  ggtitle("Gene Expression Treated") +
+  scale_fill_manual(name= melt$drugcolor, values = cols15) + 
+  scale_color_manual(name = melt$drugcolor , values = cols15)
 ```
+
 
 ## Boxplot treated without scaling
 In order to get an overview a boxplot of the treated data was computed. There was a visible difference between the 15 batches. 
