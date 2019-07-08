@@ -92,20 +92,20 @@ length(gene.list.final)
 
 
 ##log2 Fold-change and scaling 
-untreated.fit = subset(untreated, rownames(untreated) %in% rownames(basalexp))
-treated.fit = subset(treated, rownames(treated) %in% rownames(basalexp))
+untreated.fit = 2^(subset(untreated, rownames(untreated) %in% rownames(basalexp)))
+treated.fit = 2^(subset(treated, rownames(treated) %in% rownames(basalexp)))
 
 treated.fit <- scale(treated.fit)
 untreated.fit <- scale(untreated.fit)
 basal.fitted.untreated <- scale(basal.fitted.untreated)
 
-drug_signature = (treated.fit - untreated.fit)
+drug_signature = log2(treated.fit / untreated.fit)
 is.nan.data.frame <- function(x)     
   do.call(cbind, lapply(x, is.nan))
 drug_signature[is.nan(drug_signature)] <- 0
 dim(drug_signature)
 
-disease_signature <- (untreated.fit - basal.fitted.untreated)
+disease_signature <- log2(untreated.fit / basal.fitted.untreated)
 is.nan.data.frame <- function(x)     
   do.call(cbind, lapply(x, is.nan))
 disease_signature[is.nan(disease_signature)] <- 0
@@ -199,4 +199,4 @@ for(count in sig.ids){
 results <- data.frame(sig.ID = sig.ids, RGES = dz_cmap_scores)
 results <- cbind(results, meta[1:819,]) 
 
-saveRDS(results, file = "resultsnew.rds")
+saveRDS(results, file = "resultsnewnew.rds")
