@@ -3,7 +3,7 @@
 library(rstudioapi)
 
 wd = dirname(rstudioapi::getSourceEditorContext()$path)
-results = readRDS(paste0(wd, "/data/results.RDS"))
+results = readRDS(paste0(wd, "/data/resultsnew.RDS"))
 results_cisplatin = subset (results , drug == "cisplatin")
 
 ###RGES analysis
