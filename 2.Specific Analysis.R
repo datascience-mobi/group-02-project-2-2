@@ -155,6 +155,7 @@ colfunc <- colorRampPalette(c("firebrick","firebrick3","lightcoral",
                               "lightyellow","lightskyblue1","steelblue1",
                               "steelblue3", "darkblue"))
 
+saveRDS(double.biomarker.FC, file = "double.biomarker.FC.rds")
 
 #checking how many clusters we will need in the heatmap (elbow plot) 
 wss = sapply(2:8, function(k) {
