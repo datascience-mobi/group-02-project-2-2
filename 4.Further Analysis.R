@@ -3,7 +3,7 @@
 library(rstudioapi)
 
 wd = dirname(rstudioapi::getSourceEditorContext()$path)
-results = readRDS(paste0(wd, "/data/results.RDS"))
+results = readRDS(paste0(wd, "/data/resultsnew.RDS"))
 results_cisplatin = subset (results , drug == "cisplatin")
 
 ###RGES analysis
@@ -58,7 +58,7 @@ boxplot(results[which(results$cell == "OVCAR-4"),2], main = "RGES for cellline O
 library(reshape)
 
 wd = dirname(rstudioapi::getSourceEditorContext()$path)
-results = readRDS(paste0(wd, "/data/results.RDS"))
+results = readRDS(paste0(wd, "/data/resultsnew.RDS"))
 ic50 = readRDS(paste0(wd, "/data/NegLogGI50.RDS"))
 meta = read.delim(paste0(wd, "/data/NCI_TPW_metadata.tsv"), header = TRUE, sep = "\t") 
 

@@ -1,6 +1,5 @@
 ---
-title: "Project 2 - Group 2"
-author: "Dorothee Mersch"
+title: "Broad Analysis"
 date: "5 Juni 2019"
 output:
   html_document: default
@@ -17,19 +16,19 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Load Data
 The given data is integrated as follows:
 ```{r}
-treated <- readRDS("C:/Users/Dori/Documents/NCI_TPW_gep_treated.rds")
-untreated <- readRDS("C:/Users/Dori/Documents/NCI_TPW_gep_untreated.rds")
-ic50 <- readRDS("C:/Users/Dori/Documents/NegLogGI50.rds")
-basalexp <- readRDS("C:/Users/Dori/Documents/CCLE_basalexpression.rds")
-copynumber <- readRDS("C:/Users/Dori/Documents/CCLE_copynumber.rds")
-mutations <- readRDS("C:/Users/Dori/Documents/CCLE_mutations.rds")
-cellline <- read.delim("C:/Users/Dori/Documents/cellline_annotation.tsv", header = TRUE, sep = "\t")
-meta <- read.delim("C:/Users/Dori/Documents/cellline_annotation.tsv", header = TRUE, sep = "\t")
-drug <- read.delim("C:/Users/Dori/Documents/drug_annotation.tsv", header = TRUE, sep = "\t")
+treated <- readRDS("C:/Users/johan/Documents/Bioinfo_project/NCI_TPW_gep_treated.rds")
+untreated <- readRDS("C:/Users/johan/Documents/Bioinfo_project/NCI_TPW_gep_untreated.rds")
+ic50 <- readRDS("C:/Users/johan/Documents/Bioinfo_project/NegLogGI50.rds")
+basalexp <- readRDS("C:/Users/johan/Documents/Bioinfo_project/CCLE_basalexpression.rds")
+copynumber <- readRDS("C:/Users/johan/Documents/Bioinfo_project/CCLE_copynumber.rds")
+mutations <- readRDS("C:/Users/johan/Documents/Bioinfo_project/CCLE_mutations.rds")
+cellline <- read.delim("C:/Users/johan/Documents/Bioinfo_project/cellline_annotation.tsv", header = TRUE, sep = "\t")
+meta <- read.delim("C:/Users/johan/Documents/Bioinfo_project/NCI_TPW_metadata.tsv", header = TRUE, sep = "\t")
+drug <- read.delim("C:/Users/johan/Documents/Bioinfo_project/drug_annotation.tsv", header = TRUE, sep = "\t")
 ```
 
 ## Remove NAs
-In order to clean up our data, we created a loop for checking the amount of NAs in every matrix. Then, two coloumns, which only contained of NAs were removed out of the mutations matrix.
+In order to clean up our data, we created a loop for checking the amount of NAs in every matrix. Then, two coloumns, which only contained NAs were deleated out of the mutations matrix.
 ```{r}
 list.na = list("treated"=treated, "untreated"=untreated, "mutations"=mutations, "basalexp" = basalexp, "cellline"=cellline, "copynumber"=copynumber, "ic50"=ic50, "meta"=meta)
 myfunc = function(x){sum(is.na(x))}
@@ -54,41 +53,23 @@ treated.scaled <- scale(treated)
 untreated.scaled <- scale(untreated)
 ```
 
-## Coloring every drug
-In order to color following plots with a different color for each drug a vector was created. 
-```{r}
-cols15 <- c("#d7ff2e","#2f0085","#02ee81","#f357ff",
-            "#86ae00","#ff2f86","#008118","#ff443e",
-            "#008b9d","#ffcd77","#1a001e","#f8ffb4",
-            "#b6a7ff","#572a00","#c8fff7")
-drugnames <- drug
-rownames(drugnames) = drugnames$Drug
-drugnames.ordered <- drugnames[order(drugnames$Drug),]
-drugcolor <- cbind(cols15, rownames(drugnames.ordered))
-colnames(drugcolor) <- c("color", "drug")
-drugcolorvector <- sapply(seq_along(meta[,3]), function(x){
-  unname(drugcolor[meta[x, 3]], force = FALSE)
-})
-```
 
 ## Boxplot treated without scaling
 In order to get an overview a boxplot of the treated data was computed. There was a visible difference between the 15 batches. 
 
 ###each drug is colored in a different color
-```{r}
-boxplot(treated, xlab = "Samples", horizontal = F, border = drugcolorvector, main = "Gene Expression Treated")
-```
 
 ## Boxplot treated with scaling
 Through scaling the data the different batches dissapeared.
 
-####color
-```{r}
-boxplot(treated.scaled, xlab="Samples", horizontal = F, border = drugcolorvector, main = "Gene Expression Treated Scaled")
-```
+## Coloring every drug in the scaled boxplot
 
-## Fold Change Treated/Untreated
-In order to analyse the gene expression change from untreated to treated, log2 fold change values were computed. The distribution was checked through a density plot.
+
+
+
+
+## Computation of the Fold Change - Treated/Untreated
+In order to analyse the gene expression change from untreated to treated, log2 fold change values were computed. The distribution was checked through a density plot. The values are located near to 0. 
 ```{r}
 log2FC.treated.untreated <- log2(treated.scaled/untreated.scaled)
 is.nan.data.frame <- function(x)      #NaN durch 0 ersetzen
@@ -98,10 +79,10 @@ plot(density(log2FC.treated.untreated), main = "Log2 FC Treated/Untreated")
 ```
 
 ## PCA
-For a dimensional reduction, a principal component analysis was performed. The PCA was interpreted by plotting the first four components and coloring different groups of data.
+For a dimensionallity reduction, a principal component analysis was performed. The PCA was interpreted by plotting the first four components in different plots, and coloring different groups of data.
 First chemotherapeutics and targeted drugs were colored in both plots. This did not seperate the data in visible groups. 
 Next each drug was colored in a different color, the color scheme remained the same as bevore. Here PC3 and PC4 seem to seperate the diffenrent drugs. Especially vorinostat was seperated from the rest of the data.
-Lastly 4 tyrosine kinase inhibitors drugs were colored. There was no seperation visible.
+Lastly 4 tyrosine kinase inhibitors drugs were colored. There was no seperation visible in PC1 and PC2, in the plot with PC3 and PC4 the Tyrosin Kinases seem to concentrate at a point.
 ```{r}
 PCA.FC <- prcomp(log2FC.treated.untreated, center=F , scale.=F)
 plot(PCA.FC, type ="lines")
@@ -115,22 +96,36 @@ Varianz.PCA=PCA.FC$sdev^2
 ```
 
 ## colored PCA (drugs)
-plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=drug.color.vector, xlab = "PC1", ylab = "PC2", pch=19, main ="PCA Drugs")
-plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=drug.color.vector, xlab = "PC3", ylab = "PC4", pch=19, main = "PCA Drugs")
+plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=drugcolorvector, xlab = "PC1", ylab = "PC2", pch=19, main ="PCA Drugs")
+plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=drugcolorvector, xlab = "PC3", ylab = "PC4", pch=19, main = "PCA Drugs")
 
 ## colored PCA chemo/targeted
 ```{r}
-targeted.chemo <- c("targeted", "targeted", "chemo", "chemo", "chemo", "chemo", "chemo", "targeted", "targeted", "chemo", "chemo", "chemo", "chemo", "targeted", "chemo")
-drug.added <- cbind(drug, targeted.chemo)
-drug.added.ordered <- drug.added[order(drug.added$Drug),]
-chemocolor <- ifelse(drug.added.ordered$targeted.chemo=="chemo", "firebrick", "forestgreen")
-chemocolordrugs <- cbind(chemocolor, rownames(drugnames))
-chemocolorvector <- sapply(rownames(meta), function(x){
-       unname(chemocolordrugs[meta[x, 3]], force = FALSE)
-   })
+list.chemo = list("cisplatin","dasatinib","doxorubicin","geldanamycin","gemcitibine","lapatinib","paclitaxel","sorafenib","sunitinib","topotecan")
+chemo = c()
+i=1
+j=1
+while(i<16)
+{
+  while(j<820)
+  {
+       if(isTRUE(meta[j,3]== list.chemo[i]))
+       {chemo= c(chemo,j)
+         }
+        j = j +1
+  }
+  j= 1
+  i=i+1
+}
+ 
+
+FC.named <- log2FC.treated.untreated
+colnames(FC.named)[chemo] <- "chemo"
+color.chemo <- ifelse(colnames(FC.named)=="chemo", "firebrick","forestgreen")
+
 #plot
-plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=chemocolorvector, xlab = "PC1", ylab = "PC2", pch=19, main ="PCA Drugs")
-plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=chemocolorvector, xlab = "PC3", ylab = "PC4", pch=19, main = "PCA Drugs")
+plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=color.chemo, xlab = "PC1", ylab = "PC2", pch=19, main ="PCA Drugs")
+plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=color.chemo, xlab = "PC3", ylab = "PC4", pch=19, main = "PCA Drugs")
 ```
 
 ## colored PCA tyrosine kinase inhibitor 
