@@ -2,6 +2,7 @@
 library(rstudioapi)
 library(gplots)
 library(pheatmap)
+library(viridis)
 
 ## necessary data from the general analysis
 wd = dirname(rstudioapi::getSourceEditorContext()$path)
@@ -80,6 +81,8 @@ barplot(highest.FC$mean.FC.genes,
         cex.names =0.8)
 legend(-0.5, 27, legend= "biomarker", box.lty=1, cex =0.8)
 
+saveRDS(highest.FC, file = "highestFC.rds")
+saveRDS(lowest.FC, file = "lowestFC.rds")
 
 #matrix containing the biomarker found through the FC 
 highest.FC = as.matrix(highest.FC) 
@@ -113,6 +116,7 @@ while(j<13300){
 #das sind jetzt die nrow von Genen dich sich unter cisplatin
 #in 50 von 55 Faellen in die gleiche Richtung veraendern
 biomarker2 = row.names(FC.cisplatin[c(biomarker2.down, biomarker2.up),])
+saveRDS(biomarker2, file = "biomarker2.rds")
 
 #do we find the same biomarkers for cisplatin with both criteria? 
 i=1
@@ -133,7 +137,8 @@ while(i<41)
           a=a+1
 }
 
-rm(is.neg, a, i, j, biomarker2.down, biomarker2.up, highest.names, lowest.names, highest.FC, lowest.FC)
+rm(is.neg, a, i, j, biomarker2.down, biomarker2.up, highest.names, lowest.names)
+saveRDS(double.biomarker, file = "doublebiomarker.rds")
 
 ## Step 1 (b)
 # ttest to verify significance of the biomarker
@@ -198,6 +203,7 @@ pheatmap(double.biomarker.FC,
 colnames(double.biomarker.FC) <- meta[95:149,2]
 annotation = data.frame(Cancertype = cellline$Cancer_type)
 rownames(annotation) = cellline$Cell_Line_Name
+colfunc3 = viridis(9)
 
 pheatmap(double.biomarker.FC,
          color = colfunc(25),
