@@ -5,12 +5,10 @@ library(pheatmap)
 
 ## necessary data from the general analysis
 wd = dirname(rstudioapi::getSourceEditorContext()$path)
-
 meta = read.delim(paste0(wd, "/data/NCI_TPW_metadata.tsv"), header = TRUE, sep = "\t") 
 untreated = readRDS(paste0(wd, "/data/NCI_TPW_gep_untreated.RDS"))
 treated = readRDS(paste0(wd, "/data/NCI_TPW_gep_treated.RDS"))
 copynumber = readRDS(paste0(wd, "/data/CCLE_copynumber.RDS"))
-mutations = readRDS(paste0(wd, "/data/CCLE_mutations.RDS"))
 cellline = read.delim(paste0(wd, "/data/cellline_annotation.tsv"), header = TRUE, sep = "\t")
 
 #scale
@@ -18,7 +16,7 @@ treated.scaled <- scale(treated)
 untreated.scaled <- scale(untreated)
 
 #FC
-log2FC.treated.untreated <- log2(treated.scaled/untreated.scaled)
+log2FC.treated.untreated <- (treated.scaled-untreated.scaled) #values are already log2 transformed
 is.nan.data.frame <- function(x)      #NaN durch 0 ersetzen
   do.call(cbind, lapply(x, is.nan))
 log2FC.treated.untreated[is.nan(log2FC.treated.untreated)] <- 0
@@ -27,7 +25,6 @@ log2FC.treated.untreated[is.nan(log2FC.treated.untreated)] <- 0
 ##Specific analysis
 
 ## Step 1 (a)
-
 #Find Biomarker for cisplatin through FC (criterium 1)
 cisplatin.col=c()
 j=1
@@ -41,17 +38,27 @@ while(j<820)
 }
 
 FC.cisplatin = log2FC.treated.untreated[,cisplatin.col]
-mean.FC.rows <- apply(FC.cisplatin, 1, mean)
-sorted.mean = sort(mean.FC.rows, decreasing = TRUE)
+
+mean.FC.genes <- apply(FC.cisplatin, 1, mean)
+mean.FC.celllines <- apply(FC.cisplatin, 2, mean)
+
+#removing unnecessary data, functions...
+rm(cisplatin.col, j, is.nan.data.frame, treated, untreated, log2FC.treated.untreated)
+
+#standard deviation cisplatin
+sd.cisplatin = apply(FC.cisplatin, 1, sd)
+mean.FC.genes.sd = as.data.frame(cbind(mean.FC.genes, sd.cisplatin))
+mean.FC.ordered = mean.FC.genes.sd[order(mean.FC.genes.sd$mean.FC.genes, decreasing=TRUE), ]
 
 #finding/visualizing most extreme FC values for cisplatin
-lowest.FC <- sorted.mean[13280:13299]
+lowest.FC = mean.FC.ordered[13280:13299,]
 par(mar = c(5, 7, 5, 5))
-barplot(lowest.FC,
+barplot(lowest.FC$mean.FC.genes,
         horiz = TRUE,
-        xlim = c(-1.2,0),
+        xlim = c(-1.0, 0),
         main= "lowest log2 FC-values for cisplatin",
         xlab= "mean log2FC values in different celllines",
+        names.arg = rownames(lowest.FC),
         col= "firebrick",
         las=1,
         border = "white", 
@@ -59,13 +66,14 @@ barplot(lowest.FC,
 legend(-1.4, 27, legend= "biomarker", box.lty=1, cex =0.8)
 
 
-highest.FC <- sorted.mean[1:20]
+highest.FC = mean.FC.ordered[1:20,]
 par(mar = c(5, 10, 5, 5))
-barplot(highest.FC,
+barplot(highest.FC$mean.FC.genes,
         horiz = TRUE,
-        xlim = c(0,2),
+        xlim = c(0, 1),
         main= "highest log2 FC-values for cisplatin",
         xlab= "mean log2FC values in different celllines",
+        names.arg = rownames(highest.FC),
         col= "lightgreen",
         las=1,
         border = "white",
@@ -125,6 +133,7 @@ while(i<41)
           a=a+1
 }
 
+rm(is.neg, a, i, j, biomarker2.down, biomarker2.up, highest.names, lowest.names, highest.FC, lowest.FC)
 
 ## Step 1 (b)
 # ttest to verify significance of the biomarker
@@ -146,7 +155,6 @@ pvalues.welch <- sapply(double.biomarker, function(x){
        t.test(treated.cisplatin[x,], untreated.cisplatin[x,],paired= T)$p.value
    })
 plot(density(pvalues.welch))
-
 
 #Step 2
 #influence of cisplatin on the biomarkers gene expression in different cell lines
@@ -170,18 +178,16 @@ plot(2:8, wss, type = "b",
 #heatmap
 par(mar = c(10,5,7,5))
 pheatmap(double.biomarker.FC,
-         color = colfunc(25),
+         color = colfunc(20),
          cluster_cols = TRUE,
          clustering_rows = TRUE,
          clustering_method ="ward.D2",
-         treeheight_row = 20,
-         treeheight_col = 30,
+         treeheight_row = 40,
+         treeheight_col = 40,
          cutree_cols = 4,
          cutree_rows = 2, 
          legend =TRUE,
          show_colnames = F,
-         legend_breaks = c(-3:3),
-         legend_labels = c("red= downregulation","","","","","","blue= upregulation"),
          border_color = "white",
          scale = "column",
          main = "Influence of cisplatin on the biomarkers gene expression")
@@ -192,21 +198,18 @@ colnames(double.biomarker.FC) <- meta[95:149,2]
 annotation = data.frame(Cancertype = cellline$Cancer_type)
 rownames(annotation) = cellline$Cell_Line_Name
 
-
 pheatmap(double.biomarker.FC,
          color = colfunc(25),
          cluster_cols = TRUE,
          clustering_rows = TRUE,
          clustering_method ="ward.D2",
-         treeheight_row = 20,
+         treeheight_row = 30,
          treeheight_col = 30,
          annotation_col = annotation,
-         legend =TRUE,
-         legend_breaks = c(-3:3),
-         legend_labels = c("red= downregulation","","","","","","blue= upregulation"),
-         show_colnames = FALSE,
+         legend = T,
+         show_colnames = F,
          cutree_rows = 2,
-         cutree_cols = 3,
+         cutree_cols = 4,
          border_color = "white",
          scale = "column",
          main = "Influence of cisplatin on the biomarkers gene expression")
@@ -216,9 +219,14 @@ pheatmap(double.biomarker.FC,
 ##Step 3
 #further analysis of biomarker
 #amplification, deletation or neutral gene copy number
-copynumber.biomarker = copynumber[double.biomarker,]
-copynumber.biomarker = copynumber.biomarker[-11,]
-copynumber.biomarker = as.matrix(copynumber.biomarker)
+copynumber.biomarker = as.matrix(copynumber[double.biomarker,])
+copynumber.quali = ifelse(copynumber.biomarker <= (-1), (-1), ifelse (copynumber.biomarker >= (1), 1, 0))
+
+#distribution of gene alterations
+quantiles = as.matrix(quantile(copynumber.biomarker))
+plot(density(copynumber.biomarker))
+abline(v= quantiles[c(2,4),1], col= c("red", "blue"), lty =2)
+legend(-6, 1.2, legend = c("25 % quantile", "75% quantile"), col = c("red", "blue"), lty = 1:2)
 
 #checking the optimal number of cluster (elbow plot) 
 wss = sapply(2:7, function(k) {
@@ -232,19 +240,10 @@ plot(2:7, wss,
 
 kmeans= kmeans(x = t(copynumber.quali), centers = 4, nstart = 10)
 
-
-#80:20 quantiles
-quantiles = as.matrix(quantile(copynumber.biomarker, probs= c(0, 0.2, 0.25, 0.5, 0.75, 0.8,1)))
-plot(density(copynumber.biomarker))
-abline(v= quantiles[c(2,6),1], col= c("red", "blue"), lty =2)
-legend(-7, 1.2, legend = c("20 % quantile", "80% quantile"), col = c("red", "blue"), lty = 1:2)
-
-copynumber.quali = ifelse(copynumber.biomarker < (quantiles[2,1]), (-1), ifelse (copynumber.biomarker > (quantiles[6,1]), 1, 0))
-
-
-#heatmap with 80:20 quantile
+#heatmap
 colfunc2 <- colorRampPalette(c("firebrick2", "grey88", "deepskyblue3"))
 colfunc2(3)
+
 pheatmap(copynumber.quali,
          color = colfunc2(3),
          cluster_rows = TRUE,
@@ -253,55 +252,9 @@ pheatmap(copynumber.quali,
          legend = TRUE,
          legend_breaks = c(-3:3),
          legend_labels = c("red=deletion","","","", "", "", "blue=amplification"),
-         scale = "column",
          border_color = "white",
          show_colnames = FALSE,
-         cutree_rows = 2,
-         cutree_cols = 3,
-         main =  "Connection between biomarker and gene alterations (80:20)")
-
-
-
-#heatmap with 75:25 quantile
-quantiles2 = as.matrix(quantile(copynumber.biomarker))
-plot(density(copynumber.biomarker))
-abline(v= quantiles2[c(2,4),1], col= c("red", "blue"), lty =2)
-legend(-7, 1.2, legend = c("25 % quantile", "75% quantile"), col = c("red", "blue"), lty = 1:2)
-
-copynumber.quali2 = ifelse(copynumber.biomarker < (quantiles2[2,1]), (-1), ifelse (copynumber.biomarker > (quantiles2[4,1]), 1, 0))
-
-colfunc2 <- colorRampPalette(c("firebrick2", "grey88", "deepskyblue3"))
-colfunc2(3)
-pheatmap(copynumber.quali2,
-         color = colfunc2(3),
-         cluster_rows = TRUE,
-         cluster_cols = TRUE,
-         clustering_method = "ward.D2",
-         legend = TRUE,
-         legend_breaks = c(-3:3),
-         legend_labels = c("red=deletion","","","", "", "", "blue=amplification"),
-         scale = "column",
-         border_color = "white",
-         show_colnames = FALSE,
-         cutree_rows = 2,
-         cutree_cols = 3,
-         main =  "Connection between biomarker and gene alterations (75:25)")
-
-
-
-#heatmap with annotation
-pheatmap(copynumber.quali,
-         color = colfunc2(3),
-         cluster_rows = TRUE,
-         cluster_cols = TRUE,
-         clustering_method = "ward.D2",
-         cutree_cols = 3,
-         cutree_rows = 3,
+         cutree_rows = 4,
+         cutree_cols = 4,
          annotation = annotation,
-         show_colnames = FALSE,
-         legend = TRUE,
-         legend_breaks = c(-3:3),
-         legend_labels = c("red=deletion","","","", "", "", "blue=amplification"),
-         scale = "column",
-         border_color = "white",
-         main =  "Connection between biomarker and gene alterations (80:20)")
+         main =  "Connection between biomarker and gene alterations")
