@@ -105,9 +105,6 @@ plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], xlab = "PC3", ylab = "PC4", pch
 ### wie viel Varianz wird durch components erklaert?
 Varianz.PCA=PCA.FC$sdev^2
 
-
-###plotting PCA - color chemo targeted
-
 ###plotting PCA - color every drug
 
 library(ggplot2)
@@ -119,17 +116,118 @@ summary(pca)
 meta_neu = meta[1:819,]
 meta_neu = as.data.frame(meta_neu)
 
-sample_plot <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,3], y = pca$rotation[,4])) +
+pca_plot_drugs12 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,1], y = pca$rotation[,2])) +
   theme_bw(base_size = 7) +
   geom_point(aes(colour = factor(meta_neu$drug))) +
   scale_colour_viridis(option ="viridis", discrete = TRUE) +
   #mit BREWER: scale_fill_brewer(palette = "Dark2")
-  ggtitle("Principal Component Analysis") +
+  ggtitle("Principal Component Analysis 1 & 2") +
   xlab("Principal Component 1") +
   ylab("Principal Component 2")
 
-sample_plot
+pca_plot_drugs12
 
+pca_plot_drugs34 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,3], y = pca$rotation[,4])) +
+  theme_bw(base_size = 7) +
+  geom_point(aes(colour = factor(meta_neu$drug))) +
+  scale_colour_viridis(option ="viridis", discrete = TRUE) +
+  #mit BREWER: scale_fill_brewer(palette = "Dark2")
+  ggtitle("Principal Component Analysis 3 & 4") +
+  xlab("Principal Component 3") +
+  ylab("Principal Component 4")
 
+pca_plot_drugs34
+
+###plotting PCA - color chemo targeted
+####an meta_neu Spalte anfügen, ob chemo oder targeted; undzwar, wenn in meta_neu spalte drug = drug.addad.ordered; dann füge
+#### in meta in neue spalte das ein, was in drug.adde.ordered in targeted.chemo steht
+
+targeted.chemo <- c("targeted", "targeted", "chemo", "chemo", "chemo", "chemo", "chemo", "targeted", "targeted", "chemo", "chemo", "chemo", "chemo", "targeted", "chemo")
+drug.added <- cbind(drug, targeted.chemo)
+drug.added.ordered <- drug.added[order(drug.added$Drug),]
+
+chem.targ = c(rep(as.numeric(0),819))
+meta_neu = cbind(meta_neu, chem.targ)
+
+i=1
+j=1
+
+while(j<16)
+{while(i<820)
+{
+  if(isTRUE(meta_neu[i,3]== drug.added.ordered[j,1]))
+  {meta_neu[i,7] = as.character(drug.added.ordered[j,9])
+  }
+  i = i +1
+}
+  i= 1
+  j=j+1}
+
+###pca
+
+pca_plot_chemtarg12 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,1], y = pca$rotation[,2])) +
+  theme_bw(base_size = 7) +
+  geom_point(aes(colour = factor(meta_neu$chem.targ))) +
+  scale_colour_viridis(option ="viridis", discrete = TRUE) +
+  #mit BREWER: scale_fill_brewer(palette = "Dark2")
+  ggtitle("Principal Component Analysis 1&2") +
+  xlab("Principal Component 1") +
+  ylab("Principal Component 2")
+
+pca_plot_chemtarg12
+
+pca_plot_chemtarg34 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,3], y = pca$rotation[,4])) +
+  theme_bw(base_size = 7) +
+  geom_point(aes(colour = factor(meta_neu$chem.targ))) +
+  scale_colour_viridis(option ="viridis", discrete = TRUE) +
+  #mit BREWER: scale_fill_brewer(palette = "Dark2")
+  ggtitle("Principal Component Analysis 3&4") +
+  xlab("Principal Component 3") +
+  ylab("Principal Component 4")
+
+pca_plot_chemtarg34
 
 ###plotting PCA - color tyrosine kinase inhibitor
+###an meta_neu Spalte anfügen, ob TKI oder nicht; undzwar, wenn in meta_neu spalte drug = drug.added.ordered UND in
+### drug.added.ordered Spalte Mechanism=TKI ; dann füge in meta in neue Spalte das ein was bei Mechanism steht
+
+TKI = c(rep(as.numeric(0),819))
+meta_neu = cbind(meta_neu, TKI)
+
+i=1
+j=1
+
+while(j<16)
+{while(i<820)
+{
+  if(isTRUE(meta_neu[i,3]== drug.added.ordered[j,1])
+     & (drug.added.ordered[j,3] == "Tyrosine kinase inhibitor"))
+  {meta_neu[i,8] = as.character(drug.added.ordered[j,3])
+  }
+  i = i +1
+}
+  i= 1
+  j=j+1}
+
+##pca
+
+pca_plot_TKI12 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,1], y = pca$rotation[,2])) +
+  theme_bw(base_size = 7) +
+  geom_point(aes(colour = factor(meta_neu$TKI))) +
+  scale_colour_viridis(option ="viridis", discrete = TRUE) +
+  ggtitle("Principal Component Analysis 1&2") +
+  xlab("Principal Component 1") +
+  ylab("Principal Component 2")
+
+pca_plot_TKI12
+
+pca_plot_TKI34 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,3], y = pca$rotation[,4])) +
+  theme_bw(base_size = 7) +
+  geom_point(aes(colour = factor(meta_neu$TKI))) +
+  scale_colour_viridis(option ="viridis", discrete = TRUE) +
+  ggtitle("Principal Component Analysis 3&4") +
+  xlab("Principal Component 3") +
+  ylab("Principal Component 4")
+
+pca_plot_TKI34
+
