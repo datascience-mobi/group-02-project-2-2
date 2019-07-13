@@ -10,13 +10,13 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 # Linear Regression Analysis
-The RGES values of the paper (QUELLE) positively correlate with drug sensitivity. We want to check, whether our previously computed RGES values also correlate with our IC50 data. 
+The RGES values of the paper (QUELLE) positively correlate with drug sensitivity. It is checked, whether the previously computed RGES values also correlate with the IC50 data. 
 Afterwards a linear regression model is performed in order to predict drug sensitivity of various cell lines with RGES values. RGES is a value, which measures the drugs potency to reverse a disease induced gene expression.
 First the data set was limited to numerical values, as well as the drug sensitivity values were converted as they were in -log10 scale.
 A data frame with RGES and IC50 values is contained.
 ```{r, echo=FALSE}
 ### load the data
-drug_activity_rges = readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/drug_activity_rges.rds")
+drug_activity_rges <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/drug_activity_rges.rds")
 
 
 # limit the data set to numerical values, convert IC50 values as they are in -log10 scale
@@ -26,44 +26,170 @@ IC50.value = -10^ic50
 RGES = drug_activity_rges[,2]
 rges.ic50 <- as.data.frame(cbind(RGES, IC50.value))
 ```
-First we want to check the correlation between the computed RGES values and our drug sensitivity values.
+First, the correlation between the computed RGES values and our drug sensitivity values is checked.
 ```{r, echo = TRUE}
 cor(rges.ic50$RGES, rges.ic50$IC50.value)
 # check significance
 cor.test(rges.ic50$RGES, rges.ic50$IC50.value)
 ```
 
-The linear regression model should be learned on a training set. The training set is formed by 200 random variables of the data set. The other part of the data set than is called test set. 
+The linear regression model should be learned on a training set. The training set is formed by 730 random variables of the data set (correspond to ~90 % of the whole data set). The other part of the data set than is called test set. 
 It was checked, whether the residuals are normal distributed and wheter they correlate with x-values.
 
-```{r, echo = TRUE}
-i.train = sample(1:nrow(rges.ic50), 200)
+```{r, echo = FALSE}
+i.train = sample(1:nrow(rges.ic50), 730)
+## 
 rges.ic50.train = rges.ic50[i.train, ]
 rges.ic50.test = rges.ic50[-i.train, ]
-#learn lm on training set
-l.train = lm(IC50.value ~ RGES, data = rges.ic50.train)
-summary(l.train)
+```
+```{r, echo = TRUE}
+lm.rges_ic50 = lm(IC50.value ~ RGES, data = rges.ic50.train)
+summary(lm.rges_ic50)
+plot(lm.rges_ic50)
 ```
 ```{r, echo = FALSE}
 # normal distribution of residuals?
-hist(l.train$residuals, breaks = 20)
-qqnorm(l.train$residuals)
-qqline(l.train$residuals)
+hist(lm.rges_ic50$residuals, breaks = 20)
+qqnorm(lm.rges_ic50$residuals)
+qqline(lm.rges_ic50$residuals)
 ## correlation residuals x-values?
-cor(rges.ic50.train$RGES, l.train$residuals)
+cor(rges.ic50.train$RGES, lm.rges_ic50$residuals)
 ```
 
 Finally the training set was used to predict drug sensitivity with RGES values.
 To check the models potency, the RMSE values for the training set as well as for the test set were computed.
-```{r, echo = TRUE}
-pred = predict(l.train, newdata = rges.ic50.test)
-
+```{r, echo = FALSE}
+pred = predict(lm.rges_ic50, newdata = rges.ic50.test)
+```
+The predicted values are shown in a vector:
+```{r, echo=TRUE}
+pred
+```
+In order to indicate how well the model fit to the real data, the root mean square error (RMSE) can be computed. 
+```{r, echo = FALSE}
 #compute RMSE
 n = nrow(rges.ic50.train)
-rmse.train = sqrt(1/n * sum(l.train$residuals^2))
-rmse.train
+rmse.train = sqrt(1/n * sum(lm.rges_ic50$residuals^2))
 n = nrow(rges.ic50.test)
 residuals = rges.ic50.test$IC50.value - pred
 rmse.test = sqrt(1/n * sum(residuals^2))
+```
+For the training set, following RMSE is obtained:
+```{r, echo = TRUE}
+rmse.train
+```
+And for the test set:
+```{r,echo=TRUE}
 rmse.test
+```
+
+
+In order to obtain an enhanced model, a multiple regression for cisplatin is performed. The previously computed biomarkers for cisplatin are included. Then drug sensitivity is predicted with RGES values, as well as with genes which showed the highest constant fold change values.
+```{r, echo=FALSE}
+#Multiple Regression
+# 1. Include biomarkers to RGES matrix only for cisplatin!
+double.biomarker.FC <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/double.biomarker.FC.rds")
+
+drug_activity_rges.cisplatin = subset (drug_activity_rges , drug == "cisplatin")
+# transformieren, damit samples in zeile
+biomarker.FC = t(double.biomarker.FC)
+
+# Problem: dimensionen der matrizen unterschiedlich, drugactivity eine zeile weniger als biomarker.FC scheinbar in Zeile 26 unterschiedlich?
+# Anpassen der beiden matrizen aneindander:
+biomarker.FC.fit = subset(biomarker.FC, rownames(biomarker.FC) %in% drug_activity_rges.cisplatin$sample)
+results_biomarkers = cbind(drug_activity_rges.cisplatin, biomarker.FC.fit)
+
+# limit the data set to numerical values: rges, ic50 and biomarkers:
+# ic50 values are in -log10 scale
+ic50.cisplatin = drug_activity_rges.cisplatin[,9]
+IC50.value.cisplatin = 10^-(ic50.cisplatin)
+RGES.cisplatin = drug_activity_rges.cisplatin[,2]
+rges.ic50.biomarkers <- as.data.frame(cbind(RGES.cisplatin, IC50.value.cisplatin,biomarker.FC.fit))
+```
+To visualize the correlation pattern between drug sensitivity values, RGES and biomarkers, pairwise scatterplots, as well as a heatmap is produced. 
+```{r, echo=FALSE, include=TRUE} 
+pairs(rges.ic50.biomarkers, col = "blue", pch = 20)
+
+cor = cor(rges.ic50.biomarkers)
+heatmap(cor, col = cm.colors(256))
+```
+
+As before, to perform a multiple regression model, the data set has to be splitten up into two groups: a training set, which contains 45 random variables (~85% of the whole data set), and a test set out of the other values. 
+```{r, echo = FALSE}
+# multiple regression model
+# create training and test set
+train.multiple = sample(1:nrow(rges.ic50.biomarkers), 45)
+## 
+train.set.multiple = rges.ic50.biomarkers[train.multiple, ]
+test.set.multiple = rges.ic50.biomarkers[-train.multiple, ]
+```
+Afterwards, the multiple regression model can be learned from the test set. All variables are included. 
+```{r, echo=TRUE}
+model.multiple = lm(IC50.value.cisplatin ~ ., data = train.set.multiple)
+summary(model.multiple)
+
+plot(model.multiple)
+```
+At the end the multiple regression model is used to predict the values. The result is shown in a vector.
+```{r, echo = FALSE}
+predict.multiple = predict(model.multiple, newdata = test.set.multiple)
+```
+```{r, echo = TRUE}
+predict.multiple
+```
+RMSE values for training and test set can be computed.
+```{r, echo=FALSE}
+n = nrow(train.set.multiple)
+rmse.train = sqrt(1/n * sum(model.multiple$residuals^2))
+n = nrow(test.set.multiple)
+residuals = test.set.multiple$IC50.value.cisplatin - predict.multiple
+rmse.test = sqrt(1/n * sum(residuals^2))
+```
+```{r, echo = TRUE}
+rmse.train
+rmse.test
+```
+
+The correlation heatmap including all variables, as well as the p-values suggest to perform a multiple regression model with three specific biomarkers. GMDS, LRBA and ATXN1 showed a more or less strong correlation to drug sensitivity values. Nevertheless the same training and test set as before is used. 
+```{r, echo = TRUE}
+model.multiple.biomarkers = lm(IC50.value.cisplatin ~ GMDS + LRBA + ATXN1, data = train.set.multiple)
+summary(model.multiple.biomarkers)
+plot(model.multiple.biomarkers)
+```
+Now the model can be used to predict the data. 
+```{r, echo = FALSE}
+predict.biomarkers = predict(model.multiple.biomarkers, newdata = test.set.multiple)
+```
+```{r, echo = TRUE}
+predict.biomarkers
+```
+To check the models validity, RMSE values for training and test set can be computed.
+```{r, echo=FALSE}
+n = nrow(train.set.multiple)
+rmse.train = sqrt(1/n * sum(model.multiple.biomarkers$residuals^2))
+n = nrow(test.set.multiple)
+residuals = test.set.multiple$IC50.value.cisplatin - predict.biomarkers
+rmse.test = sqrt(1/n * sum(residuals^2))
+```
+```{r, echo = TRUE}
+rmse.train
+rmse.test
+```
+
+
+For a further enhancement of the multiple regression model, principle components instead of original variables were used. 
+A barplot of the first principle component is illustrated. In addition the correlation between each PCs has to be checked.
+```{r, echo=FALSE}
+# müsste hier nicht -2 hin, weil ic50 an 2. Stelle steht?
+pca = prcomp(rges.ic50.biomarkers[, -2])
+```
+```{r, echo= FALSE, include=TRUE}
+barplot(pca$rotation[, 1], horiz = TRUE, main = "PC1", col = "red")
+```
+
+Finally, the multiple regression model can be computed. 
+```{r, echo=TRUE}
+model.pca = lm(rges.ic50.biomarkers$IC50.value.cisplatin ~ pca$x)
+summary(model.pca)
+plot(model.pca)
 ```

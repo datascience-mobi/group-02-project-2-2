@@ -49,7 +49,8 @@ rmse.test
 
 #Multiple Regression
 # 1. Include biomarkers to RGES matrix only for cisplatin!
-double.biomarker.FC = readRDS(paste0(wd, "/data/double.biomarker.FC.rds"))
+double.biomarker.FC = readRDS(paste0(wd, "/data/double.biomarker.FC.RDS"))
+
 drug_activity_rges.cisplatin = subset (drug_activity_rges , drug == "cisplatin")
 # transformieren, damit samples in zeile
 biomarker.FC = t(double.biomarker.FC)
@@ -86,16 +87,30 @@ summary(model.multiple)
 
 plot(model.multiple)
 
-predict.multiple = predict(model, newdata = test.set.multiple)
+predict.multiple = predict(model.multiple, newdata = test.set.multiple)
 
 #computation of RMSE necessary?
+n = nrow(train.set.multiple)
+rmse.train = sqrt(1/n * sum(model.multiple$residuals^2))
+n = nrow(test.set.multiple)
+residuals = test.set.multiple$IC50.value.cisplatin - predict.multiple
+rmse.test = sqrt(1/n * sum(residuals^2))
+rmse.train
+rmse.test
+
+# model with specific biomarkers (GMDS, LRBA, ATXN1)
+#same training and test set is used
+model.multiple.biomarkers = lm(IC50.value.cisplatin ~ GMDS + LRBA + ATXN1, data = train.set.multiple)
+summary(model.multiple.biomarkers)
+plot(model.multiple.biomarkers)
+predict.biomarkers = predict(model.multiple.biomarkers, newdata = test.set.multiple)
 
 # for a better model, pca can be used
-pca = prcomp(rges.ic50.biomarkers[, -1])
+pca = prcomp(rges.ic50.biomarkers[, -2])
 barplot(pca$rotation[, 1], horiz = TRUE, main = "PC1", col = "red")
 
 # compute model with pcas instead of original variables
 model.pca = lm(rges.ic50.biomarkers$IC50.value.cisplatin ~ pca$x)
-summary(l.pca)
-plot(l.pca)
+summary(model.pca)
+plot(model.pca)
 
