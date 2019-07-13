@@ -107,7 +107,7 @@ predict.biomarkers = predict(model.multiple.biomarkers, newdata = test.set.multi
 
 # for a better model, pca can be used
 pca = prcomp(rges.ic50.biomarkers[, -2])
-barplot(pca$rotation[, 1], horiz = TRUE, main = "PC1", col = "red")
+barplot(pca$rotation[, 1], horiz = TRUE, main = "PC1", col = "lightblue", las=1)
 
 # compute model with pcas instead of original variables
 model.pca = lm(rges.ic50.biomarkers$IC50.value.cisplatin ~ pca$x)
