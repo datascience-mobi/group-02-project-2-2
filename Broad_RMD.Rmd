@@ -71,7 +71,7 @@ Through scaling the data the different batches dissapeared.
 ## Computation of the Fold Change - Treated/Untreated
 In order to analyse the gene expression change from untreated to treated, log2 fold change values were computed. The distribution was checked through a density plot. The values are located near to 0. 
 ```{r}
-log2FC.treated.untreated <- log2(treated.scaled/untreated.scaled)
+log2FC.treated.untreated <- treated.scaled - untreated.scaled
 is.nan.data.frame <- function(x)      #NaN durch 0 ersetzen
   do.call(cbind, lapply(x, is.nan))
 log2FC.treated.untreated[is.nan(log2FC.treated.untreated)] <- 0
@@ -96,46 +96,140 @@ Varianz.PCA=PCA.FC$sdev^2
 ```
 
 ## colored PCA (drugs)
-plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=drugcolorvector, xlab = "PC1", ylab = "PC2", pch=19, main ="PCA Drugs")
-plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=drugcolorvector, xlab = "PC3", ylab = "PC4", pch=19, main = "PCA Drugs")
+```{r}
+library(ggplot2)
+library(viridis)
 
+pca = prcomp(log2FC.treated.untreated)
+summary(pca)
+
+meta_neu = meta[1:819,]
+meta_neu = as.data.frame(meta_neu)
+```
+
+##plot PC1 and PC2
+```{r} 
+pca_plot_drugs12 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,1], y = pca$rotation[,2])) +
+  theme_bw(base_size = 7) +
+  geom_point(aes(colour = factor(meta_neu$drug))) +
+  scale_colour_viridis(option ="viridis", discrete = TRUE) +
+  #mit BREWER: scale_fill_brewer(palette = "Dark2")
+  ggtitle("Principal Component Analysis 1 & 2") +
+  xlab("Principal Component 1") +
+  ylab("Principal Component 2")
+
+pca_plot_drugs12
+```
+##plot PC3 and PC4
+```{r}
+
+pca_plot_drugs34 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,3], y = pca$rotation[,4])) +
+  theme_bw(base_size = 7) +
+  geom_point(aes(colour = factor(meta_neu$drug))) +
+  scale_colour_viridis(option ="viridis", discrete = TRUE) +
+  #mit BREWER: scale_fill_brewer(palette = "Dark2")
+  ggtitle("Principal Component Analysis 3 & 4") +
+  xlab("Principal Component 3") +
+  ylab("Principal Component 4")
+
+pca_plot_drugs34
+```
 ## colored PCA chemo/targeted
 ```{r}
-list.chemo = list("cisplatin","dasatinib","doxorubicin","geldanamycin","gemcitibine","lapatinib","paclitaxel","sorafenib","sunitinib","topotecan")
-chemo = c()
+
+targeted.chemo <- c("targeted", "targeted", "chemo", "chemo", "chemo", "chemo", "chemo", "targeted", "targeted", "chemo", "chemo", "chemo", "chemo", "targeted", "chemo")
+drug.added <- cbind(drug, targeted.chemo)
+drug.added.ordered <- drug.added[order(drug.added$Drug),]
+
+chem.targ = c(rep(as.numeric(0),819))
+meta_neu = cbind(meta_neu, chem.targ)
+
 i=1
 j=1
-while(i<16)
+
+while(j<16)
+{while(i<820)
 {
-  while(j<820)
-  {
-       if(isTRUE(meta[j,3]== list.chemo[i]))
-       {chemo= c(chemo,j)
-         }
-        j = j +1
+  if(isTRUE(meta_neu[i,3]== drug.added.ordered[j,1]))
+  {meta_neu[i,7] = as.character(drug.added.ordered[j,9])
   }
-  j= 1
-  i=i+1
+  i = i +1
 }
- 
+  i= 1
+  j=j+1}
+```
 
-FC.named <- log2FC.treated.untreated
-colnames(FC.named)[chemo] <- "chemo"
-color.chemo <- ifelse(colnames(FC.named)=="chemo", "firebrick","forestgreen")
+##plot PC1 and PC2
+```{r}
 
-#plot
-plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=color.chemo, xlab = "PC1", ylab = "PC2", pch=19, main ="PCA Drugs")
-plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=color.chemo, xlab = "PC3", ylab = "PC4", pch=19, main = "PCA Drugs")
+pca_plot_chemtarg12 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,1], y = pca$rotation[,2])) +
+  theme_bw(base_size = 7) +
+  geom_point(aes(colour = factor(meta_neu$chem.targ))) +
+  scale_colour_viridis(option ="viridis", discrete = TRUE) +
+  #mit BREWER: scale_fill_brewer(palette = "Dark2")
+  ggtitle("Principal Component Analysis 1&2") +
+  xlab("Principal Component 1") +
+  ylab("Principal Component 2")
+
+pca_plot_chemtarg12
+```
+##plot PC3 and PC4
+```{r}
+pca_plot_chemtarg34 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,3], y = pca$rotation[,4])) +
+  theme_bw(base_size = 7) +
+  geom_point(aes(colour = factor(meta_neu$chem.targ))) +
+  scale_colour_viridis(option ="viridis", discrete = TRUE) +
+  #mit BREWER: scale_fill_brewer(palette = "Dark2")
+  ggtitle("Principal Component Analysis 3&4") +
+  xlab("Principal Component 3") +
+  ylab("Principal Component 4")
+
+pca_plot_chemtarg34
 ```
 
 ## colored PCA tyrosine kinase inhibitor 
 ```{r}
-tyrosincolor <- ifelse(drugnames.ordered$Mechanism=="Tyrosine kinase inhibitor", "firebrick", "forestgreen")
-tyrosincolordrugs <- cbind(tyrosincolor, rownames(drugnames.ordered))
-tyrosincolorvector <- sapply(rownames(meta), function(x){
-          unname(tyrosincolor[meta[x, 3]], force = FALSE)
-      })
-#plot
-plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], col=tyrosincolorvector, xlab = "PC1", ylab = "PC2", pch=19, main = "PCA Tyrosin Kinase Inhibitor")
-plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], col=tyrosincolorvector, xlab = "PC3", ylab = "PC4", pch=19, main = "PCA Tyrosin Kinase Inhibitor")
+
+TKI = c(rep(as.numeric(0),819))
+meta_neu = cbind(meta_neu, TKI)
+
+i=1
+j=1
+
+while(j<16)
+{while(i<820)
+{
+  if(isTRUE(meta_neu[i,3]== drug.added.ordered[j,1])
+     & (drug.added.ordered[j,3] == "Tyrosine kinase inhibitor"))
+  {meta_neu[i,8] = as.character(drug.added.ordered[j,3])
+  }
+  i = i +1
+}
+  i= 1
+  j=j+1}
+```
+
+##plot PC1 and PC2
+```{r}
+pca_plot_TKI12 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,1], y = pca$rotation[,2])) +
+  theme_bw(base_size = 7) +
+  geom_point(aes(colour = factor(meta_neu$TKI))) +
+  scale_colour_viridis(option ="viridis", discrete = TRUE) +
+  ggtitle("Principal Component Analysis 1&2") +
+  xlab("Principal Component 1") +
+  ylab("Principal Component 2")
+
+pca_plot_TKI12
+```
+##plot PC3 and PC4
+```{r}
+pca_plot_TKI34 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,3], y = pca$rotation[,4])) +
+  theme_bw(base_size = 7) +
+  geom_point(aes(colour = factor(meta_neu$TKI))) +
+  scale_colour_viridis(option ="viridis", discrete = TRUE) +
+  ggtitle("Principal Component Analysis 3&4") +
+  xlab("Principal Component 3") +
+  ylab("Principal Component 4")
+
+pca_plot_TKI34
 ```
