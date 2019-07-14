@@ -4,47 +4,39 @@ author: "TeresavL"
 date: "7/6/2019"
 output: html_document
 ---
-
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, echo =F}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r}
+`````{r}
+library(readxl)
 library(gplots)
 library(pheatmap)
-```
-#Specific Analysis
 
-###Load Data
-The given data is integrated as follows:
-```{r, warning=FALSE}
-treated <- readRDS("~/Documents/Uni/4.Semester/Bioinfo/GitHub/project-02-group-02/data/NCI_TPW_gep_treated.rds")
+## necessary data from the general analysis
+meta <- read_excel("data/NCI_TPW_metadata.xls")
 untreated <- readRDS("~/Documents/Uni/4.Semester/Bioinfo/GitHub/project-02-group-02/data/NCI_TPW_gep_untreated.rds")
+treated <- readRDS("~/Documents/Uni/4.Semester/Bioinfo/GitHub/project-02-group-02/data/NCI_TPW_gep_treated.rds")
 copynumber <- readRDS("~/Documents/Uni/4.Semester/Bioinfo/GitHub/project-02-group-02/data/CCLE_copynumber.rds")
-mutations <- readRDS("~/Documents/Uni/4.Semester/Bioinfo/GitHub/project-02-group-02/data/CCLE_mutations.rds")
-cellline <- read.delim("~/Documents/Uni/4.Semester/Bioinfo/GitHub/project-02-group-02/data/cellline_annotation.tsv", header = TRUE, sep = "\t")
-meta <- read.delim("~/Documents/Uni/4.Semester/Bioinfo/GitHub/project-02-group-02/data/CCLE_mutations.rds", header = TRUE, sep = "\t")
-```
+cellline <- read_excel("data/cellline_annotation.xls")
+meta = as.data.frame(meta)
+celline = as.data.frame(cellline)
 
-### Scaling
-We normalized our data through scaling: 
-```{r}
+#scale
 treated.scaled <- scale(treated)
 untreated.scaled <- scale(untreated)
-````
 
-## FC
-```{r}
+#FC
 log2FC.treated.untreated <- (treated.scaled-untreated.scaled) #values are already log2 transformed
 is.nan.data.frame <- function(x)      #NaN durch 0 ersetzen
   do.call(cbind, lapply(x, is.nan))
 log2FC.treated.untreated[is.nan(log2FC.treated.untreated)] <- 0
-`````
 
-#Actual analysis
+
+##Specific analysis
+
 ## Step 1 (a)
-##Find Biomarker for cisplatin through FC (criterium 1)
-```{r}
+#Find Biomarker for cisplatin through FC (criterium 1)
 cisplatin.col=c()
 j=1
 
@@ -60,23 +52,15 @@ FC.cisplatin = log2FC.treated.untreated[,cisplatin.col]
 
 mean.FC.genes <- apply(FC.cisplatin, 1, mean)
 mean.FC.celllines <- apply(FC.cisplatin, 2, mean)
-``````
 
-### removing unnecessary data
-````{r}
-rm(cisplatin.col, j, is.nan.data.frame, treated, untreated, log2FC.treated.untreated)
-```````
-
-##standard deviation cisplatin
-````{r}
+#standard deviation cisplatin
 sd.cisplatin = apply(FC.cisplatin, 1, sd)
 mean.FC.genes.sd = as.data.frame(cbind(mean.FC.genes, sd.cisplatin))
 mean.FC.ordered = mean.FC.genes.sd[order(mean.FC.genes.sd$mean.FC.genes, decreasing=TRUE), ]
-```````
+head(mean.FC.genes.sd)
 
-##finding/visualizing most extreme FC values for cisplatin
-````{r}
-lowest.FC = readRDS("/Users/teresa.vonlinde/Documents/Uni/4.Semester/Bioinfo/GitHub/project-02-group-02/lowestFC.rds")
+#finding/visualizing most extreme FC values for cisplatin
+lowest.FC = mean.FC.ordered[13280:13299,]
 par(mar = c(5, 7, 5, 5))
 barplot(lowest.FC$mean.FC.genes,
         horiz = TRUE,
@@ -90,7 +74,7 @@ barplot(lowest.FC$mean.FC.genes,
         cex.names =0.8)
 legend(-1.4, 27, legend= "biomarker", box.lty=1, cex =0.8)
 
-highest.FC = readRDS("/Users/teresa.vonlinde/Documents/Uni/4.Semester/Bioinfo/GitHub/project-02-group-02/highestFC.rds")
+highest.FC = mean.FC.ordered[1:20,]
 par(mar = c(5, 10, 5, 5))
 barplot(highest.FC$mean.FC.genes,
         horiz = TRUE,
@@ -103,10 +87,8 @@ barplot(highest.FC$mean.FC.genes,
         border = "white",
         cex.names =0.8)
 legend(-0.5, 27, legend= "biomarker", box.lty=1, cex =0.8)
-``````
 
 #matrix containing the biomarker found through the FC 
-````{r}
 highest.FC = as.matrix(highest.FC) 
 lowest.FC = as.matrix(lowest.FC)
 biomarker1.FC = as.matrix(rbind(highest.FC, lowest.FC))
@@ -114,9 +96,8 @@ highest.names <- row.names(highest.FC)
 lowest.names <- row.names(lowest.FC)
 row.names(biomarker1.FC) <- c(highest.names, lowest.names)
 biomarker1 <- c(highest.names, lowest.names)
-````
 
-#sort out biomarker that do not change in the same "direction" for most cell lines
+#sort out biomarker that don?t change in the same "direction" for most cell lines
 is.neg = FC.cisplatin<0
 i =1
 j=1
@@ -136,12 +117,10 @@ while(j<13300){
   i=1
   j=j+1}
 
-
 #das sind jetzt die nrow von Genen dich sich unter cisplatin
 #in 50 von 55 Faellen in die gleiche Richtung veraendern
-````{r}
-biomarker2 = readRDS("/Users/teresa.vonlinde/Documents/Uni/4.Semester/Bioinfo/GitHub/project-02-group-02/biomarker2.rds")
-`````
+biomarker2 = row.names(FC.cisplatin[c(biomarker2.down, biomarker2.up),])
+saveRDS(biomarker2, file = "biomarker2.rds")
 
 #do we find the same biomarkers for cisplatin with both criteria? 
 i=1
@@ -161,16 +140,11 @@ while(i<41)
           i=i+1
           a=a+1
 }
-
-rm(is.neg, a, i, j, biomarker2.down, biomarker2.up, highest.names, lowest.names, highest.FC, lowest.FC)
-`````{r}
-double.biomarker = readRDS("/Users/teresa.vonlinde/Documents/Uni/4.Semester/Bioinfo/GitHub/project-02-group-02/doublebiomarker.rds")
-double.biomarker.FC = readRDS("/Users/teresa.vonlinde/Documents/Uni/4.Semester/Bioinfo/GitHub/project-02-group-02/double.biomarker.FC.rds")
 `````
 
 ## Step 1 (b)
-# ttest to verify significance of the biomarker
-#Creating seperated matrices containing cisplatin
+### ttest to verify significance of the biomarker
+Creating seperated matrices containing cisplatin:
 ````{r}
 treated.cisplatin <- treated.scaled[,grep ("cisplatin", colnames(treated.scaled))]
 untreated.cisplatin <- untreated.scaled[,grep("cisplatin", colnames(treated.scaled))]
@@ -191,8 +165,8 @@ pvalues.welch <- sapply(double.biomarker, function(x){
 plot(density(pvalues.welch))
 ``````
 
-#Step 2
-#influence of cisplatin on the biomarkers gene expression in different cell lines
+## Step 2
+Influence of cisplatin on the biomarkers gene expression in different cell lines.
 ````{r}
 double.biomarker.FC = FC.cisplatin[double.biomarker,]
 colfunc <- colorRampPalette(c("firebrick","firebrick3","lightcoral",
@@ -201,7 +175,7 @@ colfunc <- colorRampPalette(c("firebrick","firebrick3","lightcoral",
 
 `````
 
-#checking how many clusters we will need in the heatmap (elbow plot) 
+### checking how many clusters we will need in the heatmap (elbow plot) 
 ```{r}
 double.biomarker.FC = readRDS("/Users/teresa.vonlinde/Documents/Uni/4.Semester/Bioinfo/GitHub/project-02-group-02/double.biomarker.FC.rds")
 wss = sapply(2:7,function(k) {
@@ -217,7 +191,7 @@ plot(2:7, wss, type = "b",
 kmeans= kmeans(x = t(double.biomarker.FC), centers = 4, nstart = 10)
 ````
 
-#heatmap with annotation - annotation klappt irgendwie noch nicht
+### heatmap with annotation - annotation klappt irgendwie noch nicht
 ```{r}
 par(mar = c(10,5,7,5))
 colnames(double.biomarker.FC) <- meta[95:149,2]
@@ -237,19 +211,20 @@ pheatmap(double.biomarker.FC,
          cutree_cols = 4,
          border_color = "white",
          scale = "column",
+         annotation = annotation,
          main = "Influence of cisplatin on the biomarkers gene expression")
 
 ````
 
-##Step 3
-#further analysis of biomarker
-#amplification, deletation or neutral gene copy number
+## Step 3
+### further analysis of biomarker
+amplification, deletation or neutral gene copy number
 ````{r}
 copynumber.biomarker = as.matrix(copynumber[double.biomarker,])
 copynumber.quali = ifelse(copynumber.biomarker <= (-1), (-1), ifelse (copynumber.biomarker >= (1), 1, 0))
 ````
 
-#distribution of gene alterations
+### distribution of gene alterations
 ````{r}
 quantiles = as.matrix(quantile(copynumber.biomarker))
 plot(density(copynumber.biomarker))
@@ -257,7 +232,7 @@ abline(v= quantiles[c(2,4),1], col= c("red", "blue"), lty =2)
 legend(-6, 1.2, legend = c("25 % quantile", "75% quantile"), col = c("red", "blue"), lty = 1:2)
 `````
 
-#checking the optimal number of cluster (elbow plot) 
+### checking the optimal number of cluster (elbow plot) 
 ````{r}
 wss = sapply(2:7, function(k) {
   kmeans(x = t(copynumber.quali), centers = k)$tot.withinss
@@ -271,7 +246,7 @@ plot(2:7, wss,
 kmeans= kmeans(x = t(copynumber.quali), centers = 4, nstart = 10)
 `````
 
-#heatmap
+### heatmap
 ````{r}
 colfunc2 <- colorRampPalette(c("firebrick2", "grey88", "deepskyblue3"))
 colfunc2(3)
@@ -295,4 +270,3 @@ pheatmap(copynumber.quali,
          annotation = annotation,
          main =  "Connection between biomarker and gene alterations")
 ````
-
