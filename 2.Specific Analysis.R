@@ -53,7 +53,7 @@ mean.FC.ordered = mean.FC.genes.sd[order(mean.FC.genes.sd$mean.FC.genes, decreas
 
 #finding/visualizing most extreme FC values for cisplatin
 lowest.FC = mean.FC.ordered[13280:13299,]
-par(mar = c(5, 7, 5, 5))
+par(mar = c(5, 7, 5, 3))
 barplot(lowest.FC$mean.FC.genes,
         horiz = TRUE,
         xlim = c(-1.0, 0),
@@ -64,11 +64,10 @@ barplot(lowest.FC$mean.FC.genes,
         las=1,
         border = "white", 
         cex.names =0.8)
-legend(-1.4, 27, legend= "biomarker", box.lty=1, cex =0.8)
 
 
 highest.FC = mean.FC.ordered[1:20,]
-par(mar = c(5, 10, 5, 5))
+par(mar = c(5, 10, 5, 3))
 barplot(highest.FC$mean.FC.genes,
         horiz = TRUE,
         xlim = c(0, 1),
@@ -79,7 +78,6 @@ barplot(highest.FC$mean.FC.genes,
         las=1,
         border = "white",
         cex.names =0.8)
-legend(-0.5, 27, legend= "biomarker", box.lty=1, cex =0.8)
 
 saveRDS(highest.FC, file = "highestFC.rds")
 saveRDS(lowest.FC, file = "lowestFC.rds")
@@ -203,8 +201,8 @@ pheatmap(double.biomarker.FC,
 colnames(double.biomarker.FC) <- meta[95:149,2]
 annotation = data.frame(Cancertype = cellline$Cancer_type)
 rownames(annotation) = cellline$Cell_Line_Name
-colfunc3 = viridis(9)
 
+par(mar = c(10,20,10,5))
 pheatmap(double.biomarker.FC,
          color = colfunc(25),
          cluster_cols = TRUE,
@@ -214,6 +212,8 @@ pheatmap(double.biomarker.FC,
          treeheight_col = 30,
          annotation_col = annotation,
          legend = T,
+         legend_breaks = c(-1,1),
+         legend_labels = c("down", "up"),
          show_colnames = F,
          cutree_rows = 2,
          cutree_cols = 4,

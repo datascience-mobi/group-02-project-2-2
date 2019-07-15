@@ -72,7 +72,6 @@ barplot(lowest.FC$mean.FC.genes,
         las=1,
         border = "white", 
         cex.names =0.8)
-legend(-1.4, 27, legend= "biomarker", box.lty=1, cex =0.8)
 
 highest.FC = mean.FC.ordered[1:20,]
 par(mar = c(5, 10, 5, 5))
@@ -86,7 +85,6 @@ barplot(highest.FC$mean.FC.genes,
         las=1,
         border = "white",
         cex.names =0.8)
-legend(-0.5, 27, legend= "biomarker", box.lty=1, cex =0.8)
 
 #matrix containing the biomarker found through the FC 
 highest.FC = as.matrix(highest.FC) 
@@ -177,7 +175,6 @@ colfunc <- colorRampPalette(c("firebrick","firebrick3","lightcoral",
 
 ### checking how many clusters we will need in the heatmap (elbow plot) 
 ```{r}
-double.biomarker.FC = readRDS("/Users/teresa.vonlinde/Documents/Uni/4.Semester/Bioinfo/GitHub/project-02-group-02/double.biomarker.FC.rds")
 wss = sapply(2:7,function(k) {
   kmeans(x = t(double.biomarker.FC), centers = k)$tot.withinss
 })
@@ -193,25 +190,27 @@ kmeans= kmeans(x = t(double.biomarker.FC), centers = 4, nstart = 10)
 
 ### heatmap with annotation - annotation klappt irgendwie noch nicht
 ```{r}
-par(mar = c(10,5,7,5))
 colnames(double.biomarker.FC) <- meta[95:149,2]
 annotation = data.frame(Cancertype = cellline$Cancer_type)
 rownames(annotation) = cellline$Cell_Line_Name
 
+par(mar = c(5,20,7,5)*
 pheatmap(double.biomarker.FC,
          color = colfunc(25),
          cluster_cols = TRUE,
          clustering_rows = TRUE,
-         clustering_method ="ward.D2",
+         clustering_method = "ward.D2",
          treeheight_row = 30,
          treeheight_col = 30,
+         annotation_col = annotation,
          legend = T,
+         legend_breaks = c(-1,1),
+         legend_labels = c("down", "up"),
          show_colnames = F,
          cutree_rows = 2,
          cutree_cols = 4,
          border_color = "white",
          scale = "column",
-         annotation = annotation,
          main = "Influence of cisplatin on the biomarkers gene expression")
 
 ````
@@ -261,12 +260,14 @@ pheatmap(copynumber.quali,
          cluster_cols = TRUE,
          clustering_method = "ward.D2",
          legend = TRUE,
-         legend_breaks = c(-3:3),
-         legend_labels = c("red=deletion","","","", "", "", "blue=amplification"),
+         legend_breaks = c(-1,0,1),
+         legend_labels = c("deletion","", "amplification"),
          border_color = "white",
          show_colnames = FALSE,
          cutree_rows = 4,
          cutree_cols = 4,
+         treeheight_row = 20,
+         treeheight_col = 20,
          annotation = annotation,
          main =  "Connection between biomarker and gene alterations")
 ````
