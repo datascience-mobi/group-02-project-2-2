@@ -50,6 +50,7 @@ rm(cisplatin.col, j, is.nan.data.frame, treated, untreated, log2FC.treated.untre
 sd.cisplatin = apply(FC.cisplatin, 1, sd)
 mean.FC.genes.sd = as.data.frame(cbind(mean.FC.genes, sd.cisplatin))
 mean.FC.ordered = mean.FC.genes.sd[order(mean.FC.genes.sd$mean.FC.genes, decreasing=TRUE), ]
+plot(density(sd.cisplatin))
 
 #finding/visualizing most extreme FC values for cisplatin
 lowest.FC = mean.FC.ordered[13280:13299,]
@@ -79,8 +80,6 @@ barplot(highest.FC$mean.FC.genes,
         border = "white",
         cex.names =0.8)
 
-saveRDS(highest.FC, file = "highestFC.rds")
-saveRDS(lowest.FC, file = "lowestFC.rds")
 
 #matrix containing the biomarker found through the FC 
 highest.FC = as.matrix(highest.FC) 
@@ -114,7 +113,7 @@ while(j<13300){
 #das sind jetzt die nrow von Genen dich sich unter cisplatin
 #in 50 von 55 Faellen in die gleiche Richtung veraendern
 biomarker2 = row.names(FC.cisplatin[c(biomarker2.down, biomarker2.up),])
-saveRDS(biomarker2, file = "biomarker2.rds")
+
 
 #do we find the same biomarkers for cisplatin with both criteria? 
 i=1
@@ -136,7 +135,7 @@ while(i<41)
 }
 
 rm(is.neg, a, i, j, biomarker2.down, biomarker2.up, highest.names, lowest.names)
-saveRDS(double.biomarker, file = "doublebiomarker.rds")
+
 
 ## Step 1 (b)
 # ttest to verify significance of the biomarker
@@ -166,7 +165,6 @@ colfunc <- colorRampPalette(c("firebrick","firebrick3","lightcoral",
                               "lightyellow","lightskyblue1","steelblue1",
                               "steelblue3", "darkblue"))
 
-saveRDS(double.biomarker.FC, file = "double.biomarker.FC.rds")
 
 #checking how many clusters we will need in the heatmap (elbow plot) 
 wss = sapply(2:8, function(k) {
@@ -246,6 +244,7 @@ plot(2:7, wss,
      main = "Elbowplot kmeans clustering - biomarker gene alterations")
 
 kmeans= kmeans(x = t(copynumber.quali), centers = 4, nstart = 10)
+kmeans$totwithinss
 
 #heatmap
 colfunc2 <- colorRampPalette(c("firebrick2", "grey88", "deepskyblue3"))
