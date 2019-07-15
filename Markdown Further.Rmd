@@ -1,0 +1,87 @@
+---
+title: "4. Further Analysis"
+date: "5 Juni 2019"
+output:
+  html_document: default
+  pdf_document: default
+---
+The goal of the "Further Analysis" was to analyse the different RGES values from before. Therefore we ___
+
+## Table of content
+
+1. [Overview of our results](#overview)
+  1.1 [Quantiles](#quantiles)
+  1.2 [Boxplot](#boxplot)
+  1.3 [Mean of RGES from cisplatin in different tissues](#meantissues)
+  1.4 [Mean of RGES for different drugs](#meandrugs)
+  1.5 [Distribution of RGES values from different drugs](#distribution)
+2. [Find "good" values](#good)
+    2.1 [Find negative values](#negative)
+    
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include = FALSE}
+results <- readRDS("C:/Users/johan/Documents/Bioinfo_project/results.rds")
+``` 
+Because cisplatin is the most interesting drug for us, a new data frame was computed which only contains the RGES values for cisplatin. 
+```{r}
+results_cisplatin = subset (results , drug == "cisplatin")
+```
+
+### 1. Overview of our results <a name="overview"></a>
+
+#### 1.1 Quantiles <a name="quantiles"></a>
+```{r}
+quantile(results$RGES)
+quantile(results_cisplatin$RGES)
+min = min(results$RGES)
+min
+max = max(results$RGES)
+max
+```
+
+#### 1.2 Boxplot <a name="boxplot"></a>
+To look how our RGES values are distributed, we created a boxplot with the RGES values for cisplatin in different cell lines. You can see that there are only a few outliers, most of the values are concentrated between 0,55 and 0,60. 
+```{r}
+boxplot(results_cisplatin$RGES, main = "RGES for cisplatin in different celllines")
+```
+
+#### 1.3 Mean RGES values from cisplatin in different tissues <a name="meantissues"></a>
+To check if cisplatin is able to reverse the cancerous gene expression better in certain tissues, the mean was computed over each type of tissue. There was no extreme difference visible.
+```{r}
+tissue = c( "Renal", "Lung" , "Breast" , "Colon", "Prostate" , "Leukemia", "Ovarian", "Melanoma", "CNS")
+mean_tissue =sapply(1:length(tissue), function(x) mean(subset(results_cisplatin$RGES , tissue == tissue[x])))
+barplot(mean_tissue , name = tissue , las = 2 , horiz = FALSE ,col= "firebrick", border = "white" , main = "mean RGES for cisplatin in different tissues" , ylab = "RGES")
+nrow(min(results_cisplatin$RGES))
+```
+
+#### 1.4 Mean RGES values for different drugs <a name="meandrugs"></a>
+Furthermore, the mean RGES values were computed for every drug to check if some drugs might be more efficient in blocking and reversing the gene expression. There was no difference visible.
+```{r}
+drug = c("5-Azacytidine", "bortezomib", "cisplatin","dasatinib","doxorubicin","erlotinib","geldanamycin","gemcitibine","lapatinib","paclitaxel","sirolimus","sorafenib","sunitinib","topotecan","vorinostat")
+mean_drug =sapply(1:length(drug), function(x) mean(subset(results$RGES , drug == drug[x])))
+barplot(mean_drug , name = drug , las = 2 , horiz = FALSE ,col= "forestgreen", border = "white" , main = "mean RGES for different drugs" , ylab = "RGES")
+```
+
+#### 1.5 Distribution of RGES values from different drugs
+To take an intensive look at every drug and its pertubation, 15 boxplots were computed. The result was, that they looked nearly the same as the mean RGES values for every drug predicted. 
+```{r}
+dev.new(width=5, height=4)
+par(mfrow=c(5,3), mar=c(2,2,2,2))
+sapply(1:length(drug),
+       function(x) boxplot(results[which(results$drug == drug[x]),2],
+                           main = drug[x], 
+                           ylim = c(min,max)))
+```
+
+### 2. Find "good" values <a name="good"></a>
+
+#### 2.1 Find negative RGES values <a name="negative"></a>
+Our goal was to find some drugs that are able to reverse the cancer induced gene expression. Therefor we are searching for negativ RGES values - the more negative the RGES the more the drug is able to reverse the gene expression. Sadly, no negative value was computed. This could be matter to the fact, that all drugs are killing the cancer cells before they are even able to reverse any gene expression. So a positive RGES does not mean, the drug is not effective but it is able to somehow stop the cancer growth with other mechanisms than interferring with the gene expression.
+```{r}
+results_neg =results[which(results$RGES < 0),]
+results_neg
+```
