@@ -156,7 +156,21 @@ in different celllines after cisplatin treatment.")
 pvalues.welch <- sapply(double.biomarker, function(x){
        t.test(treated.cisplatin[x,], untreated.cisplatin[x,],paired= T)$p.value
    })
-plot(density(pvalues.welch))
+plot(density(pvalues.welch),  main = "Welch two sample t-test - density of p values")
+
+# Standard deviation
+sd.cisplatin = apply(FC.cisplatin, 1, sd)
+mean.FC.genes.sd = as.data.frame(cbind(mean.FC.genes, sd.cisplatin))
+mean.FC.ordered = mean.FC.genes.sd[order(mean.FC.genes.sd$mean.FC.genes, decreasing=TRUE), ]
+head(mean.FC.genes.sd)
+plot(density(sd.cisplatin))
+
+
+#checking consistency with standard deviation for double.biomarker
+mean.double <- apply(double.biomarker.FC, 1, mean)
+sd.double <- apply(double.biomarker.FC, 1, sd)
+double = cbind(mean.double, sd.double)
+colnames(double) = c("mean FC","SD" )
 
 #Step 2
 #influence of cisplatin on the biomarkers gene expression in different cell lines

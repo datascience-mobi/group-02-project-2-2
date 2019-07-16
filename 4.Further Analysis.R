@@ -54,7 +54,7 @@ results_neg =results[which(results$RGES < 0),]
 
 
 
-### IC50 spalte an results anfügen -> drug_activity_rges
+### IC50 spalte an results anf?gen -> drug_activity_rges
 ##loading data
 library(reshape)
 
@@ -123,6 +123,3 @@ ggplot(drug_activity_rges, aes(drug_activity_rges$RGES, (-drug_activity_rges$IC5
   ylab("IC50 nm")
 
 range(drug_activity_rges$IC50.value)
-
-
-
