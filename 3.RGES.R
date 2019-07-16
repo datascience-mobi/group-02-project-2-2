@@ -46,7 +46,7 @@ str( fitInfo(cds) )
 dispersion.values = fData(cds)
 nbinom.treated.untreated = nbinomTest(cds, "treated", "untreated")
 hist(nbinom.treated.untreated$pval, breaks=100, col="skyblue", border="slateblue", main="p-values nbinom")
-
+saveRDS(nbinom.treated.untreated, file = "nbinom.treated.untreated.rds")
 
 #disease signature DESeq nbinomTest
 mode(basal.fitted.untreated) <- "integer"
@@ -59,6 +59,7 @@ str( fitInfo(cds) )
 dispersion.values2 <- fData(cds)
 nbinom.basal.untreated = nbinomTest(cds, "basal", "untreated")
 hist(nbinom.basal.untreated$pval, breaks=100, col="skyblue", border="slateblue", main="p-values nbinom")
+saveRDS(nbinom.basal.untreated, file = "nbinom.basal.untreated.rds")
 
 head(nbinom.basal.untreated)
 
