@@ -46,8 +46,15 @@ cor.test(rges.ic50$RGES, rges.ic50$IC50.value)
 ```
 
 RGES values can also be plotted against the drug sensitivity values in order to visualize the correlation.
-```{r, echo= FALSE, include=TRUE}
-plot(rges.ic50$RGES, rges.ic50$IC50.value, pch=20, col="blue", xlab = "RGES", ylab = "Drug Senistivity", main = "Scatterplot RGES - Drug Sensitivity")
+```{r,echo=FALSE, include=TRUE}
+library(ggplot2)
+ggplot(rges.ic50, aes(rges.ic50$RGES, rges.ic50$IC50.value)) +
+  geom_point(color = "blue", size = 1) +
+  scale_size(range = c(2,5)) +
+  xlab("RGES") + 
+  ylab("IDrug Sensitivity") +
+  xlim(0.1,0.25)+
+  ylim(-1e+09,0.2e+09)
 ```
 
 ### Discussion
@@ -97,13 +104,10 @@ The low value can be interpreted as no correlation between RGES and residuals.
 ### Prediction of the data
 
 Finally the training set was used to predict drug sensitivity with RGES values.
-```{r, echo = FALSE}
+```{r, echo = FALSE, include=TRUE}
 pred = predict(lm.rges_ic50, newdata = rges.ic50.test)
-```
-
-The predicted values are shown in a vector, there will be presented only the first ten:
-```{r results = 'asis', echo=FALSE, include=TRUE} 
-knitr::kable(pred [1:10], caption = "Predicted drug sensitivity values") 
+plot(rges.ic50.test$IC50.value, pred, xlab = "Real Values", ylab = "Predicted Values", pch=20, col="blue")
+abline(0, 1, col = "red")
 ```
 
 It can be clearly seen, that the presented values are much higher than expected. This indicated a very bad linear regression model. 
@@ -141,7 +145,6 @@ In order to obtain an enhanced model, a multiple regression for cisplatin is per
 #Multiple Regression
 # 1. Include biomarkers to RGES matrix only for cisplatin!
 double.biomarker.FC <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/double.biomarker.FC.rds")
-
 drug_activity_rges.cisplatin = subset (drug_activity_rges , drug == "cisplatin")
 # transformieren, damit samples in zeile
 biomarker.FC = t(double.biomarker.FC)
@@ -203,10 +206,10 @@ plot(model.multiple, which = c(2), col="blue", pch = 20, main = "QQ plot Residua
 
 As expected, the residuals are distributed around the red line and therefore do not have non-linear patterns. The QQ plot illustrates, that the residuals are normally distributed.
 
-In ordert to prove the correlation between residuals and variables, the correlation coefficient is computed.
+In order to prove the correlation between residuals and variables, the correlation coefficient is computed.
 Correlation coefficient Residuals - Variables (RGES and biomarkers)
 ```{r, echo=FALSE, include=TRUE}
-cor(rges.ic50.train[,-2], lm.rges_ic50$residuals)
+cor(train.set.multiple[,-2], model.multiple$residuals)
 ```
 As the computation results in a low coefficient, one can exclude a correlation between residuals and x.
 
@@ -217,8 +220,10 @@ At the end the multiple regression model is used to predict the values. The resu
 ```{r, echo = FALSE}
 predict.multiple = predict(model.multiple, newdata = test.set.multiple)
 ```
-```{r results = 'asis', echo=FALSE, include=TRUE} 
-knitr::kable(predict.multiple, caption = "Predicted values") 
+
+```{r, echo=FALSE, include=TRUE}
+plot(test.set.multiple$IC50.value.cisplatin, predict.multiple, xlab = "Real Values", ylab = "Predicted Values", pch=20, col="blue")
+abline(0, 1, col = "red")
 ```
 
 The predicted values look very similar to the real values. Therefore the multiple regression model with RGES and biomarkers enhanced the model as well as the prediction. 
@@ -270,11 +275,12 @@ The residuals do not show non-linear relationships, as well as they are normally
 
 ### Prediction of the data
 Now the model can be used to predict the data. 
-```{r, echo = FALSE}
+```{r, echo = FALSE, include=TRUE}
 predict.biomarkers = predict(model.multiple.biomarkers, newdata = test.set.multiple)
 ```
-```{r results = 'asis', echo=FALSE, include=TRUE} 
-knitr::kable(predict.biomarkers, caption = "Predicted values") 
+```{r, echo=FALSE, include=TRUE}
+plot(test.set.multiple$IC50.value.cisplatin, predict.biomarkers, xlab = "Real Values", ylab = "Predicted Values", pch=20, col="blue")
+abline(0, 1, col = "red")
 ```
 As before, the predicted values fit more or less well to the real drug sensitivity values. 
 
@@ -322,7 +328,7 @@ model.pca = lm(IC50.value.cisplatin ~ pca$x)
 summary(model.pca)
 ```
 
-A R² value of ~0.16 is contained. So through the model less variability is explained than through the model with specific biomarkers. As the F-statistic is next to one, it could not have been proved, that the computed model predicts the drug sensitivity values better than the mean would do. In addition some variables show a high p value. Therefore the correlation between the PCs will have to be checked.
+A R² value of ~0.16 is obtained. So through the model less variability is explained than through the model with specific biomarkers. As the F-statistic is next to one, it could not have been proved, that the computed model predicts the drug sensitivity values better than the mean would do. In addition some variables show a high p value. Therefore the correlation between the PCs will have to be checked.
 
 ```{r, echo=FALSE, include=TRUE}
 plot(model.pca, which = c(1), col = "blue", pch = 20, main = "Scatterplot Residuals - Fitted values")
