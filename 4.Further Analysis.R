@@ -53,7 +53,7 @@ boxplot(results[which(results$cell == "OVCAR-4"),2], main = "RGES for cellline O
 #bortezomib wird nicht f?r melanome eingesetzt sonder f?r multiples myelom. da k?nnen wir dann sagen dass das ein Hinweis sein k?nnte
 #das Medikament auch f?r Melanome zu testen
 
-### IC50 spalte an results anfügen -> drug_activity_rges
+### IC50 spalte an results anf?gen -> drug_activity_rges
 ##loading data
 library(reshape)
 
@@ -122,6 +122,3 @@ ggplot(drug_activity_rges, aes(drug_activity_rges$RGES, (-drug_activity_rges$IC5
   ylab("IC50 nm")
 
 range(drug_activity_rges$IC50.value)
-
-
-

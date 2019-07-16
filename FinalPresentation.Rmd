@@ -2,7 +2,12 @@
 title: "Final Presentation"
 author: "TeresavL"
 date: "7/15/2019"
-output: ioslides_presentation
+output:
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+  slidy_presentation: default
+  beamer_presentation: default
 ---
 
 ```{r setup, include=FALSE}
@@ -32,4 +37,281 @@ summary(cars)
 ```{r pressure}
 plot(pressure)
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Specific Analysis
+
+## Step 1: Can we identify genes as significant biomarker for cisplatin?{.smaller}
+`````{r, echo = F, include = F}
+library(readxl)
+library(gplots)
+library(pheatmap)
+
+## necessary data from the general analysis
+meta <- read_excel("data/NCI_TPW_metadata.xls")
+untreated <- readRDS("~/Documents/Uni/4.Semester/Bioinfo/GitHub/project-02-group-02/data/NCI_TPW_gep_untreated.rds")
+treated <- readRDS("~/Documents/Uni/4.Semester/Bioinfo/GitHub/project-02-group-02/data/NCI_TPW_gep_treated.rds")
+copynumber <- readRDS("~/Documents/Uni/4.Semester/Bioinfo/GitHub/project-02-group-02/data/CCLE_copynumber.rds")
+cellline <- read_excel("data/cellline_annotation.xls")
+meta = as.data.frame(meta)
+celline = as.data.frame(cellline)
+
+#scale
+treated.scaled <- scale(treated)
+untreated.scaled <- scale(untreated)
+
+#FC
+log2FC.treated.untreated <- (treated.scaled-untreated.scaled) #values are already log2 transformed
+is.nan.data.frame <- function(x)      #NaN durch 0 ersetzen
+  do.call(cbind, lapply(x, is.nan))
+log2FC.treated.untreated[is.nan(log2FC.treated.untreated)] <- 0
+cisplatin.col=c()
+j=1
+
+while(j<820)
+{
+  if(isTRUE(meta[j,3]== "cisplatin"))
+  {cisplatin.col= c(cisplatin.col,j)
+  }
+  j = j +1
+}
+
+FC.cisplatin = log2FC.treated.untreated[,cisplatin.col]
+
+mean.FC.genes <- apply(FC.cisplatin, 1, mean)
+mean.FC.celllines <- apply(FC.cisplatin, 2, mean)
+```````
+
+````{r, echo = F, include = T, fig.width=4, fig.height=4.25, out.extra='style="float:left"'}
+sd.cisplatin = apply(FC.cisplatin, 1, sd)
+mean.FC.genes.sd = as.data.frame(cbind(mean.FC.genes, sd.cisplatin))
+mean.FC.ordered = mean.FC.genes.sd[order(mean.FC.genes.sd$mean.FC.genes, decreasing=TRUE), ]
+
+lowest.FC = mean.FC.ordered[13280:13299,]
+par(mar = c(5, 7, 5, 5))
+barplot(lowest.FC$mean.FC.genes,
+        horiz = TRUE,
+        xlim = c(-1.0, 0),
+        main= "lowest log2 FC-values for cisplatin",
+        xlab= "mean log2FC values in different celllines",
+        names.arg = rownames(lowest.FC),
+        col= "firebrick",
+        las=1,
+        border = "white", 
+        cex.names =0.8)
+
+highest.FC = mean.FC.ordered[1:20,]
+par(mar = c(5, 10, 5, 5))
+barplot(highest.FC$mean.FC.genes,
+        horiz = TRUE,
+        xlim = c(0, 1),
+        main= "highest log2 FC-values for cisplatin",
+        xlab= "mean log2FC values in different celllines",
+        names.arg = rownames(highest.FC),
+        col= "lightgreen",
+        las=1,
+        border = "white",
+        cex.names =0.8)
+``````
+
+`````{r, echo= F}
+#matrix containing the biomarker found through the FC 
+highest.FC = as.matrix(highest.FC) 
+lowest.FC = as.matrix(lowest.FC)
+biomarker1.FC = as.matrix(rbind(highest.FC, lowest.FC))
+highest.names <- row.names(highest.FC)
+lowest.names <- row.names(lowest.FC)
+row.names(biomarker1.FC) <- c(highest.names, lowest.names)
+biomarker1 <- c(highest.names, lowest.names)
+`````
+
+```{r, echo=F}
+is.neg = FC.cisplatin<0
+i =1
+j=1
+a=1
+biomarker2.up = c()
+biomarker2.down = c()
+while(j<13300){
+  while(i<56){
+    if(is.neg[j,i]==TRUE)
+     {a=a+1}
+    i=i+1}
+  if(a>49)
+     {biomarker2.down= c(biomarker2.down, j)}
+  if(a<6)
+    {biomarker2.up= c(biomarker2.up, j)}
+  a=1
+  i=1
+  j=j+1}
+
+biomarker2 = row.names(FC.cisplatin[c(biomarker2.down, biomarker2.up),])
+```
+
+##  Significance of biomarker genes
+```{r, echo = F, include=T, dpi = 50}
+i=1
+j=1
+a=1
+double.biomarker = c()
+while(i<41)
+{
+  while(j<375)
+      {
+        if(isTRUE(biomarker2[j] == biomarker1[i]))
+           {double.biomarker = c(double.biomarker, biomarker1[a])
+             }
+            j = j +1
+         }
+          j= 1
+          i=i+1
+          a=a+1
+}
+
+double.biomarker.FC = FC.cisplatin[double.biomarker,]
+double.biomarker
+```
+```{r, echo = F}
+treated.cisplatin <- treated.scaled[,grep ("cisplatin", colnames(treated.scaled))]
+untreated.cisplatin <- untreated.scaled[,grep("cisplatin", colnames(treated.scaled))]
+```
+````{r, echo = F, include = T, fig.width=4, fig.height=4, out.extra='style="float:left"'}
+pvalues.welch <- sapply(double.biomarker, function(x){
+       t.test(treated.cisplatin[x,], untreated.cisplatin[x,],paired= T)$p.value
+   })
+plot(density(pvalues.welch), main = "Welch two sample t-test: density of p values")
+``````
+
+
+
+
+```{r, echo = F, include = T, fig.height=4, fig.width=4, out.extra=' style="clear: both;'}
+# checking consistency with standard deviation for double.biomarker
+mean.double <- apply(double.biomarker.FC, 1, mean)
+sd.double <- apply(double.biomarker.FC, 1, sd)
+double = cbind(mean.double, sd.double)
+colnames(double) = c("mean FC","SD" )
+double
+`````
+
+## Step 2: Influence of cisplation on the biomarkers gene expression
+
+````{r, echo = F}
+colfunc <- colorRampPalette(c("firebrick","firebrick3","lightcoral", "lightyellow","lightskyblue1","steelblue1","steelblue3", "darkblue"))
+`````
+```{r dpi = 100, echo = F}
+colnames(double.biomarker.FC) <- meta[95:149,2]
+annotation = data.frame(Cancertype = cellline$Cancer_type)
+rownames(annotation) = cellline$Cell_Line_Name
+
+pheatmap(double.biomarker.FC,
+         color = colfunc(25),
+         cluster_cols = TRUE,
+         clustering_rows = TRUE,
+         clustering_method ="ward.D2",
+         treeheight_row = 30,
+         treeheight_col = 30,
+         annotation_col = annotation,
+         legend = T,
+         legend_breaks = c(-1,1),
+         legend_labels = c("down", "up"),
+         show_colnames = F,
+         cutree_rows = 2,
+         cutree_cols = 4,
+         border_color = "white",
+         scale = "column")
+```````
+
+## Step 3: Further analysis of biomarker
+````{r, echo = F}
+copynumber.biomarker = as.matrix(copynumber[double.biomarker,])
+copynumber.quali = ifelse(copynumber.biomarker <= (-1), (-1), ifelse (copynumber.biomarker >= (1), 1, 0))
+````
+Connection between biomarker and gene alterations
+
+````{r, echo = F, include = T, dpi = 100}
+colfunc2 <- colorRampPalette(c("firebrick2", "grey88", "deepskyblue3"))
+
+colnames(double.biomarker.FC) <- meta[95:149,2]
+annotation = data.frame(Cancertype = cellline$Cancer_type)
+rownames(annotation) = cellline$Cell_Line_Name
+
+pheatmap(copynumber.quali,
+         color = colfunc2(3),
+         cluster_rows = TRUE,
+         cluster_cols = TRUE,
+         clustering_method = "ward.D2",
+         legend = TRUE,
+         legend_breaks = c(-1,0,1),
+         legend_labels = c("deletion","", "amplification"),
+         border_color = "white",
+         show_colnames = FALSE,
+         cutree_rows = 4,
+         cutree_cols = 4,
+         treeheight_row = 20,
+         treeheight_col = 20,
+         annotation = annotation)
+````
+
+
 
