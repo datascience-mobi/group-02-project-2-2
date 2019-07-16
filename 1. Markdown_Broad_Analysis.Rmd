@@ -18,24 +18,16 @@ library(viridis)
 library(ggplot2)
 ```
 ## Table of content
-1. [Loading Data](#loaddata)
-2. [Cleaning up our data](#cleanup)
-    2.1 [Remove NAs](#removeNA)
-    2.2 [Scaling](#scale)
-3. [Boxplots](#boxplots)
-    3.1 [Boxplot treated without scaling](#boxwithoutscaling)
-    3.2 [Boxplot treated with scaling](#boxwithscaling)
-4. [Foldchange](#fc)
-5. [PCA](#pca)
-    5.1 [Explained Variance](#variance)
-    5.2 [PCA - coloring every drug](#coldrug)
-    5.3 [PCA - coloring chemo/targeted](#colchemtarg)
-    5.4 [PCA - coloring tyrosine kinase inhibitor](#colTKI)
+1. [Cleaning up our data - NAs and scaling](#cleanup)  
+2. [Plotting the gene expression unscaled and scaled](#boxplots)  
+3. [Computation of the Fold Change - Treated/Untreated](#fc)  
+4. [Principal component analysis between treated and untreated data](#pca)  
+    4.1 [Colored PCA - drugs](#coldrug)  
+    4.2 [Colored PCA - chemo/targeted](#colchemtarg)  
+    4.3 [Colored PCA - tyrosine kinase inhibitor](#colTKI)  
 
 
-## 1. Load Data <a name="loaddata"></a>
-The given data is integrated as follows:
-```{r}
+```{r, include = FALSE}
 treated <- readRDS("C:/Users/johan/Documents/Bioinfo_project/NCI_TPW_gep_treated.rds")
 untreated <- readRDS("C:/Users/johan/Documents/Bioinfo_project/NCI_TPW_gep_untreated.rds")
 ic50 <- readRDS("C:/Users/johan/Documents/Bioinfo_project/NegLogGI50.rds")
@@ -46,10 +38,11 @@ cellline <- read.delim("C:/Users/johan/Documents/Bioinfo_project/cellline_annota
 meta <- read.delim("C:/Users/johan/Documents/Bioinfo_project/NCI_TPW_metadata.tsv", header = TRUE, sep = "\t")
 drug <- read.delim("C:/Users/johan/Documents/Bioinfo_project/drug_annotation.tsv", header = TRUE, sep = "\t")
 ```
-## 2. Ceaning up our data <a name="cleanup"></a>
-### 2.1 Remove NAs <a name="removeNA"></a>
-In order to clean up our data, we created a loop for checking the amount of NAs in every matrix. Then, two coloumns, which only contained NAs were deleated out of the mutations matrix.
-```{r}
+  
+## 1. Cleaning up our data - NAs and scaling <a name="cleanup"></a> 
+In order to clean up our data, we created a loop for checking the amount of NAs in every matrix. Rows/Columns containing only NAs were deleted, because they do not contain any information. This only concerned the "mutations" matrix, and two columns were deleted.
+Furthermore we scaled our data for the following investigations.
+```{r, include = FALSE}
 list.na = list("treated"=treated, "untreated"=untreated, "mutations"=mutations, "basalexp" = basalexp, "cellline"=cellline, "copynumber"=copynumber, "ic50"=ic50, "meta"=meta)
 myfunc = function(x){sum(is.na(x))}
 
@@ -64,21 +57,18 @@ while(i<9)
 mutations.removed = mutations[, -(12:13)]
 ```
 
-### 2.2 Scaling <a name="scale"></a>
-For normalizing our data, scale was used. 
-```{r}
+```{r, include = FALSE}
 #scale
 basal.scaled <- scale(basalexp)
 treated.scaled <- scale(treated)
 untreated.scaled <- scale(untreated)
 ```
 
+## 2. Plotting the gene expression unscaled and scaled <a name="boxplots"></a>
+  
+In order to get an overview, a boxplot of the treated data was computed and every drug was colored in a different color. There were 15 different batches visible, so another boxplot with the scaled data from treated was computed. The batches dissapeared due to the fact that through scaling, all irregularitys in measuring and experimental conditions were removed.
 
-## 3. Boxplots <a name="boxplots"></a>
-### 3.1 Boxplot treated without scaling <a name="boxwithoutscaling"></a>
-In order to get an overview a boxplot of the treated data was computed. There was a visible difference between the 15 batches. Each drug was colored in a different color.
-
-```{r}
+```{r, echo=FALSE, fig.width=4, fig.height=4, out.extra='style="float:left"'}
 drug15 = meta$drug
 palette(viridis(15))
 
@@ -87,13 +77,7 @@ boxplot(treated, medcol="black", border = drug15, col= drug15,
          xlab="sampels", ylab="gene expression",
          main= "Gene expression treated - colored by drugs",
          names= FALSE, xaxt= "n", boxwex=1, boxlty =0)
-```
 
-
-### 3.2 Boxplot treated with scaling <a name="boxwithscaling"></a>
-Through scaling the data the different batches dissapeared.
-
-```{r}
 palette(viridis(15))
 
 par(mar=c(5, 4, 5, 9))
@@ -102,75 +86,84 @@ boxplot(treated.scaled, medcol="black", border = drug15, col= drug15,
          main= "Scaled gene expression treated - colored by drugs",
          names= FALSE, xaxt= "n", boxwex=1, boxlty =0)
 ```
-
-
-
-## 4. Computation of the Fold Change - Treated/Untreated <a name="fc"></a>
-In order to analyse the gene expression change from untreated to treated, log2 fold change values were computed. The distribution was checked through a density plot. The values are located near to 0. 
+  
+## 3. Computation of the Fold Change - Treated/Untreated <a name="fc"></a>
+In order to analyse the gene expression change from untreated to treated, log2 fold change values were computed. Because the data given was already log2-transformed, computing the difference between the treated(scaled) and untreated(scaled) data was enough. The distribution of the fold change values was checked through a density plot. The values are located near to 0. 
+It would have also been interesting to explore the density of the fold change values by each cell line and not by all cell lines together. 
 ```{r}
 log2FC.treated.untreated <- treated.scaled - untreated.scaled
 is.nan.data.frame <- function(x)      #NaN durch 0 ersetzen
   do.call(cbind, lapply(x, is.nan))
 log2FC.treated.untreated[is.nan(log2FC.treated.untreated)] <- 0
+```
+
+```{r, echo=FALSE}
 plot(density(log2FC.treated.untreated), main = "Log2 FC Treated/Untreated")
 ```
 
-## 5. PCA <a name="pca"></a>
-For a dimensionallity reduction, a principal component analysis was performed. The PCA was interpreted by plotting the first four components in different plots, and coloring different groups of data.
-First chemotherapeutics and targeted drugs were colored in both plots. This did not seperate the data in visible groups. 
-Next each drug was colored in a different color, the color scheme remained the same as bevore. Here PC3 and PC4 seem to seperate the diffenrent drugs. Especially vorinostat was seperated from the rest of the data.
-Lastly 4 tyrosine kinase inhibitors drugs were colored. There was no seperation visible in PC1 and PC2, in the plot with PC3 and PC4 the Tyrosin Kinases seem to concentrate at a point.
+## 4. Principal component analysis between treated and untreated data <a name="pca"></a>
+
+For a dimensionallity reduction, a principal component analysis was performed. The PCA was interpreted by plotting the first four components in different plots, and coloring different groups of data. Component 4 was chosen as the last significant component, regarding to the elbow plot. 
 ```{r}
 PCA.FC <- prcomp(log2FC.treated.untreated, center=F , scale.=F)
+```
+  
+```{r, echo = FALSE, include = FALSE}
 plot(PCA.FC, type ="lines")
+```
+  
+```{r, echo=FALSE, fig.width=4, fig.height=4, out.extra='style="float:left"'}
 plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], xlab = "PC1", ylab = "PC2", pch=19, main = "PCA Treated/Untreated")
 plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], xlab = "PC3", ylab = "PC4", pch = 19, main = "Treated/Untreated")
 ```
 
-### 5.1 How many variance can be explained by the principle components? <a name="variance"></a>
+The result of computing the exact value of the explained variance of our components was ~30%.
 ```{r}
 Varianz.PCA=PCA.FC$sdev^2
-Varianz.PCA
 ```
+  
+### 4.1 Colored PCA - drugs <a name="coldrug"></a>
+Firstly, each drug was colored in a different color. PC1 and PC2 don't seem to show any separations, but PC3 and PC4 seem to seperate the diffenrent drugs, especially vorinostat.
 
-### 5.2 Colored PCA (drugs) <a name="coldrug"></a>
-```{r}
+```{r, echo=FALSE}
 pca = prcomp(log2FC.treated.untreated)
-
 meta_neu = meta[1:819,]
 meta_neu = as.data.frame(meta_neu)
 ```
 
-#### Plot PC1 and PC2
-```{r} 
+```{r, echo = FALSE} 
 pca_plot_drugs12 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,1], y = pca$rotation[,2])) +
   theme_bw(base_size = 7) +
   geom_point(aes(colour = factor(meta_neu$drug))) +
   scale_colour_viridis(option ="viridis", discrete = TRUE) +
   #mit BREWER: scale_fill_brewer(palette = "Dark2")
-  ggtitle("Principal Component Analysis 1 & 2") +
+  ggtitle("Principal Component Analysis - color drugs") +
   xlab("Principal Component 1") +
   ylab("Principal Component 2")
 
 pca_plot_drugs12
 ```
-#### Plot PC3 and PC4
-```{r}
-
+  
+```{r, echo=FALSE}
 pca_plot_drugs34 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,3], y = pca$rotation[,4])) +
   theme_bw(base_size = 7) +
   geom_point(aes(colour = factor(meta_neu$drug))) +
   scale_colour_viridis(option ="viridis", discrete = TRUE) +
   #mit BREWER: scale_fill_brewer(palette = "Dark2")
-  ggtitle("Principal Component Analysis 3 & 4") +
+  ggtitle("Principal Component Analysis - color drugs") +
   xlab("Principal Component 3") +
   ylab("Principal Component 4")
 
 pca_plot_drugs34
 ```
-### 5.3 Colored PCA chemo/targeted <a name="colchemtarg"></a>
-```{r}
+  
+This could be because vorinostat is the only HDAC inhibitor. It is a cytostatic drug used in T-cell lymphomas and therefor it is very specific.
 
+
+### 4.2 Colored PCA - chemo/targeted <a name="colchemtarg"></a>
+Secondly, chemotherapeutics and targeted drugs were colored in both plots. This did not seperate the data in visible groups.
+
+```{r, echo=FALSE}
 targeted.chemo <- c("targeted", "targeted", "chemo", "chemo", "chemo", "chemo", "chemo", "targeted", "targeted", "chemo", "chemo", "chemo", "chemo", "targeted", "chemo")
 drug.added <- cbind(drug, targeted.chemo)
 drug.added.ordered <- drug.added[order(drug.added$Drug),]
@@ -192,38 +185,37 @@ while(j<16)
   i= 1
   j=j+1}
 ```
-
-#### Plot PC1 and PC2
-```{r}
-
+  
+```{r, echo = FALSE}
 pca_plot_chemtarg12 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,1], y = pca$rotation[,2])) +
   theme_bw(base_size = 7) +
   geom_point(aes(colour = factor(meta_neu$chem.targ))) +
   scale_colour_viridis(option ="viridis", discrete = TRUE) +
   #mit BREWER: scale_fill_brewer(palette = "Dark2")
-  ggtitle("Principal Component Analysis 1&2") +
+  ggtitle("Principal Component Analysis chemo/targeted") +
   xlab("Principal Component 1") +
   ylab("Principal Component 2")
 
 pca_plot_chemtarg12
 ```
-#### Plot PC3 and PC4
-```{r}
+
+```{r, echo = FALSE}
 pca_plot_chemtarg34 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,3], y = pca$rotation[,4])) +
   theme_bw(base_size = 7) +
   geom_point(aes(colour = factor(meta_neu$chem.targ))) +
   scale_colour_viridis(option ="viridis", discrete = TRUE) +
   #mit BREWER: scale_fill_brewer(palette = "Dark2")
-  ggtitle("Principal Component Analysis 3&4") +
+  ggtitle("Principal Component Analysis chemo/targeted") +
   xlab("Principal Component 3") +
   ylab("Principal Component 4")
 
 pca_plot_chemtarg34
 ```
+  
+### 4.3 Colored PCA - tyrosine kinase inhibitor <a name="colTKI"></a>
+Lastly, the 4 tyrosine kinase inhibitor drugs were colored. There was no seperation visible in PC1 and PC2. Although in the plot with PC3 and PC4 some TKI drugs seem to seperate from other drugs, there are still TKI drugs that are concentrated at the same area as other drugs. So there mightbe a difference for some, but not for all TKI drugs. 
 
-### 5.4 Colored PCA tyrosine kinase inhibitor <a name="colTKI"></a>
-```{r}
-
+```{r, echo=FALSE}
 TKI = c(rep(as.numeric(0),819))
 meta_neu = cbind(meta_neu, TKI)
 
@@ -243,25 +235,24 @@ while(j<16)
   j=j+1}
 ```
 
-#### Plot PC1 and PC2
-```{r}
+```{r, echo=FALSE}
 pca_plot_TKI12 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,1], y = pca$rotation[,2])) +
   theme_bw(base_size = 7) +
   geom_point(aes(colour = factor(meta_neu$TKI))) +
   scale_colour_viridis(option ="viridis", discrete = TRUE) +
-  ggtitle("Principal Component Analysis 1&2") +
+  ggtitle("Principal Component Analysis TKI") +
   xlab("Principal Component 1") +
   ylab("Principal Component 2")
 
 pca_plot_TKI12
 ```
-#### Plot PC3 and PC4
-```{r}
+
+```{r,echo=FALSE}
 pca_plot_TKI34 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,3], y = pca$rotation[,4])) +
   theme_bw(base_size = 7) +
   geom_point(aes(colour = factor(meta_neu$TKI))) +
   scale_colour_viridis(option ="viridis", discrete = TRUE) +
-  ggtitle("Principal Component Analysis 3&4") +
+  ggtitle("Principal Component Analysis TKI") +
   xlab("Principal Component 3") +
   ylab("Principal Component 4")
 
