@@ -109,9 +109,9 @@ library(pheatmap)
 
 ## necessary data from the general analysis
 meta <- read_excel("data/NCI_TPW_metadata.xls")
-untreated <- readRDS("~/Documents/Uni/4.Semester/Bioinfo/GitHub/project-02-group-02/data/NCI_TPW_gep_untreated.rds")
-treated <- readRDS("~/Documents/Uni/4.Semester/Bioinfo/GitHub/project-02-group-02/data/NCI_TPW_gep_treated.rds")
-copynumber <- readRDS("~/Documents/Uni/4.Semester/Bioinfo/GitHub/project-02-group-02/data/CCLE_copynumber.rds")
+untreated <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/NCI_TPW_gep_untreated.rds")
+treated <- readRDSNCI_TPW_gep_treated <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/NCI_TPW_gep_treated.rds")
+copynumber <- readRDSCCLE_copynumber <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/CCLE_copynumber.rds")
 cellline <- read_excel("data/cellline_annotation.xls")
 meta = as.data.frame(meta)
 celline = as.data.frame(cellline)
@@ -313,5 +313,453 @@ pheatmap(copynumber.quali,
          annotation = annotation)
 ````
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Linear Regression Analysis
+
+## Correlation between our RGES values and Drug Sensitivity?
+```{r, echo=FALSE}
+### load the data
+drug_activity_rges <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/drug_activity_rges.rds")
+
+
+# limit the data set to numerical values, convert IC50 values as they are in -log10 scale
+#keine ahnung ob das sinn macht, was ich hier getan habe?
+ic50 = drug_activity_rges[,9]
+IC50.value = -10^ic50
+RGES = drug_activity_rges[,2]
+rges.ic50 <- as.data.frame(cbind(RGES, IC50.value))
+```
+Correlation coefficient:
+```{r, echo = FALSE, include = TRUE}
+cor(rges.ic50$RGES, rges.ic50$IC50.value)
+```
+```{r,echo=FALSE, include=TRUE, dpi=80, warning=FALSE}
+library(ggplot2)
+ggplot(rges.ic50, aes(rges.ic50$RGES, rges.ic50$IC50.value)) +
+  geom_point(color = "blue", size = 1) +
+  scale_size(range = c(2,5)) +
+  xlab("RGES") + 
+  ylab("Drug Sensitivity") +
+  xlim(0.1,0.25)+
+  ylim(-1e+09,0.2e+09)
+```
+
+## Predict Drug Sensitivity with RGES? (1)
+
+```{r, echo = FALSE}
+i.train = sample(1:nrow(rges.ic50), 730)
+## 
+rges.ic50.train = rges.ic50[i.train, ]
+rges.ic50.test = rges.ic50[-i.train, ]
+```
+```{r, echo = FALSE, include=TRUE}
+lm.rges_ic50 = lm(IC50.value ~ RGES, data = rges.ic50.train)
+summary(lm.rges_ic50)
+```
+
+## Predict Drug Sensitivity with RGES? (2)
+Root mean square error:
+```{r, echo = FALSE}
+#compute RMSE
+pred = predict(lm.rges_ic50, newdata = rges.ic50.test)
+n = nrow(rges.ic50.train)
+rmse.train = sqrt(1/n * sum(lm.rges_ic50$residuals^2))
+n = nrow(rges.ic50.test)
+residuals = rges.ic50.test$IC50.value - pred
+rmse.test = sqrt(1/n * sum(residuals^2))
+```
+```{r,echo=FALSE, include=TRUE}
+rmse.test
+```
+```{r, echo = FALSE, include=TRUE}
+plot(rges.ic50.test$IC50.value, pred, xlab = "Real Values", ylab = "Predicted Values", pch=20, col="blue")
+abline(0, 1, col = "red")
+```
+
+## Enhance model: Multiple Regression (Cisplatin)
+```{r, echo=FALSE}
+#Multiple Regression
+# 1. Include biomarkers to RGES matrix only for cisplatin!
+double.biomarker.FC <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/double.biomarker.FC.rds")
+drug_activity_rges.cisplatin = subset (drug_activity_rges , drug == "cisplatin")
+# transformieren, damit samples in zeile
+biomarker.FC = t(double.biomarker.FC)
+
+# Problem: dimensionen der matrizen unterschiedlich, drugactivity eine zeile weniger als biomarker.FC scheinbar in Zeile 26 unterschiedlich?
+# Anpassen der beiden matrizen aneindander:
+biomarker.FC.fit = subset(biomarker.FC, rownames(biomarker.FC) %in% drug_activity_rges.cisplatin$sample)
+results_biomarkers = cbind(drug_activity_rges.cisplatin, biomarker.FC.fit)
+
+# limit the data set to numerical values: rges, ic50 and biomarkers:
+# ic50 values are in -log10 scale
+ic50.cisplatin = drug_activity_rges.cisplatin[,9]
+IC50.value.cisplatin = 10^-(ic50.cisplatin)
+RGES.cisplatin = drug_activity_rges.cisplatin[,2]
+rges.ic50.biomarkers <- as.data.frame(cbind(RGES.cisplatin, IC50.value.cisplatin,biomarker.FC.fit))
+```
+
+- **+** Previously found biomarkers
+
+```{r, echo = F, include = T}
+print(colnames(biomarker.FC.fit))
+```
+
+## Correlation IC50, RGES and Biomarkers?
+Heatmap Correlation RGES, Drug Sensitivity, Biomarkers
+```{r, echo=FALSE, include=TRUE}
+cor = cor(rges.ic50.biomarkers)
+heatmap(cor, col = cm.colors(256))
+```
+
+## Predict Drug Sensitivity these Variables? (1)
+```{r, echo = FALSE}
+# multiple regression model
+# create training and test set
+train.multiple = sample(1:nrow(rges.ic50.biomarkers), 45)
+## 
+train.set.multiple = rges.ic50.biomarkers[train.multiple, ]
+test.set.multiple = rges.ic50.biomarkers[-train.multiple, ]
+```
+```{r, echo=FALSE, include=TRUE}
+model.multiple = lm(IC50.value.cisplatin ~ ., data = train.set.multiple)
+summary(model.multiple)
+```
+
+## Predict Drug Sensitivity with RGES and Biomarkers? (2)
+```{r, echo = FALSE}
+predict.multiple = predict(model.multiple, newdata = test.set.multiple)
+```
+```{r, echo=FALSE}
+n = nrow(train.set.multiple)
+rmse.train = sqrt(1/n * sum(model.multiple$residuals^2))
+n = nrow(test.set.multiple)
+residuals = test.set.multiple$IC50.value.cisplatin - predict.multiple
+rmse.test = sqrt(1/n * sum(residuals^2))
+```
+Root mean square error: 
+```{r, echo=FALSE, include=TRUE}
+rmse.test
+```
+```{r, echo=FALSE, include=TRUE, dpi=80}
+plot(test.set.multiple$IC50.value.cisplatin, predict.multiple, xlab = "Real Values", ylab = "Predicted Values", pch=20, col="blue")
+abline(0, 1, col = "red")
+```
+
+## Enhance model: Specific biomarkers
+
+- High correlation with drug sensitivity
+
+- Low correlation between eachother
+
+- --> GMDS, LRBA, ATXN1
+
+## Predict Drug Sensitivity with specific biomarkers? (1)
+```{r, echo = FALSE, include=TRUE}
+model.multiple.biomarkers = lm(IC50.value.cisplatin ~ GMDS + LRBA + ATXN1, data = train.set.multiple)
+summary(model.multiple.biomarkers)
+```
+
+## Predict Drug Sensitivity with specific biomarkers? (2)
+```{r, echo = FALSE, include=TRUE}
+predict.biomarkers = predict(model.multiple.biomarkers, newdata = test.set.multiple)
+```
+```{r, echo=FALSE}
+n = nrow(train.set.multiple)
+rmse.train = sqrt(1/n * sum(model.multiple.biomarkers$residuals^2))
+n = nrow(test.set.multiple)
+residuals = test.set.multiple$IC50.value.cisplatin - predict.biomarkers
+rmse.test = sqrt(1/n * sum(residuals^2))
+```
+Root mean square error:
+```{r, echo = FALSE, include = TRUE}
+rmse.test
+```
+```{r, echo=FALSE, include=TRUE, dpi=80}
+plot(test.set.multiple$IC50.value.cisplatin, predict.biomarkers, xlab = "Real Values", ylab = "Predicted Values", pch=20, col="blue")
+abline(0, 1, col = "red")
+```
 
 

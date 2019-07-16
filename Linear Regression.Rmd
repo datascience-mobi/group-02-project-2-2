@@ -52,7 +52,7 @@ ggplot(rges.ic50, aes(rges.ic50$RGES, rges.ic50$IC50.value)) +
   geom_point(color = "blue", size = 1) +
   scale_size(range = c(2,5)) +
   xlab("RGES") + 
-  ylab("IDrug Sensitivity") +
+  ylab("Drug Sensitivity") +
   xlim(0.1,0.25)+
   ylim(-1e+09,0.2e+09)
 ```
