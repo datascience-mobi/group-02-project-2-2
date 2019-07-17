@@ -62,7 +62,7 @@ Different kinds of data were needed in order to compute the RGES.
 Drug signature contains scaled log 2 fold change values between treated and untreated data for all genes that passed the criteria above. Disease signatures are identical but contain the log 2 fold change between basal and untreated data.
 The function cmap_score_new also requires an id of down or up regulated genes from the diease signature.
 
-The loop from Bin Chen et all ranks the disease signature values and calculates a RGES value for every sample:
+The loop from Bin Chen et al. ranks the disease signature values and calculates a RGES value for every sample:
 
 ```{r eval=FALSE}
 dz_cmap_scores <- NULL
