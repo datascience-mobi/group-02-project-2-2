@@ -450,9 +450,9 @@ pheatmap(copynumber.quali,
 
 
 
-
-#Reverse gene expression score
-![](C:/Users/amvog/Documents/GitHub/project-02-group-02/data/Schaubild_RGES.png)
+# RGES
+## Reverse gene expression score
+![](C:/Users/johan/Documents/GitHub/project-02-group-02/data/Schaubild_RGES.png)
 
 
 
