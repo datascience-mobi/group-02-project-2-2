@@ -38,61 +38,166 @@ summary(cars)
 plot(pressure)
 ```
 
+# Broad Analysis
 
+## Computation of the Fold-change - treated/untreated
+```{r, include = FALSE}
 
+library(viridis)
+library(ggplot2)
 
+treated <- readRDS("C:/Users/johan/Documents/Bioinfo_project/NCI_TPW_gep_treated.rds")
+untreated <- readRDS("C:/Users/johan/Documents/Bioinfo_project/NCI_TPW_gep_untreated.rds")
+ic50 <- readRDS("C:/Users/johan/Documents/Bioinfo_project/NegLogGI50.rds")
+basalexp <- readRDS("C:/Users/johan/Documents/Bioinfo_project/CCLE_basalexpression.rds")
+copynumber <- readRDS("C:/Users/johan/Documents/Bioinfo_project/CCLE_copynumber.rds")
+mutations <- readRDS("C:/Users/johan/Documents/Bioinfo_project/CCLE_mutations.rds")
+cellline <- read.delim("C:/Users/johan/Documents/Bioinfo_project/cellline_annotation.tsv", header = TRUE, sep = "\t")
+meta <- read.delim("C:/Users/johan/Documents/Bioinfo_project/NCI_TPW_metadata.tsv", header = TRUE, sep = "\t")
+drug <- read.delim("C:/Users/johan/Documents/Bioinfo_project/drug_annotation.tsv", header = TRUE, sep = "\t")
 
+basal.scaled <- scale(basalexp)
+treated.scaled <- scale(treated)
+untreated.scaled <- scale(untreated)
 
+log2FC.treated.untreated <- treated.scaled - untreated.scaled
+is.nan.data.frame <- function(x)      #NaN durch 0 ersetzen
+  do.call(cbind, lapply(x, is.nan))
+log2FC.treated.untreated[is.nan(log2FC.treated.untreated)] <- 0
+```
+```{r, echo= FALSE}
+plot(density(log2FC.treated.untreated), main = "Log2 FC Treated/Untreated")
+```
 
+## Principal component analysis - treated/untreated
+```{r, include=FALSE}
+PCA.FC <- prcomp(log2FC.treated.untreated, center=F , scale.=F)
+```
+```{r, echo = FALSE}
+plot(PCA.FC, type ="lines")
+```
 
+## Colored PCA by drugs
+```{r, echo=FALSE}
+pca = prcomp(log2FC.treated.untreated)
+meta_neu = meta[1:819,]
+meta_neu = as.data.frame(meta_neu)
+```
+```{r, echo=FALSE, fig.width=4, fig.height=4, out.extra='style="float:left"'}
+pca_plot_drugs12 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,1], y = pca$rotation[,2])) +
+  theme_bw(base_size = 7) +
+  geom_point(aes(colour = factor(meta_neu$drug))) +
+  scale_colour_viridis(option ="viridis", discrete = TRUE) +
+  #mit BREWER: scale_fill_brewer(palette = "Dark2")
+  ggtitle("Principal Component Analysis - color drugs") +
+  xlab("Principal Component 1") +
+  ylab("Principal Component 2")
 
+pca_plot_drugs12
 
+pca_plot_drugs34 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,3], y = pca$rotation[,4])) +
+  theme_bw(base_size = 7) +
+  geom_point(aes(colour = factor(meta_neu$drug))) +
+  scale_colour_viridis(option ="viridis", discrete = TRUE) +
+  #mit BREWER: scale_fill_brewer(palette = "Dark2")
+  ggtitle("Principal Component Analysis - color drugs") +
+  xlab("Principal Component 3") +
+  ylab("Principal Component 4")
 
+pca_plot_drugs34
+```
 
+## Colored PCA by chemo/targeted
+```{r, echo=FALSE}
+targeted.chemo <- c("targeted", "targeted", "chemo", "chemo", "chemo", "chemo", "chemo", "targeted", "targeted", "chemo", "chemo", "chemo", "chemo", "targeted", "chemo")
+drug.added <- cbind(drug, targeted.chemo)
+drug.added.ordered <- drug.added[order(drug.added$Drug),]
 
+chem.targ = c(rep(as.numeric(0),819))
+meta_neu = cbind(meta_neu, chem.targ)
 
+i=1
+j=1
 
+while(j<16)
+{while(i<820)
+{
+  if(isTRUE(meta_neu[i,3]== drug.added.ordered[j,1]))
+  {meta_neu[i,7] = as.character(drug.added.ordered[j,9])
+  }
+  i = i +1
+}
+  i= 1
+  j=j+1}
+```
 
+```{r, echo=FALSE, fig.width=4, fig.height=4, out.extra='style="float:left"'}
+pca_plot_chemtarg12 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,1], y = pca$rotation[,2])) +
+  theme_bw(base_size = 7) +
+  geom_point(aes(colour = factor(meta_neu$chem.targ))) +
+  scale_colour_viridis(option ="viridis", discrete = TRUE) +
+  #mit BREWER: scale_fill_brewer(palette = "Dark2")
+  ggtitle("Principal Component Analysis chemo/targeted") +
+  xlab("Principal Component 1") +
+  ylab("Principal Component 2")
 
+pca_plot_chemtarg12
 
+pca_plot_chemtarg34 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,3], y = pca$rotation[,4])) +
+  theme_bw(base_size = 7) +
+  geom_point(aes(colour = factor(meta_neu$chem.targ))) +
+  scale_colour_viridis(option ="viridis", discrete = TRUE) +
+  #mit BREWER: scale_fill_brewer(palette = "Dark2")
+  ggtitle("Principal Component Analysis chemo/targeted") +
+  xlab("Principal Component 3") +
+  ylab("Principal Component 4")
 
+pca_plot_chemtarg34
+```
 
+## Colored PCA by tyrosine kinase inhibitors
 
+```{r, echo=FALSE}
+TKI = c(rep(as.numeric(0),819))
+meta_neu = cbind(meta_neu, TKI)
 
+i=1
+j=1
 
+while(j<16)
+{while(i<820)
+{
+  if(isTRUE(meta_neu[i,3]== drug.added.ordered[j,1])
+     & (drug.added.ordered[j,3] == "Tyrosine kinase inhibitor"))
+  {meta_neu[i,8] = as.character(drug.added.ordered[j,3])
+  }
+  i = i +1
+}
+  i= 1
+  j=j+1}
+```
 
+```{r, echo=FALSE, fig.width=4, fig.height=4, out.extra='style="float:left"'}
+pca_plot_TKI12 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,1], y = pca$rotation[,2])) +
+  theme_bw(base_size = 7) +
+  geom_point(aes(colour = factor(meta_neu$TKI))) +
+  scale_colour_viridis(option ="viridis", discrete = TRUE) +
+  ggtitle("Principal Component Analysis TKI") +
+  xlab("Principal Component 1") +
+  ylab("Principal Component 2")
 
+pca_plot_TKI12
 
+pca_plot_TKI34 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,3], y = pca$rotation[,4])) +
+  theme_bw(base_size = 7) +
+  geom_point(aes(colour = factor(meta_neu$TKI))) +
+  scale_colour_viridis(option ="viridis", discrete = TRUE) +
+  ggtitle("Principal Component Analysis TKI") +
+  xlab("Principal Component 3") +
+  ylab("Principal Component 4")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+pca_plot_TKI34
+```
 
 
 
@@ -102,17 +207,17 @@ plot(pressure)
 # Specific Analysis
 
 ## Step 1: Can we identify genes as significant biomarker for cisplatin?{.smaller}
-`````{r, echo = F, include = F}
+```{r, echo = F, include = F}
 library(readxl)
 library(gplots)
 library(pheatmap)
 
 ## necessary data from the general analysis
-meta <- read_excel("data/NCI_TPW_metadata.xls")
-untreated <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/NCI_TPW_gep_untreated.rds")
-treated <- readRDSNCI_TPW_gep_treated <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/NCI_TPW_gep_treated.rds")
-copynumber <- readRDSCCLE_copynumber <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/CCLE_copynumber.rds")
-cellline <- read_excel("data/cellline_annotation.xls")
+meta <- read.delim("C:/Users/johan/Documents/Bioinfo_project/NCI_TPW_metadata.tsv", header = TRUE, sep = "\t")
+treated <- readRDS("C:/Users/johan/Documents/Bioinfo_project/NCI_TPW_gep_treated.rds")
+untreated <- readRDS("C:/Users/johan/Documents/Bioinfo_project/NCI_TPW_gep_untreated.rds")
+copynumber <- readRDS("C:/Users/johan/Documents/Bioinfo_project/CCLE_copynumber.rds")
+cellline <- read.delim("C:/Users/johan/Documents/Bioinfo_project/cellline_annotation.tsv", header = TRUE, sep = "\t")
 meta = as.data.frame(meta)
 celline = as.data.frame(cellline)
 
@@ -252,13 +357,13 @@ sd.double <- apply(double.biomarker.FC, 1, sd)
 double = cbind(mean.double, sd.double)
 colnames(double) = c("mean FC","SD" )
 double
-`````
+```
 
 ## Step 2: Influence of cisplation on the biomarkers gene expression
 
-````{r, echo = F}
+```{r, echo = F}
 colfunc <- colorRampPalette(c("firebrick","firebrick3","lightcoral", "lightyellow","lightskyblue1","steelblue1","steelblue3", "darkblue"))
-`````
+```
 ```{r dpi = 100, echo = F}
 colnames(double.biomarker.FC) <- meta[95:149,2]
 annotation = data.frame(Cancertype = cellline$Cancer_type)
@@ -280,16 +385,16 @@ pheatmap(double.biomarker.FC,
          cutree_cols = 4,
          border_color = "white",
          scale = "column")
-```````
+```
 
 ## Step 3: Further analysis of biomarker
-````{r, echo = F}
+```{r, echo = F}
 copynumber.biomarker = as.matrix(copynumber[double.biomarker,])
 copynumber.quali = ifelse(copynumber.biomarker <= (-1), (-1), ifelse (copynumber.biomarker >= (1), 1, 0))
-````
+```
 Connection between biomarker and gene alterations
 
-````{r, echo = F, include = T, dpi = 100}
+```{r, echo = F, include = T, dpi = 100}
 colfunc2 <- colorRampPalette(c("firebrick2", "grey88", "deepskyblue3"))
 
 colnames(double.biomarker.FC) <- meta[95:149,2]
@@ -311,7 +416,7 @@ pheatmap(copynumber.quali,
          treeheight_row = 20,
          treeheight_col = 20,
          annotation = annotation)
-````
+```
 
 
 
@@ -392,162 +497,57 @@ pheatmap(copynumber.quali,
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# Further Analysis
+## Overview of our RGES - results
+```{r, include = FALSE}
+results <- readRDS("C:/Users/johan/Documents/Bioinfo_project/results.rds")
+results_cisplatin = subset (results , drug == "cisplatin")
+``` 
+
+```{r}
+quantile(results$RGES)
+quantile(results_cisplatin$RGES)
+min = min(results$RGES)
+```
+
+```{r, echo=FALSE}
+min
+```
+
+```{r}
+max = max(results$RGES)
+```
+
+```{r, echo = FALSE}
+max
+```
+  
+## Overview of our RGES - results
+```{r, echo=FALSE, fig.width=4, fig.height=4, out.extra='style="float:left"'}
+quantile.res = as.matrix(quantile(results$RGES))
+plot(density(results$RGES), main ="Distribution RGES values")
+abline(v= quantile.res[c(2,4),1], col= c("red", "blue"), lty =2)
+legend(-6, 1.2, legend = c("25 % quantile", "75% quantile"), col = c("red", "blue"), lty = 1:2)
+quantile.cis = as.matrix(quantile(results_cisplatin$RGES))
+plot(density(results_cisplatin$RGES), main = "Distribution RGES values cisplatin")
+abline(v= quantile.cis[c(2,4),1], col= c("red", "blue"), lty =2)
+legend(-6, 1.2, legend = c("25 % quantile", "75% quantile"), col = c("red", "blue"), lty = 1:2)
+```  
+
+## Mean RGES values from cisplatin in different tissues
+```{r, echo = FALSE}
+tissue = c( "Renal", "Lung" , "Breast" , "Colon", "Prostate" , "Leukemia", "Ovarian", "Melanoma", "CNS")
+mean_tissue =sapply(1:length(tissue), function(x) mean(subset(results_cisplatin$RGES , tissue == tissue[x])))
+barplot(mean_tissue , name = tissue , las = 2 , horiz = FALSE ,col= "firebrick", border = "white" , main = "mean RGES for cisplatin in different tissues" , ylab = "RGES")
+nrow(min(results_cisplatin$RGES))
+```
+
+## Mean RGES values for different drugs
+```{r, echo=FALSE}
+drug = c("5-Azacytidine", "bortezomib", "cisplatin","dasatinib","doxorubicin","erlotinib","geldanamycin","gemcitibine","lapatinib","paclitaxel","sirolimus","sorafenib","sunitinib","topotecan","vorinostat")
+mean_drug =sapply(1:length(drug), function(x) mean(subset(results$RGES , drug == drug[x])))
+barplot(mean_drug , name = drug , las = 2 , horiz = FALSE ,col= "forestgreen", border = "white" , main = "mean RGES for different drugs" , ylab = "RGES")
+```
 
 
 
@@ -602,8 +602,7 @@ pheatmap(copynumber.quali,
 ## Correlation between our RGES values and Drug Sensitivity?
 ```{r, echo=FALSE}
 ### load the data
-drug_activity_rges <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/drug_activity_rges.rds")
-
+drug_activity_rges <- readRDS("C:/Users/johan/Documents/Bioinfo_project/drug_activity_rges.rds") 
 
 # limit the data set to numerical values, convert IC50 values as they are in -log10 scale
 #keine ahnung ob das sinn macht, was ich hier getan habe?
@@ -663,7 +662,7 @@ abline(0, 1, col = "red")
 ```{r, echo=FALSE}
 #Multiple Regression
 # 1. Include biomarkers to RGES matrix only for cisplatin!
-double.biomarker.FC <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/double.biomarker.FC.rds")
+double.biomarker.FC <- readRDS("C:/Users/johan/Documents/Bioinfo_project/double.biomarker.FC.rds")
 drug_activity_rges.cisplatin = subset (drug_activity_rges , drug == "cisplatin")
 # transformieren, damit samples in zeile
 biomarker.FC = t(double.biomarker.FC)
