@@ -14,29 +14,6 @@ output:
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-## R Markdown
-
-This is an R Markdown presentation. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document.
-
-## Slide with Bullets
-
-- Bullet 1
-- Bullet 2
-- Bullet 3
-
-## Slide with R Output
-
-```{r cars, echo = TRUE}
-summary(cars)
-```
-
-## Slide with Plot
-
-```{r pressure}
-plot(pressure)
-```
 
 # Broad Analysis
 
@@ -504,25 +481,13 @@ results <- readRDS("C:/Users/johan/Documents/Bioinfo_project/results.rds")
 results_cisplatin = subset (results , drug == "cisplatin")
 ``` 
 
-```{r}
+```{r, echo= FALSE, include= FALSE}
 quantile(results$RGES)
 quantile(results_cisplatin$RGES)
 min = min(results$RGES)
-```
-
-```{r, echo=FALSE}
-min
-```
-
-```{r}
 max = max(results$RGES)
 ```
-
-```{r, echo = FALSE}
-max
-```
   
-## Overview of our RGES - results
 ```{r, echo=FALSE, fig.width=4, fig.height=4, out.extra='style="float:left"'}
 quantile.res = as.matrix(quantile(results$RGES))
 plot(density(results$RGES), main ="Distribution RGES values")
@@ -615,7 +580,7 @@ Correlation coefficient:
 ```{r, echo = FALSE, include = TRUE}
 cor(rges.ic50$RGES, rges.ic50$IC50.value)
 ```
-```{r,echo=FALSE, include=TRUE, dpi=80, warning=FALSE}
+```{r,echo=FALSE, include=TRUE, dpi=75, warning=FALSE}
 library(ggplot2)
 ggplot(rges.ic50, aes(rges.ic50$RGES, rges.ic50$IC50.value)) +
   geom_point(color = "blue", size = 1) +
@@ -653,7 +618,7 @@ rmse.test = sqrt(1/n * sum(residuals^2))
 ```{r,echo=FALSE, include=TRUE}
 rmse.test
 ```
-```{r, echo = FALSE, include=TRUE}
+```{r, echo = FALSE, include=TRUE, dpi=80}
 plot(rges.ic50.test$IC50.value, pred, xlab = "Real Values", ylab = "Predicted Values", pch=20, col="blue")
 abline(0, 1, col = "red")
 ```
@@ -722,7 +687,7 @@ Root mean square error:
 ```{r, echo=FALSE, include=TRUE}
 rmse.test
 ```
-```{r, echo=FALSE, include=TRUE, dpi=80}
+```{r, echo=FALSE, include=TRUE, dpi=75}
 plot(test.set.multiple$IC50.value.cisplatin, predict.multiple, xlab = "Real Values", ylab = "Predicted Values", pch=20, col="blue")
 abline(0, 1, col = "red")
 ```
