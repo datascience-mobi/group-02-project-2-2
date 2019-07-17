@@ -13,7 +13,7 @@ The goal of this broad analysis is to gain an overview of the given datasets con
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r, include = FALSE}
+```{r}
 library(viridis)
 library(ggplot2)
 ```

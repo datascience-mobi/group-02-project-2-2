@@ -1,4 +1,7 @@
 library(rstudioapi)
+library(ggplot2)
+library(viridis)
+library(reshape2)
 
 wd = dirname(rstudioapi::getSourceEditorContext()$path)
 
@@ -33,9 +36,6 @@ mutations.removed = mutations[, -(12:13)]
 ##Boxplots
 ###boxplot with the samples from treated, color every drug in the boxplot without scaling
 
-library(ggplot2)
-library(reshape2)
-
 melt = melt(treated)
 drugcolor = vector()
 x=1
@@ -64,9 +64,6 @@ untreated.scaled <- scale(untreated)
 
 ###colored boxplot with scaling
 
-library(ggplot2)
-library(reshape2)
-##
 melt.scale = melt(treated.scaled)
 drugcolor = vector()
 x=1
@@ -107,11 +104,7 @@ Varianz.PCA=PCA.FC$sdev^2
 
 ###plotting PCA - color every drug
 
-library(ggplot2)
-library(viridis)
-
 pca = prcomp(log2FC.treated.untreated)
-summary(pca)
 
 meta_neu = meta[1:819,]
 meta_neu = as.data.frame(meta_neu)
@@ -180,7 +173,6 @@ pca_plot_chemtarg34 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,
   theme_bw(base_size = 7) +
   geom_point(aes(colour = factor(meta_neu$chem.targ))) +
   scale_colour_viridis(option ="viridis", discrete = TRUE) +
-  #mit BREWER: scale_fill_brewer(palette = "Dark2")
   ggtitle("Principal Component Analysis 3&4") +
   xlab("Principal Component 3") +
   ylab("Principal Component 4")

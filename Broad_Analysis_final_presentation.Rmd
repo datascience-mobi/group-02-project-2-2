@@ -1,0 +1,177 @@
+---
+title: "Broad Analysis"
+author: "Johanna Bauer"
+date: "17 7 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+### 1. General Analysis
+```{r, include= FALSE}
+library(viridis)
+library(ggplot2)
+```
+
+```{r, eval=FALSE}
+library(viridis)
+library(ggplot2)
+```
+
+```{r, include = FALSE}
+treated <- readRDS("C:/Users/johan/Documents/Bioinfo_project/NCI_TPW_gep_treated.rds")
+untreated <- readRDS("C:/Users/johan/Documents/Bioinfo_project/NCI_TPW_gep_untreated.rds")
+ic50 <- readRDS("C:/Users/johan/Documents/Bioinfo_project/NegLogGI50.rds")
+basalexp <- readRDS("C:/Users/johan/Documents/Bioinfo_project/CCLE_basalexpression.rds")
+copynumber <- readRDS("C:/Users/johan/Documents/Bioinfo_project/CCLE_copynumber.rds")
+mutations <- readRDS("C:/Users/johan/Documents/Bioinfo_project/CCLE_mutations.rds")
+cellline <- read.delim("C:/Users/johan/Documents/Bioinfo_project/cellline_annotation.tsv", header = TRUE, sep = "\t")
+meta <- read.delim("C:/Users/johan/Documents/Bioinfo_project/NCI_TPW_metadata.tsv", header = TRUE, sep = "\t")
+drug <- read.delim("C:/Users/johan/Documents/Bioinfo_project/drug_annotation.tsv", header = TRUE, sep = "\t")
+
+#scale
+basal.scaled <- scale(basalexp)
+treated.scaled <- scale(treated)
+untreated.scaled <- scale(untreated)
+```
+
+```{r, echo=FALSE, fig.width=4.7, fig.height=4, out.extra='style="float:left"',}
+drug15 = meta$drug
+palette(viridis(15))
+
+par(mar=c(5, 4, 5, 9))
+boxplot(treated, medcol="black", border = drug15, col= drug15, 
+         xlab="samples", ylab="gene expression",
+         main= "Gene expression",
+         names= FALSE, xaxt= "n", boxwex=1, boxlty =0)
+
+palette(viridis(15))
+
+par(mar=c(5, 4, 5, 9))
+boxplot(treated.scaled, medcol="black", border = drug15, col= drug15, 
+         xlab="samples", ylab="gene expression",
+         main= "Scaled gene expression",
+         names= FALSE, xaxt= "n", boxwex=1, boxlty =0)
+```
+
+
+### 2. Principal Component Analysis
+
+```{r}
+log2FC.treated.untreated <- treated.scaled - untreated.scaled
+#NaN durch 0 ersetzen
+is.nan.data.frame <- function(x)
+  do.call(cbind, lapply(x, is.nan))
+log2FC.treated.untreated[is.nan(log2FC.treated.untreated)] <- 0
+```
+
+```{r}
+PCA.FC <- prcomp(log2FC.treated.untreated, center=F , scale.=F)
+```
+
+```{r}
+plot(PCA.FC, type ="lines")
+```
+
+<br/>
+<br/>
+<br/>
+  
+#### 2.1 Colored PCA by drugs
+
+```{r, echo=FALSE}
+pca = PCA.FC
+meta_neu = meta[1:819,]
+meta_neu = as.data.frame(meta_neu)
+
+pca_plot_drugs12 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,1], y = pca$rotation[,2])) +
+  theme_bw(base_size = 7) +
+  geom_point(aes(colour = factor(meta_neu$drug))) +
+  scale_colour_viridis(option ="viridis", discrete = TRUE) +
+  #mit BREWER: scale_fill_brewer(palette = "Dark2")
+  ggtitle("Principal Component Analysis - color drugs") +
+  xlab("Principal Component 1") +
+  ylab("Principal Component 2")
+
+pca_plot_drugs34 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,3], y = pca$rotation[,4])) +
+  theme_bw(base_size = 7) +
+  geom_point(aes(colour = factor(meta_neu$drug))) +
+  scale_colour_viridis(option ="viridis", discrete = TRUE) +
+  #mit BREWER: scale_fill_brewer(palette = "Dark2")
+  ggtitle("Principal Component Analysis - color drugs") +
+  xlab("Principal Component 3") +
+  ylab("Principal Component 4")
+```
+
+```{r, eval=FALSE}
+pca_plot_drugs12
+pca_plot_drugs34
+```
+```{r, echo= FALSE, dpi=100, fig.width=4, fig.height=4, out.extra='style="float:center"', fig.align='center'}
+pca_plot_drugs12
+pca_plot_drugs34
+```
+  
+
+                                                                Vorinostat & Bortezomib !
+<br/>
+<br/>
+<br/>
+<br/>
+  
+#### 2.2 Colored PCA by tyrosine kinase inhibitors  
+
+```{r, echo=FALSE}
+drug.added <- drug
+drug.added.ordered <- drug.added[order(drug.added$Drug),]
+
+chem.targ = c(rep(as.numeric(0),819))
+meta_neu = cbind(meta_neu, chem.targ)
+
+TKI = c(rep(as.numeric(0),819))
+meta_neu = cbind(meta_neu, TKI)
+
+i=1
+j=1
+
+while(j<16)
+{while(i<820)
+{
+  if(isTRUE(meta_neu[i,3]== drug.added.ordered[j,1])
+     & (drug.added.ordered[j,3] == "Tyrosine kinase inhibitor"))
+  {meta_neu[i,8] = as.character(drug.added.ordered[j,3])
+  }
+  i = i +1
+}
+  i= 1
+  j=j+1}
+
+pca_plot_TKI12 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,1], y = pca$rotation[,2])) +
+  theme_bw(base_size = 7) +
+  geom_point(aes(colour = factor(meta_neu$TKI))) +
+  scale_colour_viridis(option ="viridis", discrete = TRUE) +
+  ggtitle("Principal Component Analysis TKI") +
+  xlab("Principal Component 1") +
+  ylab("Principal Component 2")
+
+pca_plot_TKI34 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,3], y = pca$rotation[,4])) +
+  theme_bw(base_size = 7) +
+  geom_point(aes(colour = factor(meta_neu$TKI))) +
+  scale_colour_viridis(option ="viridis", discrete = TRUE) +
+  ggtitle("Principal Component Analysis TKI") +
+  xlab("Principal Component 3") +
+  ylab("Principal Component 4")
+```
+
+```{r, eval=FALSE}
+pca_plot_TKI12
+pca_plot_TKI34
+```
+
+```{r, echo= FALSE, dpi=100, fig.width=4, fig.height=4, out.extra='style="float:center"', fig.align='center'}
+pca_plot_TKI12
+pca_plot_TKI34
+```
+
+                                                     
