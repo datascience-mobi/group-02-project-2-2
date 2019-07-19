@@ -17,17 +17,29 @@ basalexp <- readRDS("C:/Users/amvog/Documents/GitHub/project-02-group-02/data/CC
 nbinom.basal.untreated=readRDS("C:/Users/amvog/Documents/GitHub/project-02-group-02/data/nbinom.basal.untreated.rds")
 nbinom.treated.untreated=readRDS("C:/Users/amvog/Documents/GitHub/project-02-group-02/data/nbinom.treated.untreated.rds")
 results=readRDS("C:/Users/amvog/Documents/GitHub/project-02-group-02/data/results.rds")
-library(DESeq)
 untreated.fit = 2^(subset(untreated, rownames(untreated) %in% rownames(basalexp)))
 treated.fit = 2^(subset(treated, rownames(treated) %in% rownames(basalexp)))
 
 ```
 
-# Reverse gene expression score
+# 3. Reverse gene expression score
+RGES is a value, which measures the drugs potency to reverse a disease induced gene expression.
 
+## Table of contents
+1. [Data adjustment] (#data)
+2. [Signatures](#signatures)  
+3. [RGES Computation](#rges)  
+ 
+
+
+## Used library
+```{r, echo=TRUE}
+library(DESeq)
 ## Data preparation 
+```
 
-First the basal expression matrix had to be adjusted to the treated and untreated expression matrices because they contained different genes in differend orders. The three matrices were needed to compute signatures with which the RGES was computed.
+## 1 Data adjustment <a name="data"></a> 
+First, the basal expression matrix had to be adjusted to the treated and untreated expression matrices, because they contained different genes in different orders. The three matrices were needed to compute signatures with which the RGES was computed.
 
 
 ``` {r eval=FALSE}
@@ -45,12 +57,13 @@ rownames(basal.fitted.untreated)= make.names(rownames(basal.fit), unique = TRUE)
 ```
 
 
-## Signatures
-Bin Chen et al computed the drug signatures using the DESeq package that uses negative binomial distribution to analyse a change in gene expression. They used the nbinomTest that compares the base mean of two matrices row by row. 
-In this case two different signatures were computed. Disease signature refers to the difference of basal and untreated expression and drug signature to treated and untreated expression.
+## 2. Signatures <a name="signatures"></a> 
+Bin Chen *et al.* computed the drug signatures using the DESeq package, that uses negative binomial distribution to analyse a change in gene expression between two expiremental conditions (treated and untreated). First, size factors were computed in order to estimate the library size. This was done for normalization. Afterwards the variances for each gene were computed (dispersions).
+Finally the nbinomTest was used, that compares the base mean of two matrices row by row. 
+
+In this case, two different signatures were computed. Disease signature refers to the difference of basal and untreated expression and drug signature to treated and untreated expression.
 
 ```{r eval=FALSE}
-library(DESeq)
 
 mode(treated.fit) <- "integer"
 mode(untreated.fit) <- "integer"
@@ -64,7 +77,7 @@ nbinom.treated.untreated = nbinomTest(cds, "treated", "untreated")
 hist(nbinom.treated.untreated$pval, breaks=100, col="skyblue", border="slateblue", main="p-values nbinom")
 ```
 
-The nbinomTest results in a p value for every gene. For the disease signature the majority of p values indicated a significant outcome. And for the drug signature the values are either very significant or not at all. Genes that don`t lead to a significant p value were sorted out later.
+The nbinomTest results in a p value for every gene, which is adjusted with Benjamini Hochberg procedure. For the disease signature the majority of p values indicated a significant outcome. And for the drug signature the values are either very significant or not at all. Genes that don`t lead to a significant p value were sorted out later.
 
 ```{r echo = FALSE}
 hist(nbinom.treated.untreated$padj, breaks=100, col="skyblue", border="slateblue", main="p-values nbinom drug signature")
@@ -74,24 +87,24 @@ hist(nbinom.treated.untreated$padj, breaks=100, col="skyblue", border="slateblue
 hist(nbinom.basal.untreated$padj, breaks=100, col="skyblue", border="slateblue", main="p-values nbinom disease signature")
 ```
 
-The nbinomTest results in a data frame that contains different important values like the log2 fold change.
+In addition, the nbinomTest results in a data frame, that contains different important values like the log2 fold change.
 
 ``` {r echo=FALSE}
 head(nbinom.basal.untreated)
 ```
 
-Bin Chen et al used a critera to decide which genes are part of the signature. This criteria mostly depends on the p value and log2 fold change. The log2 fold change values for treated, untreated and basal were to small to pass the log2 fold change criteria so this part was left out. The p value must be below 0.001. 
+Bin Chen *et al.* used a critera to decide which genes are part of the signature. This criteria mostly depends on the p value and log2 fold change. The log2 fold change values for treated, untreated and basal were too small to pass the log2 fold change criteria, so this part was left out. The p value must be below 0.001. 
 
-Only the 1223 genes that passed that criteria in both signatures were used for further analysis.
+Only the 1223 genes, that passed that criteria in both signatures, were used for further analysis.
 
 
-## RGES
-Bin Chen et al shared the code that was used to compute the RGES on github. Along with the original code they offer a short example code that can be used to understand which steps are crucial. Since the complete code is very complex the following code is mostly based on the example code. 
-Most importantly the function cmap_score_new was adopted from Bin Chen et all. It computes RGES values. 
+## 3. RGES Computation <a name="rges"></a> 
+Bin Chen *et al.* shared the code, that was used to compute the RGES on github. Along with the original code, they offer a short example code, that can be used to understand which steps are crucial. Since the complete code is very complex the following code is mostly based on the example code. 
+Most importantly, the function cmap_score_new was adopted from Bin Chen et all. It computes RGES values. 
 
 Different kinds of data were needed in order to compute the RGES.
 Drug signature contains scaled log 2 fold change values between treated and untreated data for all genes that passed the criteria above. Disease signatures are identical but contain the log 2 fold change between basal and untreated data.
-The function cmap_score_new also requires an id of down or up regulated genes from the diease signature.
+The function cmap_score_new also requires the id of down or up regulated genes from the diease signature.
 
 ```{r eval= TRUE}
 dz_genes_up <- subset(nbinom.basal.untreated, log2FoldChange > 0,select="id")
@@ -99,7 +112,7 @@ dz_genes_down <- subset(nbinom.basal.untreated, log2FoldChange <0 ,select="id")
 gene.list <- rownames(disease_signature)
 ``` 
 
-The loop from Bin Chen et all ranks the disease signature values and calculates a RGES value for every sample:
+The loop from Bin Chen *et al.* ranks the disease signature values and calculates a RGES value for every sample:
 
 ```{r eval=FALSE}
 dz_cmap_scores <- NULL
@@ -117,7 +130,7 @@ for (exp_id in sig.ids) {
 }
 ```
 
-Since the genes from the matrices are not divided into landmark and other genes this part of the code was removed. Besides this the data was adapted to the code beforehand, so there wasn`t much adjustment necessary.
+Since the genes from the matrices are not divided into landmark genes and other genes, this part of the code was removed. Besides this, the data was adapted to the code beforehand, so there wasn`t much adjustment necessary.
 
 ```{r eval = FALSE}
 dz_cmap_scores <- NULL
@@ -137,7 +150,7 @@ head(results)
 ```
 
 
-# Sources
+## Sources <a name="sources"></a> 
 https://github.com/Bin-Chen-Lab/RGES
 
 Chen, B. et al. Reversal of cancer gene expression correlates
