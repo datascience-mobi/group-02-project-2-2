@@ -7,6 +7,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+<div style="text-align: justify"> 
+
 ```{r include = FALSE}
 treated <- readRDS("C:/Users/amvog/Documents/GitHub/project-02-group-02/data/NCI_TPW_gep_treated.rds")
 untreated <- readRDS("C:/Users/amvog/Documents/GitHub/project-02-group-02/data/NCI_TPW_gep_untreated.rds")
@@ -24,13 +26,43 @@ treated.fit = 2^(subset(treated, rownames(treated) %in% rownames(basalexp)))
 # Reverse gene expression score
 
 ## Data preparation 
+
 First the basal expression matrix had to be adjusted to the treated and untreated expression matrices because they contained different genes in differend orders. The three matrices were needed to compute signatures with which the RGES was computed.
 
+
+``` {r eval=FALSE}
+new.basal.names <- as.character(meta.matrix[1:819,2])
+output.dataset <- sapply(seq_along(new.basal.names), function(a) {
+  name_picker <- new.basal.names[a]
+  out <- dataset.basal[,which(colnames(dataset.basal) == name_picker)]
+  return(out)
+})
+
+basal.fitted.untreated <- matrix(unlist(output.dataset), nrow = 11461, ncol = 819, byrow=FALSE, dimnames = NULL)
+colnames(basal.fitted.untreated) <- make.names(new.basal.names, unique = TRUE)
+
+rownames(basal.fitted.untreated)= make.names(rownames(basal.fit), unique = TRUE)
+```
 
 
 ## Signatures
 Bin Chen et al computed the drug signatures using the DESeq package that uses negative binomial distribution to analyse a change in gene expression. They used the nbinomTest that compares the base mean of two matrices row by row. 
 In this case two different signatures were computed. Disease signature refers to the difference of basal and untreated expression and drug signature to treated and untreated expression.
+
+```{r eval=FALSE}
+library(DESeq)
+
+mode(treated.fit) <- "integer"
+mode(untreated.fit) <- "integer"
+treated.untreated <- cbind(treated.fit,untreated.fit)
+cds = newCountDataSet(countData = treated.untreated, conditions = c(rep("treated",819),rep("untreated",819)))
+cds = estimateSizeFactors(cds)
+cds = estimateDispersions(cds)
+str( fitInfo(cds) )
+dispersion.values = fData(cds)
+nbinom.treated.untreated = nbinomTest(cds, "treated", "untreated")
+hist(nbinom.treated.untreated$pval, breaks=100, col="skyblue", border="slateblue", main="p-values nbinom")
+```
 
 The nbinomTest results in a p value for every gene. For the disease signature the majority of p values indicated a significant outcome. And for the drug signature the values are either very significant or not at all. Genes that don`t lead to a significant p value were sorted out later.
 
@@ -53,7 +85,6 @@ Bin Chen et al used a critera to decide which genes are part of the signature. T
 Only the 1223 genes that passed that criteria in both signatures were used for further analysis.
 
 
-
 ## RGES
 Bin Chen et al shared the code that was used to compute the RGES on github. Along with the original code they offer a short example code that can be used to understand which steps are crucial. Since the complete code is very complex the following code is mostly based on the example code. 
 Most importantly the function cmap_score_new was adopted from Bin Chen et all. It computes RGES values. 
@@ -62,7 +93,13 @@ Different kinds of data were needed in order to compute the RGES.
 Drug signature contains scaled log 2 fold change values between treated and untreated data for all genes that passed the criteria above. Disease signatures are identical but contain the log 2 fold change between basal and untreated data.
 The function cmap_score_new also requires an id of down or up regulated genes from the diease signature.
 
-The loop from Bin Chen et al. ranks the disease signature values and calculates a RGES value for every sample:
+```{r eval= TRUE}
+dz_genes_up <- subset(nbinom.basal.untreated, log2FoldChange > 0,select="id")
+dz_genes_down <- subset(nbinom.basal.untreated, log2FoldChange <0 ,select="id")
+gene.list <- rownames(disease_signature)
+``` 
+
+The loop from Bin Chen et all ranks the disease signature values and calculates a RGES value for every sample:
 
 ```{r eval=FALSE}
 dz_cmap_scores <- NULL
@@ -86,8 +123,7 @@ Since the genes from the matrices are not divided into landmark and other genes 
 dz_cmap_scores <- NULL
 count <- 0
 for(count in sig.ids){
-  print(count)
-  cmap_exp_signature <- data.frame(gene.list,  rank(-1 * disease_signature[, count], ties.method="random"))    
+  cmap_exp_signature <- data.frame(gene.list,  rank(-1 * drug_signature[, count], ties.method="random"))    
   colnames(cmap_exp_signature) <- c("ids","rank") 
   dz_cmap_scores <- c(dz_cmap_scores, cmap_score_new(dz_genes_up,dz_genes_down,cmap_exp_signature)) 
   count <- count + 1
@@ -107,3 +143,5 @@ https://github.com/Bin-Chen-Lab/RGES
 Chen, B. et al. Reversal of cancer gene expression correlates
 with drug efficacy and reveals therapeutic targets. Nat. Commun. 8, 16022
 doi: 10.1038/ncomms16022 (2017)
+
+</div>

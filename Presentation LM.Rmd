@@ -1,0 +1,131 @@
+---
+title: "Untitled"
+author: "Dorothee Mersch"
+date: "18 Juli 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# 4. Linear Regression
+
+## Used Library:
+```{r, echo=TRUE}
+library(reshape)
+library(ggplot2)
+```
+```{r, echo=FALSE}
+results = readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/results.rds")
+drug_activity_rges <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/drug_activity_rges.rds")
+```
+```{r, echo=FALSE}
+# limit the data set to numerical values
+rges.ic50 <- as.data.frame(drug_activity_rges[,c(2,9)])
+```
+
+## 1. Univariate Regression: IC50 - RGES
+Bad Correlation &rarr; Bad Linear Regression Model
+```{r,echo=FALSE, include=TRUE}
+ggplot(rges.ic50, aes(rges.ic50$RGES, rges.ic50$IC50.value)) +
+  geom_point(color = "blue", size = 1) +
+  scale_size(range = c(2,5)) +
+  xlab("RGES") + 
+  ylab("IC50") 
+```
+
+## 2. Multiple Regression Model Cisplatin
+** +  Previously found 15 biomarkers **
+  
+How does the correlation between our biomarkers and the IC50 data look like?
+```{r, echo=FALSE}
+#Multiple Regression
+# Include biomarkers to RGES matrix only for cisplatin!
+double.biomarker.FC <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/double.biomarker.FC.rds")
+drug_activity_rges.cisplatin = subset (drug_activity_rges , drug == "cisplatin")
+# transformieren, damit samples in zeile
+biomarker.FC = t(double.biomarker.FC)
+
+# fit both matrices
+biomarker.FC.fit = subset(biomarker.FC, rownames(biomarker.FC) %in% drug_activity_rges.cisplatin$sample)
+
+# limit the data set to numerical values: rges, ic50 and biomarkers:
+rges.ic50.biomarkers <- as.data.frame(cbind(drug_activity_rges.cisplatin[,c(2,9)], biomarker.FC.fit))
+```
+```{r, echo=FALSE, include=TRUE, fig.align="center"}
+cor.mat = cor(rges.ic50.biomarkers, method = "spearman")
+heatmap(cor.mat, col = cm.colors(256), main = "Heatmap Correlation RGES, IC50, Biomarkers", symm = T)
+```
+
+** Can the model be enhanced? **
+
+## Results:
+```{r, echo = FALSE}
+i.train = sample(1:nrow(rges.ic50), 730)
+
+rges.ic50.train = rges.ic50[i.train, ]
+rges.ic50.test = rges.ic50[-i.train, ]
+```
+```{r, echo = TRUE, include=TRUE}
+lm.rges_ic50 = lm(IC50.value ~ RGES, data = rges.ic50.train)
+```
+```{r, echo=FALSE, include=TRUE}
+summary(lm.rges_ic50)
+pred = predict(lm.rges_ic50, newdata = rges.ic50.test)
+```
+```{r, echo = TRUE}
+n = nrow(rges.ic50.test)
+residuals = rges.ic50.test$IC50.value - pred
+rmse.test = sqrt(1/n * sum(residuals^2))
+```
+```{r,echo=FALSE, include=TRUE}
+rmse.test
+```
+
+```{r, echo = FALSE}
+train.multiple = sample(1:nrow(rges.ic50.biomarkers), 45)
+ 
+train.set.multiple = rges.ic50.biomarkers[train.multiple, ]
+test.set.multiple = rges.ic50.biomarkers[-train.multiple, ]
+```
+```{r, echo=TRUE, include=TRUE}
+model.multiple = lm(IC50.value ~ ., data = train.set.multiple)
+```
+```{r, echo=FALSE, include=TRUE}
+summary(model.multiple)
+```
+```{r, echo = TRUE}
+predict.multiple = predict(model.multiple, newdata = test.set.multiple)
+```
+```{r, echo=FALSE}
+n = nrow(test.set.multiple)
+residuals = test.set.multiple$IC50.value - predict.multiple
+rmse.test = sqrt(1/n * sum(residuals^2))
+```
+```{r, echo = FALSE, include=TRUE}
+rmse.test
+```
+
+```{r, echo=TRUE, include=TRUE}
+model.multiple.biomarkers = lm(IC50.value ~ PTPRG + COMMD10 + GMDS + LRBA, data = train.set.multiple)
+``` 
+```{r, echo=FALSE, include=TRUE}
+summary(model.multiple.biomarkers)
+```
+```{r, echo = TRUE, include=TRUE}
+predict.biomarkers = predict(model.multiple.biomarkers, newdata = test.set.multiple)
+```
+```{r, echo=FALSE}
+n = nrow(test.set.multiple)
+residuals = test.set.multiple$IC50.value - predict.biomarkers
+rmse.test = sqrt(1/n * sum(residuals^2))
+```
+```{r, echo = FALSE, include = TRUE}
+rmse.test
+```
+```{r, echo=FALSE, include=TRUE}
+plot(test.set.multiple$IC50.value, predict.biomarkers, xlab = "Real Values", ylab = "Predicted Values", pch=20, col="blue")
+abline(0, 1, col = "red")
+```

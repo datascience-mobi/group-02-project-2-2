@@ -8,84 +8,132 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+<div style="text-align: justify">
+# Linear Regresssion Analysis
 
-# Linear Regression Analysis
-
-## 1. Linear Regression Model: Drug Sensitivity - RGES
-
-The RGES values of the paper (QUELLE) positively correlate with drug sensitivity. It is checked, whether the previously computed RGES values also correlate with the IC50 data. 
-Afterwards a linear regression model is performed in order to predict drug sensitivity of various cell lines with RGES values. RGES is a value, which measures the drugs potency to reverse a disease induced gene expression.
-
-
-First the data set was limited to numerical values, as well as the drug sensitivity values were converted as they were in -log10 scale.
-A data frame with RGES and IC50 values is contained.
+## Used Library:
+```{r, echo=TRUE}
+library(reshape)
+library(ggplot2)
+```
 ```{r, echo=FALSE}
-### load the data
-drug_activity_rges <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/drug_activity_rges.rds")
-
-
-# limit the data set to numerical values, convert IC50 values as they are in -log10 scale
-#keine ahnung ob das sinn macht, was ich hier getan habe?
-ic50 = drug_activity_rges[,9]
-IC50.value = -10^ic50
-RGES = drug_activity_rges[,2]
-rges.ic50 <- as.data.frame(cbind(RGES, IC50.value))
+results = readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/results.rds")
+ic50 = readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/NegLogGI50.rds")
+meta = read.delim("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/NCI_TPW_metadata.tsv")
 ```
 
-### Correlation Drug Sensitivity - RGES
+## Data adjustment
 
-As a next step the correlation between the computed RGES values and our drug sensitivity values is checked.
-Correlation coefficient Drug Sensitivity - RGES:
-```{r, echo = FALSE, include = TRUE}
-cor(rges.ic50$RGES, rges.ic50$IC50.value)
+In oder to create a vector, which contains all IC50 values per cell line, the melt function was used.
+Afterwards NAs of this vector were removed. Than celllines, which were included in the vector, but not in the RGES result data were deleted. Finally a new matrix of the RGES results and IC50 values was created and saved as drug_activity_rges. 
+```{r, echo=TRUE, results="hide"}
+# Create vector IC50 values
+ic50 = t(ic50)
+melt.data <- melt(ic50)
+melt.data = as.matrix(melt.data)
+melt.ic50 = as.data.frame(melt.data)
+colnames(melt.ic50) = c("cell", "drug", "IC50")
+
+# Remove NAs
+rmv.rows = apply(melt.data, 1, function(x) {
+  sum(is.na(x))
+})
+which(rmv.rows > 0)
+melt.ic50 = melt.data[-which(rmv.rows > 0),]
+rm(melt.data)
+
+# Adjust cell lines of IC50 vector
+IC50.value = c(rep(as.numeric(0),819))
+results = cbind(results, IC50.value)
+
+i=1
+j=1
+
+while(i<895)
+{while(j<820)
+{
+  if(isTRUE(melt.ic50[i,1]== results[j,4])
+     & (melt.ic50[i,2] == results[j,5]))
+  {results[j,9] = as.numeric(melt.ic50[i,3])
+  }
+  j = j +1
+}
+  j= 1
+  i=i+1}
+
+which(results$IC50.value == 0)
+
+# Define new matrix
+drug_activity_rges = results[-which(results$IC50.value == 0),]
+```
+
+## 1. Univariate Regression: IC50 - RGES
+### 1.1. Introdcution
+The RGES values of the paper (QUELLE) positively correlate with IC50. It is checked, whether the previously computed RGES values also correlate with the IC50 data. 
+Afterwards a linear regression model is performed in order to predict the antagonistic drug potency of various cell lines with RGES values. RGES is a value, which measures the drugs potency to reverse a disease induced gene expression.
+
+### 1.2. Variable RGES
+First the data set was limited to numerical values.
+A data frame with RGES and IC50 values is obtained.
+```{r, echo=FALSE}
+# limit the data set to numerical values
+rges.ic50 <- as.data.frame(drug_activity_rges[,c(2,9)])
+```
+
+### 1.2.1 Correlation IC50 - RGES
+
+As a next step the correlation between the computed RGES values and the IC50 values is checked. The spearman method was used as it is less prone to outliers.
+
+Rho IC50 - RGES:
+```{r, echo = TRUE, warning=F}
+cor(rges.ic50$RGES, rges.ic50$IC50.value, method = "spearman")
 ```
 
 Result of significance check:
 ```{r, echo=FALSE, include=TRUE}
-cor.test(rges.ic50$RGES, rges.ic50$IC50.value)
+cor.test(rges.ic50$RGES, rges.ic50$IC50.value, method = "spearman")
 ```
 
-RGES values can also be plotted against the drug sensitivity values in order to visualize the correlation.
+RGES values can also be plotted against IC50 values in order to visualize the correlation.
 ```{r,echo=FALSE, include=TRUE}
-library(ggplot2)
 ggplot(rges.ic50, aes(rges.ic50$RGES, rges.ic50$IC50.value)) +
   geom_point(color = "blue", size = 1) +
   scale_size(range = c(2,5)) +
   xlab("RGES") + 
-  ylab("Drug Sensitivity") +
-  xlim(0.1,0.25)+
-  ylim(-1e+09,0.2e+09)
+  ylab("IC50") 
 ```
 
-### Discussion
-The correlation coefficient as well as the plot of RGES values against the drug sensitivity values are not really convincing. A possible reason could be, that the RGES values illustrate the drugs potentcy to reverse the cancer induced gene expression. Most of the analysed drugs are chemotherapy agents and do not interact with gene expression. 
-Nevertheless it will be tried to compute a linear regression model and predict the drug sensitivity values by the previously computed RGES values. 
+**Discussion**
+The correlation coefficient as well as the plot of RGES values against the IC50 values are not really convincing. A possible reason could be, that the RGES values illustrate the drugs potentcy to reverse the cancer induced gene expression. Most of the analysed drugs are chemotherapy agents and do not interact with gene expression. Nevertheless it will be tried to compute a linear regression model and predict the IC50 values with the previously computed RGES values. 
 
-### Computation of the linear regression model
+### 1.2.2 Computation univariate model
 The linear regression model should be learned on a training set. The training set is formed by 730 random variables of the data set (correspond to ~90 % of the whole data set). The other part of the data set than is called test set. 
 It was checked, whether the residuals are normal distributed and whether they correlate with x-values.
 
-```{r, echo = FALSE}
+```{r, echo = TRUE}
 i.train = sample(1:nrow(rges.ic50), 730)
-## 
+
 rges.ic50.train = rges.ic50[i.train, ]
 rges.ic50.test = rges.ic50[-i.train, ]
 ```
 
 
-#### Result of the linear regression model: Drug Sensitivity - RGES:
+### 1.2.3 Result univariate model: IC50 - RGES:
 
-```{r, echo = FALSE, include=TRUE}
+```{r, echo = TRUE, include=TRUE}
 lm.rges_ic50 = lm(IC50.value ~ RGES, data = rges.ic50.train)
+```
+```{r, echo=FALSE, include=TRUE}
 summary(lm.rges_ic50)
 ```
 
-Interpreting the output, the R squared value shows, that only 0.7 percent of of the variance can be explained by the model. In contrast, the F-statistic suggest, that the model is at least better than taking the mean of the drug sensitivity values. Also the p-value (0.0111) shows, that the intercept could not be 0. 
-In summary, the model does not convince at all as less than 1 percent of the variance can be explained.
+**Discussion**
+Interpreting the output, the R squared value shows, that less than one percent of of the variance can be explained by the model. In contrast, the F-statistic suggest, that the model is at least better than taking the mean of the drug sensitivity values. Also the p-value shows, that the intercept could not be 0. 
+In summary, the model does not convince at all as only a small amount of the variance can be explained.
 
-To visiualize the model, the residuals can be plotted against the fitted values. A normal Quantile-Quantile plot was performed, in order to check the normal distribution of the residuals.
+To analyze the residuals, they can be plotted against the fitted values. A normal Quantile-Quantile plot was performed, in order to check the normal distribution of the residuals.
 
-```{r, echo=FALSE, include=TRUE}
+```{r, echo=TRUE, include=TRUE}
 plot(lm.rges_ic50, which = c(1), pch=20, col="blue", main = "Scatter plot Residuals - Fitted values")
 plot(lm.rges_ic50, which = c(2), pch=20, col="blue", main = "QQ plot Residuals")
 ```
@@ -95,27 +143,26 @@ Furthernmore, the QQ plot indicates a normal distribution of residuals.
 
 To check, that the residuals do not correlate with x, the correlation between RGES and residuals is computed.
 Correlation coefficient Residuals - RGES:
-```{r, echo=FALSE, include=TRUE}
+```{r, echo=TRUE, include=TRUE}
 cor(rges.ic50.train$RGES, lm.rges_ic50$residuals)
 ```
 The low value can be interpreted as no correlation between RGES and residuals.
 
 
-### Prediction of the data
+### 1.2.4. Prediction of IC50 data
 
-Finally the training set was used to predict drug sensitivity with RGES values.
-```{r, echo = FALSE, include=TRUE}
+Finally the training set was used to predict the antagonistic drug potency with RGES values.
+```{r, echo = TRUE, include=TRUE}
 pred = predict(lm.rges_ic50, newdata = rges.ic50.test)
-plot(rges.ic50.test$IC50.value, pred, xlab = "Real Values", ylab = "Predicted Values", pch=20, col="blue")
+plot(rges.ic50.test$IC50.value, pred, xlab = "Real Values", ylab = "Predicted Values", pch=20, col="blue", main = "Real Values - Predicted Values IC50")
 abline(0, 1, col = "red")
 ```
 
-It can be clearly seen, that the presented values are much higher than expected. This indicated a very bad linear regression model. 
+It can be clearly seen, that the predicted values do not fit well with the real values. Normally, the blue dots should lay on the red line. This is an indication for a not convincing linear regression model. 
 
-#### Validity of the model 
+##### Validity of the model 
 In order to indicate how well the model fit to the real data, the root mean square error (RMSE) can be computed. 
-```{r, echo = FALSE}
-#compute RMSE
+```{r, echo = TRUE}
 n = nrow(rges.ic50.train)
 rmse.train = sqrt(1/n * sum(lm.rges_ic50$residuals^2))
 n = nrow(rges.ic50.test)
@@ -131,79 +178,76 @@ And for the test set:
 rmse.test
 ```
 
-The lower the RMSE, the better is the linear regression model. 
-All in all, itc can be concluded, that the RGES values do not have the potential to predict the drug sensitivity values. Only a very small proportion of the variablity can be explained by the model and the prediction results in different values than expected.
+The lower the RMSE, the better is the linear regression model. Normally, it should be next to zero. The obtained RMSE prove that the model does not fit very well to the real data.  
+All in all, it can be concluded, that the RGES values do not have the potential to predict the drug sensitivity values. Only a very small proportion of the variablity can be explained by the model and the prediction results differ extremely from the real values.  
 Due to these aspects, the univariate linear regression will be expanded. It will be checked, whether an inclusion of more variables could enhance the model.
 
 
 
 ## 2. Multiple Regression Model Cisplatin
-### Variabels: RGES and biomarkers
+### 2.1. Variabels: RGES and biomarkers
 
-In order to obtain an enhanced model, a multiple regression for cisplatin is performed. The previously computed biomarkers for cisplatin are included. Then drug sensitivity is predicted with RGES values, as well as with genes which showed the highest constant fold change values.
+In order to obtain an enhanced model, a multiple regression for IC50 values of  cisplatin is performed. The previously computed biomarkers for cisplatin are included. Then IC50 values are predicted with RGES values, as well as with genes which showed the most extreme and constant fold change values between treated and untreated patients.
 ```{r, echo=FALSE}
 #Multiple Regression
-# 1. Include biomarkers to RGES matrix only for cisplatin!
+# Include biomarkers to RGES matrix only for cisplatin!
 double.biomarker.FC <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/double.biomarker.FC.rds")
 drug_activity_rges.cisplatin = subset (drug_activity_rges , drug == "cisplatin")
 # transformieren, damit samples in zeile
 biomarker.FC = t(double.biomarker.FC)
 
-# Problem: dimensionen der matrizen unterschiedlich, drugactivity eine zeile weniger als biomarker.FC scheinbar in Zeile 26 unterschiedlich?
-# Anpassen der beiden matrizen aneindander:
+# fit both matrices
 biomarker.FC.fit = subset(biomarker.FC, rownames(biomarker.FC) %in% drug_activity_rges.cisplatin$sample)
-results_biomarkers = cbind(drug_activity_rges.cisplatin, biomarker.FC.fit)
 
 # limit the data set to numerical values: rges, ic50 and biomarkers:
-# ic50 values are in -log10 scale
-ic50.cisplatin = drug_activity_rges.cisplatin[,9]
-IC50.value.cisplatin = 10^-(ic50.cisplatin)
-RGES.cisplatin = drug_activity_rges.cisplatin[,2]
-rges.ic50.biomarkers <- as.data.frame(cbind(RGES.cisplatin, IC50.value.cisplatin,biomarker.FC.fit))
+rges.ic50.biomarkers <- as.data.frame(cbind(drug_activity_rges.cisplatin[,c(2,9)], biomarker.FC.fit))
 ```
 
-### Correlation between Drug Sensitivity, RGES and Biomarkers
+### 2.1.2 Correlation between IC50, RGES and Biomarkers
 
-To visualize the correlation pattern between drug sensitivity values, RGES and biomarkers, pairwise scatterplots, as well as a heatmap is produced. 
-```{r, echo =FALSE, include= TRUE} 
-pairs(rges.ic50.biomarkers, col = "blue", pch = 20, main = "Scatterplots RGES, Drug Sensitivity, Biomarkers")
+To visualize the correlation pattern between Ic50 values, RGES and biomarkers, pairwise scatterplots, as well as a heatmap is produced. 
+```{r, echo =TRUE, include= TRUE, dpi=250} 
+pairs(rges.ic50.biomarkers, col = "blue", pch = 20, main = "Scatterplots RGES, IC50, Biomarkers")
+```
+```{r, echo=TRUE, include=TRUE, fig.align="center"}
+cor.mat = cor(rges.ic50.biomarkers, method = "spearman")
+heatmap(cor.mat, col = cm.colors(256), main = "Heatmap Correlation RGES, IC50, Biomarkers", symm = T)
 ```
 
-
-```{r, echo=FALSE, include=TRUE}
-cor = cor(rges.ic50.biomarkers)
-heatmap(cor, col = cm.colors(256), main = "Heatmap Correlation RGES, Drug Sensitivity, Biomarkers")
-```
-
-It can be seen, that there are some biomarkers which show a high correlation with the drug sensitivity values. One aspect, which can result in a problem, is the correlation between the variables. For example FARS2 and CUX1 show a strong correlation between eachother. 
+It can be seen, that there in summary the correlation between biomarkers and IC50 values is quite low. One aspect, which can result in a problem, is the correlation between the variables. For example CUX1 and FARS2 show a strong correlation between eachother. 
 Nevertheless, it will be performed a model with all variables. 
 
-### Computation of the model
+### 2.1.3. Computation of multiple regression model
 
 As before, to perform a multiple regression model, the data set has to be splitten up into two groups: a training set, which contains 45 random samples (~85% of the whole data set), and a test set out of the other values. 
-```{r, echo = FALSE}
-# multiple regression model
-# create training and test set
+```{r, echo = TRUE}
 train.multiple = sample(1:nrow(rges.ic50.biomarkers), 45)
-## 
+ 
 train.set.multiple = rges.ic50.biomarkers[train.multiple, ]
 test.set.multiple = rges.ic50.biomarkers[-train.multiple, ]
 ```
+  
 Afterwards, the multiple regression model can be learned from the test set. All variables are included. 
+  
+```{r, echo=TRUE, include=TRUE}
+model.multiple = lm(IC50.value ~ ., data = train.set.multiple)
+```
 ```{r, echo=FALSE, include=TRUE}
-model.multiple = lm(IC50.value.cisplatin ~ ., data = train.set.multiple)
 summary(model.multiple)
 ```
+  
 The output of the multiple regression model can be interpreted as follows:
-The R² value indicates, that ~11 % of the variability can be explained through the model. Comparing this value to the one of the univariate regression model, the explained variability is improved greatly. 
-Nevertheless the F-statistic is next to, so that taking the median as a prediction value is not really worse. 
+The R² value indicates, that ~15 % of the variability can be explained through the model. Comparing this value to the one of the univariate regression model, the explained variability is improved greatly. 
+Nevertheless the F-statistic is next to 1, so that taking the mean as a prediction value is not really worse.  
 In addition, the obtained p-values for some variables are quite high. This can be explained by the correlation between some of them. 
+   
+In order to check again the residuals, a scatterplot of residuals versus fitted values, as well as a normal QQ plot of the residuals is produced.
 
 ```{r, echo=FALSE, include=TRUE}
 plot(model.multiple, which = c(1), col="blue", pch = 20, main = "Scatterplot Residuals - Fitted values")
 plot(model.multiple, which = c(2), col="blue", pch = 20, main = "QQ plot Residuals")
 ```
-
+  
 As expected, the residuals are distributed around the red line and therefore do not have non-linear patterns. The QQ plot illustrates, that the residuals are normally distributed.
 
 In order to prove the correlation between residuals and variables, the correlation coefficient is computed.
@@ -211,32 +255,35 @@ Correlation coefficient Residuals - Variables (RGES and biomarkers)
 ```{r, echo=FALSE, include=TRUE}
 cor(train.set.multiple[,-2], model.multiple$residuals)
 ```
-As the computation results in a low coefficient, one can exclude a correlation between residuals and x.
+As the computation results in low coefficients, one can exclude a correlation between residuals and x.
 
 
-### Prediction of data values
+### 2.1.4. Prediction of IC50 values cisplatin
 
 At the end the multiple regression model is used to predict the values. The result is shown in a vector.
-```{r, echo = FALSE}
+```{r, echo = TRUE}
 predict.multiple = predict(model.multiple, newdata = test.set.multiple)
 ```
 
 ```{r, echo=FALSE, include=TRUE}
-plot(test.set.multiple$IC50.value.cisplatin, predict.multiple, xlab = "Real Values", ylab = "Predicted Values", pch=20, col="blue")
+plot(test.set.multiple$IC50.value, predict.multiple, xlab = "Real Values", ylab = "Predicted Values", pch=20, col="blue")
 abline(0, 1, col = "red")
 ```
 
-The predicted values look very similar to the real values. Therefore the multiple regression model with RGES and biomarkers enhanced the model as well as the prediction. 
-
-
+As the test set only contains 9 value, it is difficult to interpret the prediction.
+But in general the dots seem to be nearer by the red line. 
+  
+Therefore it can be concluded, that the multiple regression model with RGES and biomarkers enhanced the model as well as the prediction. 
+  
+  
 #### Validity of the model
 
 RMSE values for training and test set can be computed.
-```{r, echo=FALSE}
+```{r, echo=TRUE}
 n = nrow(train.set.multiple)
 rmse.train = sqrt(1/n * sum(model.multiple$residuals^2))
 n = nrow(test.set.multiple)
-residuals = test.set.multiple$IC50.value.cisplatin - predict.multiple
+residuals = test.set.multiple$IC50.value - predict.multiple
 rmse.test = sqrt(1/n * sum(residuals^2))
 ```
 RMSE training set:
@@ -247,24 +294,33 @@ RMSE test set:
 ```{r, echo=FALSE, include=TRUE}
 rmse.test
 ```
-The RMSE values for training and test set are close to zero. This indicates that the model does fit very well to the real data.
+The RMSE values for training and test set are closer to zero. This indicates that the model does fit better to the real data than the univariate model did.
+  
+  
 In summary, through an inclusion of further variables, the model could be improved. The explained variablilty, as well as the predicted values were enhanced.
+  
+  
+Nevertheless the output showed high p values for some variables, which can be explained by a correlation between them.  
+For that reason, the correlation between variables and drug sensitivity as well as the correlation between each explanatory variable is observed. Through a new model with variables, which show a more or less high correlation to IC50 as well as a low correlation to other explanatory variables the multiple regressioin model should be improved once again.
 
-Nevertheless the output showed high p values for some variables, as they correlate to eachother.
-For that reason, the correlation between variables and drug sensitivity as well as the correlation between each explanatory variable is observed. Through a new model with only high correlating variables to the drug sensitivty values and low correlationg variables to other explanatory data, the multiple regressioin model should be improved once again.
 
 
-## 3. Multiple Regression Model Specific
-### Variables: 3 biomarkers (GMDS, LRBA, ATXN1)
+## 2.2. Multiple Regression Model Specific
+### Variables: 4 biomarkers (PTPRG, FARS2, GMDS, PLCB1)
 
-The correlation heatmap including all variables, as well as the p-values suggest to perform a multiple regression model with three specific biomarkers. GMDS, LRBA and ATXN1 showed a more or less strong correlation to drug sensitivity values. Nevertheless the same training and test set as before is used.
+The correlation heatmap including all variables, as well as the p-values suggest to perform a multiple regression model with three specific biomarkers. PTPRG, COMMD10, GMDS, LRBA showed low correlation between each other. Nevertheless the same training and test set as before is used.
 
-### Computation of the model
-```{r, echo = FALSE, include=TRUE}
-model.multiple.biomarkers = lm(IC50.value.cisplatin ~ GMDS + LRBA + ATXN1, data = train.set.multiple)
+### 2.2.1. Computation of the model with specific biomarkers
+```{r, echo=TRUE, include=TRUE}
+model.multiple.biomarkers = lm(IC50.value ~ PTPRG + COMMD10 + GMDS + LRBA, data = train.set.multiple)
+``` 
+```{r, echo=FALSE, include=TRUE}
 summary(model.multiple.biomarkers)
 ```
-The output illustrates that ~24 % of the variability can be explained by the model. This is more than the double compared to the previous multiple regression model. Also the F-statistic shows a great enhancement and suggests, that the computed model is a better predictor for drug sensitivity values than the mean would be. Nevertheless the p values of LRBA an ATXN1 remained high, indicating a correlation between the variables. 
+
+The output illustrates that ~25 % of the variability can be explained by the model. This is much more compared to the previous multiple regression model. Also the F-statistic shows a further enhancement and suggests, that the computed model is a better predictor for IC50 values than the mean would be. In general the pvalues are lower than before, but still for some variables higher than 0.1. This can be explained by a remaining correlation between these biomarkers.
+
+The residuals were checked again:
 
 ```{r, echo=FALSE, include=TRUE}
 plot(model.multiple.biomarkers, which = c(1), col = "blue", pch = 20, main = "Scatterplot Residuals - Fitted values")
@@ -273,24 +329,27 @@ plot(model.multiple.biomarkers, which = c(2), col = "blue", pch = 20, main = "QQ
 
 The residuals do not show non-linear relationships, as well as they are normally distributed.
 
-### Prediction of the data
+### 2.2.2. Prediction of IC50 values
 Now the model can be used to predict the data. 
-```{r, echo = FALSE, include=TRUE}
+
+```{r, echo = TRUE, include=TRUE}
 predict.biomarkers = predict(model.multiple.biomarkers, newdata = test.set.multiple)
 ```
 ```{r, echo=FALSE, include=TRUE}
-plot(test.set.multiple$IC50.value.cisplatin, predict.biomarkers, xlab = "Real Values", ylab = "Predicted Values", pch=20, col="blue")
+plot(test.set.multiple$IC50.value, predict.biomarkers, xlab = "Real Values", ylab = "Predicted Values", pch=20, col="blue")
 abline(0, 1, col = "red")
 ```
-As before, the predicted values fit more or less well to the real drug sensitivity values. 
-
+  
+Now, the predicted values fit better to the real values. Although the test set size is small, one can observe some dots laying very close to the red line.
+  
+  
 #### Validity of the model
 To check the models validity, RMSE values for training and test set can be computed.
-```{r, echo=FALSE}
+```{r, echo=TRUE}
 n = nrow(train.set.multiple)
 rmse.train = sqrt(1/n * sum(model.multiple.biomarkers$residuals^2))
 n = nrow(test.set.multiple)
-residuals = test.set.multiple$IC50.value.cisplatin - predict.biomarkers
+residuals = test.set.multiple$IC50.value - predict.biomarkers
 rmse.test = sqrt(1/n * sum(residuals^2))
 ```
 RMSE training set:
@@ -301,34 +360,42 @@ RMSE test set
 ```{r, echo = FALSE, include = TRUE}
 rmse.test
 ```
-Both RMSE values are close to zero, so that the model fit well to real data. 
-All in all the multiple regression model with these 3 specific biomarkers improved the model very much. 
 
-## 4. Multiple Regression Model PCAs
+Similar as before, the RMSE values are close to zero, so that the model fit well to real data. 
+All in all the multiple regression model with these 4 specific biomarkers improved the model very much. 
+  
+  
+  
+## 2.3. Multiple Regression Model PCAs
 ### Variables: PCs
 
 For a further enhancement of the multiple regression model, principle components instead of original variables were used. 
-A barplot of the first principle component is illustrated. In addition the correlation between each PCs has to be checked.
-```{r, echo=FALSE}
+A barplot of the first principle component is illustrated. 
+
+```{r, echo=TRUE}
 pca = prcomp(rges.ic50.biomarkers[, -2])
 ```
 
-### Barplot PC1
+### 2.3.1. Analysation of PC1
 ```{r, echo= FALSE, include=TRUE}
-barplot(pca$rotation[, 1], horiz = TRUE, main = "PC1", col = "lightblue",las=1, cex.names = 0.5)
+barplot(pca$rotation[, 1], horiz = TRUE, main = "Barplot PC1", col = "lightblue",las=1, cex.names = 0.5)
 ```
 
 It can be seen, that PC 1 corresponds to variation out of every variable except RGES. The highest variation is explained through the biomarkers DPYP, AGAP1 and CUX1.
 First, it will be performed a multiple regression model including all PCs.
 
-### Computation of the Model
+### 2.3.2. Computation of the Model
 Finally, the multiple regression model can be computed. 
+```{r, echo=TRUE}
+model.pca = lm(rges.ic50.biomarkers$IC50.value ~ pca$x)
+```
 ```{r, echo=FALSE, include=TRUE}
-model.pca = lm(IC50.value.cisplatin ~ pca$x)
 summary(model.pca)
 ```
 
 A R² value of ~0.16 is obtained. So through the model less variability is explained than through the model with specific biomarkers. As the F-statistic is next to one, it could not have been proved, that the computed model predicts the drug sensitivity values better than the mean would do. In addition some variables show a high p value. Therefore the correlation between the PCs will have to be checked.
+
+The residuals were proved:
 
 ```{r, echo=FALSE, include=TRUE}
 plot(model.pca, which = c(1), col = "blue", pch = 20, main = "Scatterplot Residuals - Fitted values")
@@ -337,16 +404,24 @@ plot(model.pca, which = c(2), col = "blue", pch = 20, main = "QQ plot Residuals"
 
 The two plots suggest, that the residuals are normally distributed, as well as they fit well to the real data.
 
+### 2.3.3 Further ideas for an enhancement of the PC model
+
+As high p values were obtained for some PCs, the correlation between them were proved.
+  
 ```{r, echo=FALSE, include=TRUE}
 cor.pca = cor(pca$x)
 heatmap(cor.pca, col = cm.colors(256), main = "Heatmap Correlation PCs")
 ```
+It can be clearly seen, that the high p values were not the result of a correlation between explanatory vaiables. 
+  
+  
 
-As the output of the model contained high p values for some variables, the correlation between the PCs was proved. The heatmap illustrates, that there is no correlation between the PCs.
-
+The model could be improved by a new choice of PCs.
 In order to look for the PCs which explain most of the data sets variance, an elbow plot was done.
 ```{r, echo=FALSE, include=TRUE}
 plot(pca, type ="lines", main = "Elbow plot of PCA")
 ```
 
-PC1 does contain most of the variance and PC2 still a bit more than the following ones. This plot suggests to redo the multiple regression model with these two PCs. 
+PC1 does contain most of the variance and PC2 still a bit more than the following ones. This plot suggests to redo the multiple regression model with these two PCs.
+
+</div>

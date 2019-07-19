@@ -92,15 +92,11 @@ basal.fitted.untreated = log2(basal.fitted.untreated)
 basal.fitted.untreated <- scale(basal.fitted.untreated)
 
 drug_signature = treated.fit - untreated.fit
-is.nan.data.frame <- function(x)     
-  do.call(cbind, lapply(x, is.nan))
-drug_signature[is.nan(drug_signature)] <- 0
+
 dim(drug_signature)
 
 disease_signature <- untreated.fit - basal.fitted.untreated
-is.nan.data.frame <- function(x)     
-  do.call(cbind, lapply(x, is.nan))
-disease_signature[is.nan(disease_signature)] <- 0
+
 dim(drug_signature)
 
 #only keep fold change values for dz_signature and dr_signature genes 
@@ -183,8 +179,7 @@ gene.list <- rownames(disease_signature)
 dz_cmap_scores <- NULL
 count <- 0
 for(count in sig.ids){
-  print(count)
-  cmap_exp_signature <- data.frame(gene.list,  rank(-1 * disease_signature[, count], ties.method="random"))    
+  cmap_exp_signature <- data.frame(gene.list,  rank(-1 * drug_signature[, count], ties.method="random"))    
   colnames(cmap_exp_signature) <- c("ids","rank") 
   dz_cmap_scores <- c(dz_cmap_scores, cmap_score_new(dz_genes_up,dz_genes_down,cmap_exp_signature)) 
   count <- count + 1

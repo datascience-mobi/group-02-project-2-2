@@ -1,51 +1,59 @@
-##loading data
+---
+title: "Further Analysis"
+author: "Johanna Bauer"
+date: "18 7 2019"
+output: html_document
+---
 
-library(rstudioapi)
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 
-wd = dirname(rstudioapi::getSourceEditorContext()$path)
-results = readRDS(paste0(wd, "/data/results.RDS"))
+<br/>
+<br/>
+
+### 1. General overview of our RGES results
+
+```{r, include = FALSE}
+results <- readRDS("C:/Users/johan/Documents/Bioinfo_project/results.rds")
+``` 
+```{r, echo= FALSE}
 results_cisplatin = subset (results , drug == "cisplatin")
+```
 
-###RGES analysis
-## overview RGES values
-quantile(results$RGES)
-quantile(results_cisplatin$RGES)
-min = min(results$RGES)
-max = max(results$RGES)
+```{r, eval= FALSE}
+plot(density(results$RGES), main ="Distribution RGES values")
+abline(v= quantile.res[c(2,4),1], col= c("red", "blue"), lty =2)
+```
 
-#plot
+```{r, eval = FALSE}
+plot(density(results_cisplatin$RGES), main = "Distribution RGES values cisplatin")
+abline(v= quantile.cis[c(2,4),1], col= c("red", "blue"), lty =2)
+```
+
+```{r, echo=FALSE, fig.width=4, fig.height=4, out.extra='style="float:center"'}
 quantile.res = as.matrix(quantile(results$RGES))
-plot(density(results$RGES))
+plot(density(results$RGES), main ="Distribution RGES values")
 abline(v= quantile.res[c(2,4),1], col= c("red", "blue"), lty =2)
 legend(-6, 1.2, legend = c("25 % quantile", "75% quantile"), col = c("red", "blue"), lty = 1:2)
-
 quantile.cis = as.matrix(quantile(results_cisplatin$RGES))
-plot(density(results_cisplatin$RGES))
+plot(density(results_cisplatin$RGES), main = "Distribution RGES values cisplatin")
 abline(v= quantile.cis[c(2,4),1], col= c("red", "blue"), lty =2)
 legend(-6, 1.2, legend = c("25 % quantile", "75% quantile"), col = c("red", "blue"), lty = 1:2)
+```  
 
+<br/>
+<br/>
+<br/>
+<br/>
 
-# RGES cisplatin in general
-boxplot(results_cisplatin$RGES, main = "RGES for cisplatin in different celllines")
-
-# mean RGES cisplatin in different tissues 
+### 2. Mean values - different criteria
+```{r, echo= FALSE, fig.width=4.7, fig.height=4, out.extra='style="float:center"', fig.align='center'}
 tissue = c( "Renal", "Lung" , "Breast" , "Colon", "Prostate" , "Leukemia", "Ovarian", "Melanoma", "CNS")
 mean_tissue =sapply(1:length(tissue), function(x) mean(subset(results_cisplatin$RGES , tissue == tissue[x])))
 barplot(mean_tissue , name = tissue , las = 2 , horiz = FALSE ,col= "firebrick", border = "white" , main = "mean RGES for cisplatin in different tissues" , ylab = "RGES")
-nrow(min(results_cisplatin$RGES))
 
-# mean RGES for different drugs
 drug = c("5-Azacytidine", "bortezomib", "cisplatin","dasatinib","doxorubicin","erlotinib","geldanamycin","gemcitibine","lapatinib","paclitaxel","sirolimus","sorafenib","sunitinib","topotecan","vorinostat")
 mean_drug =sapply(1:length(drug), function(x) mean(subset(results$RGES , drug == drug[x])))
 barplot(mean_drug , name = drug , las = 2 , horiz = FALSE ,col= "forestgreen", border = "white" , main = "mean RGES for different drugs" , ylab = "RGES")
-
-# check for negative RGES values again
-results_neg =results[which(results$RGES < 0),]
-
-#distribution RGES in different drugs
-dev.new(width=5, height=4)
-par(mfrow=c(5,3), mar=c(2,2,2,2))
-sapply(1:length(drug),
-       function(x) boxplot(results[which(results$drug == drug[x]),2],
-                           main = drug[x], 
-                           ylim = c(min,max)))
+```
