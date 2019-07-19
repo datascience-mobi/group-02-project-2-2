@@ -44,9 +44,9 @@ untreated.scaled <- scale(untreated)
 3. [Step 3: Further evaluation of biomarker gene](#alterations)  
 
 
-### Step 1: Can we identify certain genes as biomarker for cisplatin? <a name="step1"></a> 
+### Step 1: Can we identify certain genes as biomarkers for cisplatin? <a name="step1"></a> 
 
-#### Step 1a: Finding Biomarker for cisplatin <a name="step1a"></a> 
+#### Step 1a: Finding Biomarkers for cisplatin <a name="step1a"></a> 
 ##### Criterium: High fold-change values throughout the cell lines
 In the beginning of the specific analysis the gene expression values were scaled and the log2 fold changes were computed. For the downstream analysis the mean fold-change values across all cell lines treated with cisplatin were used. 
 
@@ -54,8 +54,8 @@ In the beginning of the specific analysis the gene expression values were scaled
 log2FC.treated.untreated <- (treated.scaled-untreated.scaled)
 ```
 
-The applied criterium to identify certain genes as biomarker for cisplatin is the expression fold change between tumor samples and treated tumor samples. The cisplatin treatment was the same for all cell lines: 15000nM and 24 hours.
-The genes, which gene expression changes throughout all cell lines upon cisplatin pertubation the most also show the most extreme fold change values. So, genes were ranked after their fold-change and the 20 highest and 20 lowest were selected. 
+The applied criterium to identify certain genes as biomarkers for cisplatin is the expression fold change between tumor samples and treated tumor samples. The cisplatin treatment was the same for all cell lines: 15000nM and 24 hours.
+The genes, which showed the highest gene expression changes throughout all cell lines upon cisplatin pertubation also showed the most extreme fold change values. So, genes were ranked after their fold-change and the 20 highest and 20 lowest were selected. 
 
 `````{r, echo = F}
 cisplatin.col=c()
@@ -122,8 +122,8 @@ biomarker1 <- c(highest.names, lowest.names)
 
 
 #### Additional criterium: Gene expression change in the same "direction"
-In the second criterium gene expression changes unpon treatment were related to up- or downregulation. Consistent transcriptional changes can be defined as those in which gene expression of the majority of cell lines changed in the same direction, and only a small percentage of cell lines had a change in the opposite direction (Monks et. al.). 
-So genes, which gene expression changes in 50 of 55 cell lines in the same direction (up or down regulation) were selected. 
+With the second criterium, gene expression changes upon treatment were associated with up- or downregulation. Consistent transcriptional changes can be defined as those in which the gene expression of the majority of the cell lines changed in the same direction, while only a small percentage of cell lines had an expression change in the opposite direction (Monks et. al.). 
+So, genes changing their expression in the same direction in 50 of 55 cell lines were selected.
 
 
 ```{r, echo=T}
@@ -152,10 +152,9 @@ biomarker2 = row.names(FC.cisplatin[c(biomarker2.down, biomarker2.up),])
 `````
 
 
-#### Subselection of biomarker found through the FC-criterium 
-The genes found through the FC-criterium (criterium 1) were subselected with our additional criterium, which narrows down the previously found genes (40) to 15 biomarker genes. With the second criterium the **keine ahnung wie man das schön formulieren soll**. 
+#### Subselection of biomarkers found through the FC-criterium 
+The genes found through the FC-criterium (criterium 1) were subselected with our additional criterium, which reduced the previously found genes (40) to 15 biomarker genes. With the second criterium, additional information was added through including the consistent change of up or down regulation.
 
-Specifies the first criterium - gene expression changes in the same direction (cisplatin might work especially for patients with a gene expression in the same direction)
 
 ```{r, echo = F, include=TRUE}
 i=1
@@ -208,7 +207,7 @@ print(double.biomarker)
   
 
 
-### Step 1b: How significant are the genes previously identified as biomarker? <a name="significance"></a> 
+### Step 1b: How significant are the genes identified as biomarkers? <a name="significance"></a> 
 
 #### Welch t-test to verify significance of the genes  
 
@@ -224,13 +223,11 @@ Bevore performing the t-test, normality was checked for all biomarkers through Q
 par(mar = c(5, 5, 5, 5))
 qqnorm(treated.cisplatin["POLR3B", ], main = "QQplot to check normality of the POLR3B gene")
 qqline(treated.cisplatin["POLR3B", ])
-legend(-2.5, 1.1,  cex = 0.9, box.lty = 0,
-legend = "Gene expression values for POLR3B
-in different celllines after cisplatin treatment.")
+legend(-2.5, 1.1,  cex = 0.9, box.lty = 0,)
 ````
 
 **2. Welch two sample t-test**  
-Welch-t-test because the values are normally distributed, but the variances of the two samples are not equal and welch t-test corrects this problem by estimating the variances and adjusting the degrees of freedom used in the test. Paired two-sample-two-sided-t-test. 
+The values are normally distributed, but the variances of the two samples are not equal. This is why a Welch-t-test (two-sample-two-sided) was performed because it corrects this difference, by estimating the variances and adjusting the degrees of freedom used in the test. 
 
 ````{r dpi =90, fig.align = 'center'}
 pvalues.welch <- sapply(double.biomarker, function(x){
@@ -241,6 +238,8 @@ plot(density(pvalues.welch), main = "Density of p-Values")
 
 The resulting p-values indicate significant expressional change of biomarkers in all celllines upon cisplatin pertubation. 
 
+<br/>
+<br/>
 
 #### Standard deviation to check consistency of fold-changes across cell lines    
 Furthermore, the fold-change values for biomarker genes upon cisplatin pertubation were related to their standard deviation.  
@@ -260,15 +259,13 @@ colnames(double) = c("mean FC","SD" )
 print(double)
 `````
 
-The resulting standard deviation values are higher than expected, which shows that so the fold-changes vary a lot between cell lines. 
-A tissue based separation and selection of cancers, which are regularly treated with cisplatin (testicular carcinoma, ovarian and bladder cancer), might result in fold-change values with less variance and also in different and more specific biomarker genes. 
-
---> Different result as in T-test? (muss das noch rein?)
+The resulting standard deviation values were higher than expected, meaning the fold-change values have a high variation between the different cell lines. 
+A tissue based separation and selection of cancer types, which are regularly treated with cisplatin (testicular carcinoma, ovarian and bladder cancer), might result in fold-change values with less variance and also in different and more specific biomarker genes. 
 
 ***
 
 ## Step 2: Influence of cisplation on the biomarkers gene expression in different cell lines <a name="upordown"></a> 
-In the second step the influence of cisplatin treatment on up- or downregulation of the biomarkers gene expression was evaluated. The basis of this analysis were the log2-fold-changes. All cell lines were evaluated and related to tissue and cancer types. The result was visualized in a heatmap, which was clustered with kmeans-clustering. 
+In the second step, the influence of cisplatin treatment on the up- or downregulation of the biomarkers gene expression was evaluated. Therefore, the log2-fold-changes were used. All cell lines were evaluated and related to tissue and cancer types. The result was visualized in a heatmap, which was clustered with kmeans-clustering. 
 
 ````{r, echo = F}
 colfunc <- colorRampPalette(c("firebrick","firebrick3","lightcoral",
@@ -276,8 +273,8 @@ colfunc <- colorRampPalette(c("firebrick","firebrick3","lightcoral",
                               "steelblue3", "darkblue"))
 `````
 
-#### Checking how many clusters we will need in the heatmap (elbow plot) 
-Previous to the heatmap computation, the optimal number of clusters was echecked with the help of an elbow plot. Unfortunately kmeans results in a high within-sum-of-square value, which indicates that the distance of data points in each cluster is high. (WIe könnte man sagen, dass das clustering nciht gut war?)
+#### Checking how many clusters will be needed in the heatmap (elbow plot) 
+Before the heatmap was computed, the optimal number of clusters was checked with an elbow plot. Unfortunately, the kmeans clustering results in a high within-sum-of-square value, indicating a bad clustering.
 
 ```{r, echo = T, include = T}
 wss = sapply(2:7,function(k) {
@@ -305,7 +302,7 @@ The following heatmap shows the influence of cisplatin on up- or downregulation 
   + GMDS: GMDS mutation/deficiency is said to be important for the escape from NK cell mediated tumor surveillance  
 
 
-As cisplatin acts as an intrastrand DNA-crosslinker, the targeted cells are not tumor-specific. Therefore this inconclusive result of gene up- and downregulation could be caused by the presence of more necrotic cells in the tumor microenvironment, which leads other tumor cells to downregulate immune surveillance upon cisplatin treatment. 
+As cisplatin acts as an intrastrand DNA-crosslinker, the targeted cells are not tumor-specific. Therefore this inconclusive result of gene up- and downregulation could be caused by the presence of more necrotic cells in the tumor microenvironment, which brings other tumor cells to downregulate immune surveillance upon cisplatin treatment. 
 
 ```{r dpi = 200, fig.align='center'}
 colnames(double.biomarker.FC) <- meta[95:149,2]
@@ -333,10 +330,10 @@ pheatmap(double.biomarker.FC,
 
 ***
 
-## Step 3: Further analysis of biomarker <a name="alterations"></a> 
+## Step 3: Further analysis of the biomarkers <a name="alterations"></a> 
 
 Is there an amplification, deletation or neutral gene copy number? 
-Values smaller than -1 indicate a deletation, values higher than 1 an amplification. All values in between -1 and 1 represent a neutral gene copy number as the values are already log2... QUELLE. 
+Any values smaller than -1 indicate a deletation and values higher than 1 an amplification. All values in between -1 and 1 represent a neutral gene copy number as the values are already log2... QUELLE. 
 
 
 ````{r}
