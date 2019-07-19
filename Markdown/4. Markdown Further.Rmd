@@ -1,15 +1,14 @@
 ---
 title: "4. Further Analysis"
-date: "5 Juni 2019"
 output:
   html_document: default
   pdf_document: default
 ---
-<div style="text-align: justify">The goal of the "Further Analysis" was to analyse the different RGES values from before. Therefore we compared the values from different tissues and different drugs. </div>
+<div style="text-align: justify">The goal of the "Further Analysis" was to analyze the RGES values obtained before. Therefore we compared the values from different tissues and different drugs. </div>
 
 <br/>
 
-## Table of content
+## Table of contents
 
 1. [Overview of our results](#overview)  
   1.1 [Quantiles](#quantiles)  
@@ -29,14 +28,14 @@ results <- readRDS("C:/Users/johan/Documents/Bioinfo_project/results.rds")
 
 <br/>
 
-### 1. Overview of our results <a name="overview"></a>
+### 1. Results overview <a name="overview"></a>
 
-<div style="text-align: justify">A new data frame was computed which only contains the RGES values for cisplatin. </div>
+<div style="text-align: justify">A new data frame was computed, which only contains the RGES values for cisplatin. </div>
 
 <br/>
 
 ```{r}
-results_cisplatin = subset (results , drug == "cisplatin")
+results_cisplatin = subset(results , drug == "cisplatin")
 ```
 
 <br/>
@@ -48,20 +47,14 @@ results_cisplatin = subset (results , drug == "cisplatin")
 ```{r}
 quantile(results$RGES)
 quantile(results_cisplatin$RGES)
+range(results$RGES)
+```
+
+```{r, echo = F}
 min = min(results$RGES)
-```
-
-```{r, echo=FALSE}
-min
-```
-
-```{r}
 max = max(results$RGES)
 ```
 
-```{r, echo = FALSE}
-max
-```
 
 <br/> 
 
@@ -78,8 +71,8 @@ legend(-6, 1.2, legend = c("25 % quantile", "75% quantile"), col = c("red", "blu
 
 <br/>
   
-<div style="text-align: justify">The goal was to find some drugs that are able to reverse the cancer induced gene expression. Therefore we are searching for negativ RGES values - the more negative the RGES the more the drug is able to reverse the gene expression. Unexpectedly, no negative value was computed. This could be matter to the fact, that all drugs are killing the cancer cells before they are even able to reverse any gene expression. So a positive RGES does not mean, the drug is not effective but that it might be able to somehow stop the cancer growth with other mechanisms than interferring with the gene expression. Another reason might be the computation of the RGES values. Bin Chen et al. did not explain, how they computed the gene signatures, so we descided to use the log2-Fold-Change values. If this was not correct to do, the results are not right either and other signatures would have lead to other results.
-To ensure that we don't have any negative RGES values like the minimum predicted, it was tested and the result was the same.  </div> 
+<div style="text-align: justify">The goal was to find drugs that are able to reverse the cancer induced gene expression. The more negative the RGES the higher the drugs ability to reverse the cancer induced gene expression, therefore negative RGES values were searched. No negative values were computed which indicates a mistake in the code. This is because the computation of signatures and the understanding of the example code took to long. At the end there was no time left to look for mistakes since we needed to continue with the linear regression. Likely causes for the mistake could be the insertion of the data into the code or because of the complex code in general. Another possible cause could be the usage of scaled log2 fold change data as signatures because there was also no time for further research on what values to use. Even though we came so far with the RGES computation we would have needed more than three weeks to fully accomplish the computation.
+</div> 
 
 <br/>
 <br/>
@@ -92,7 +85,7 @@ results_neg
 <br/>
 <br/>
 
-#### 1.2 Plotting all RGES values from cisplatin <a name="boxplot"></a>
+#### 1.2 Plotting all RGES values of cisplatin <a name="boxplot"></a>
 <div style="text-align: justify">To take a look at how our RGES values are distributed, a boxplot with the RGES values for cisplatin in different cell lines was created.  </div>  
 
 <br/>
@@ -109,7 +102,7 @@ boxplot(results_cisplatin$RGES, main = "RGES for cisplatin in different cellline
 <br/>
 
 ### 2. Mean RGES values from cisplatin in different tissues <a name="meantissues"></a>
-<div style="text-align: justify">To check if cisplatin has the same effect in different tissues, the mean was computed over each type of tissue. There was no extreme difference visible.  </div>
+<div style="text-align: justify">To check if cisplatin has the same effect in different tissues, the mean was computed over each type of tissue. There was no striking difference visible.  </div>
 
 <br/>
 
@@ -123,7 +116,7 @@ barplot(mean_tissue , name = tissue , las = 2 , horiz = FALSE ,col= "firebrick",
 <br/>
 
 ### 3. Mean RGES values for different drugs <a name="meandrugs"></a>
-<div style="text-align: justify">Furthermore, the mean RGES values were computed for every drug to check if some drugs might be more efficient in blocking or reversing the gene expression. There was no difference visible, so through our operation no drug does reverse the gene expression.  </div>
+<div style="text-align: justify">Furthermore, the mean RGES values were computed for every drug to check if some drugs might be more efficient in reversing the gene expression. There was no difference visible, so no drug does reverse the gene expression.  </div>
 
 <br/>
 
@@ -137,7 +130,7 @@ barplot(mean_drug , name = drug , las = 2 , horiz = FALSE ,col= "forestgreen", b
 <br/>
 
 #### 3.1 Distribution of RGES values from different drugs
-<div style="text-align: justify">To take an intensive look at every drug and its pertubation, 15 boxplots were computed - one for each drug. The result was, that they looked nearly the same - as the mean RGES values for every drug already predicted. </div>
+<div style="text-align: justify">To take an intensive look at every drug and its distibution of RGES values, 15 boxplots were computed - one for each drug. The result was, that they looked nearly the same - as the mean RGES values for every drug already indicated. </div>
 
 <br/>
 
