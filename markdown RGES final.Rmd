@@ -26,9 +26,10 @@ treated.fit = 2^(subset(treated, rownames(treated) %in% rownames(basalexp)))
 RGES is a value, which measures the drugs potency to reverse a disease induced gene expression.
 
 ## Table of contents
-3.1. [Signatures](#signatures)  
-3.2. [RGES Computation](#rges)  
-3.3. [Sources](#sources)  
+1. [Data adjustment] (#data)
+2. [Signatures](#signatures)  
+3. [RGES Computation](#rges)  
+ 
 
 
 ## Used library
@@ -37,6 +38,7 @@ library(DESeq)
 ## Data preparation 
 ```
 
+## 1 Data adjustment <a name="data"></a> 
 First, the basal expression matrix had to be adjusted to the treated and untreated expression matrices, because they contained different genes in different orders. The three matrices were needed to compute signatures with which the RGES was computed.
 
 
@@ -55,7 +57,7 @@ rownames(basal.fitted.untreated)= make.names(rownames(basal.fit), unique = TRUE)
 ```
 
 
-## 3.1. Signatures <a name="signatures"></a> 
+## 2. Signatures <a name="signatures"></a> 
 Bin Chen *et al.* computed the drug signatures using the DESeq package, that uses negative binomial distribution to analyse a change in gene expression between two expiremental conditions (treated and untreated). First, size factors were computed in order to estimate the library size. This was done for normalization. Afterwards the variances for each gene were computed (dispersions).
 Finally the nbinomTest was used, that compares the base mean of two matrices row by row. 
 
@@ -96,7 +98,7 @@ Bin Chen *et al.* used a critera to decide which genes are part of the signature
 Only the 1223 genes, that passed that criteria in both signatures, were used for further analysis.
 
 
-## 3.2. RGES Computation <a name="rges"></a> 
+## 3. RGES Computation <a name="rges"></a> 
 Bin Chen *et al.* shared the code, that was used to compute the RGES on github. Along with the original code, they offer a short example code, that can be used to understand which steps are crucial. Since the complete code is very complex the following code is mostly based on the example code. 
 Most importantly, the function cmap_score_new was adopted from Bin Chen et all. It computes RGES values. 
 
@@ -148,7 +150,7 @@ head(results)
 ```
 
 
-## 3.3. Sources <a name="sources"></a> 
+## Sources <a name="sources"></a> 
 https://github.com/Bin-Chen-Lab/RGES
 
 Chen, B. et al. Reversal of cancer gene expression correlates
