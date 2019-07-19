@@ -35,8 +35,9 @@ treated.scaled <- scale(treated)
 untreated.scaled <- scale(untreated)
 ```````
 
+# 2. Specific analysis
 ***
-### Table of contents
+## Table of contents
 1. [Step 1: Identification of genes as biomarker](#step1)  
     1.1 [Finding biomarker for cisplatin](#step1a)  
     1.2 [Testing biomarker genes](#significance)  
@@ -44,10 +45,10 @@ untreated.scaled <- scale(untreated)
 3. [Step 3: Further evaluation of biomarker gene](#alterations)  
 
 
-### Step 1: Can we identify certain genes as biomarker for cisplatin? <a name="step1"></a> 
+## Step 1: Can we identify certain genes as biomarker for cisplatin? <a name="step1"></a> 
 
-#### Step 1a: Finding Biomarker for cisplatin <a name="step1a"></a> 
-##### Criterium: High fold-change values throughout the cell lines
+### Step 1a: Finding Biomarker for cisplatin <a name="step1a"></a> 
+#### Criterium: High fold-change values throughout the cell lines
 In the beginning of the specific analysis the gene expression values were scaled and the log2 fold changes were computed. For the downstream analysis the mean fold-change values across all cell lines treated with cisplatin were used. 
 
 ```{r}
@@ -121,7 +122,7 @@ biomarker1 <- c(highest.names, lowest.names)
 `````
 
 
-#### Additional criterium: Gene expression change in the same "direction"
+### Additional criterium: Gene expression change in the same "direction"
 In the second criterium gene expression changes unpon treatment were related to up- or downregulation. Consistent transcriptional changes can be defined as those in which gene expression of the majority of cell lines changed in the same direction, and only a small percentage of cell lines had a change in the opposite direction (Monks et. al.). 
 So genes, which gene expression changes in 50 of 55 cell lines in the same direction (up or down regulation) were selected. 
 
@@ -152,7 +153,7 @@ biomarker2 = row.names(FC.cisplatin[c(biomarker2.down, biomarker2.up),])
 `````
 
 
-#### Subselection of biomarker found through the FC-criterium 
+### Subselection of biomarker found through the FC-criterium 
 The genes found through the FC-criterium (criterium 1) were subselected with our additional criterium, which narrows down the previously found genes (40) to 15 biomarker genes. With the second criterium the **keine ahnung wie man das schön formulieren soll**. 
 
 Specifies the first criterium - gene expression changes in the same direction (cisplatin might work especially for patients with a gene expression in the same direction)
@@ -208,9 +209,9 @@ print(double.biomarker)
   
 
 
-### Step 1b: How significant are the genes previously identified as biomarker? <a name="significance"></a> 
+## Step 1b: How significant are the genes previously identified as biomarker? <a name="significance"></a> 
 
-#### Welch t-test to verify significance of the genes  
+### Welch t-test to verify significance of the genes  
 
 With a welch two sample t-test the significance of the expressional change of biomarker genes was verified. 
 ```{r, echo = F}
@@ -242,7 +243,7 @@ plot(density(pvalues.welch), main = "Density of p-Values")
 The resulting p-values indicate significant expressional change of biomarkers in all celllines upon cisplatin pertubation. 
 
 
-#### Standard deviation to check consistency of fold-changes across cell lines    
+### Standard deviation to check consistency of fold-changes across cell lines    
 Furthermore, the fold-change values for biomarker genes upon cisplatin pertubation were related to their standard deviation.  
 `````{r, echo = F, include= F}
 sd.cisplatin = apply(FC.cisplatin, 1, sd)
