@@ -3,6 +3,7 @@ library(rstudioapi)
 library(gplots)
 library(pheatmap)
 library(viridis)
+library(VennDiagram)
 
 ## necessary data from the general analysis
 wd = dirname(rstudioapi::getSourceEditorContext()$path)
@@ -18,10 +19,6 @@ untreated.scaled <- scale(untreated)
 
 #FC
 log2FC.treated.untreated <- (treated.scaled-untreated.scaled) #values are already log2 transformed
-is.nan.data.frame <- function(x)      #NaN durch 0 ersetzen
-  do.call(cbind, lapply(x, is.nan))
-log2FC.treated.untreated[is.nan(log2FC.treated.untreated)] <- 0
-
 
 ##Specific analysis
 
@@ -135,6 +132,26 @@ while(i<41)
 }
 
 rm(is.neg, a, i, j, biomarker2.down, biomarker2.up, highest.names, lowest.names)
+
+grid.newpage()
+venn.plot <- draw.pairwise.venn(
+  area1 = 40,
+  area2 = 668,
+  cross.area = 15,
+  fill = c("light green", "light blue"),
+  category = c("FC-Criterium", "Same Direction"),
+  lty = "blank",
+  cex = 2,
+  cat.cex = 1.5,
+  cat.pos = c(0, 1),
+  cat.dist = -0.5,
+  cat.just = list(c(0.5, 9), c(1,1.5)),
+  cat.col = c("light green", "light blue"), 
+  ext.pos = -3,
+  ext.dist = -0.1,
+  ext.length = 0
+)
+grid.draw(venn.plot)
 
 
 ## Step 1 (b)

@@ -1,0 +1,403 @@
+---
+title: "Specific Analysis"
+output: html_document
+---
+```{r setup, include=FALSE, echo =F}
+knitr::opts_chunk$set(echo = TRUE)
+```
+<div style = "text-align: justify">
+`````{r, include = F}
+library(readxl)
+library(gplots)
+library(pheatmap)
+library(VennDiagram)
+`````
+
+`````{r, eval = F}
+library(readxl)
+library(gplots)
+library(pheatmap)
+library(VennDiagram)
+`````
+
+````{r, echo =F}
+## necessary data from the general analysis
+meta <- read_excel("~/Documents/Uni/4.Semester/Bioinfo/GitHub/project-02-group-02/data/NCI_TPW_metadata.xls")
+untreated <- readRDS("~/Documents/Uni/4.Semester/Bioinfo/GitHub/project-02-group-02/data/NCI_TPW_gep_untreated.rds")
+treated <- readRDS("~/Documents/Uni/4.Semester/Bioinfo/GitHub/project-02-group-02/data/NCI_TPW_gep_treated.rds")
+copynumber <- readRDS("~/Documents/Uni/4.Semester/Bioinfo/GitHub/project-02-group-02/data/CCLE_copynumber.rds")
+cellline <- read_excel("~/Documents/Uni/4.Semester/Bioinfo/GitHub/project-02-group-02/data/cellline_annotation.xls")
+meta = as.data.frame(meta)
+celline = as.data.frame(cellline)
+
+#scale
+treated.scaled <- scale(treated)
+untreated.scaled <- scale(untreated)
+```````
+
+***
+### Table of contents
+1. [Step 1: Identification of genes as biomarker](#step1)  
+    1.1 [Finding biomarker for cisplatin](#step1a)  
+    1.2 [Testing biomarker genes](#significance)  
+2. [Step 2: Biomarker gene expression](#upordown)  
+3. [Step 3: Further evaluation of biomarker gene](#alterations)  
+
+
+### Step 1: Can we identify certain genes as biomarkers for cisplatin? <a name="step1"></a> 
+
+#### Step 1a: Finding Biomarkers for cisplatin <a name="step1a"></a> 
+##### Criterium: High fold-change values throughout the cell lines
+In the beginning of the specific analysis the gene expression values were scaled and the log2 fold changes were computed. For the downstream analysis the mean fold-change values across all cell lines treated with cisplatin were used. 
+
+```{r}
+log2FC.treated.untreated <- (treated.scaled-untreated.scaled)
+```
+
+The applied criterium to identify certain genes as biomarkers for cisplatin is the expression fold change between tumor samples and treated tumor samples. The cisplatin treatment was the same for all cell lines: 15000nM and 24 hours.
+The genes, which showed the highest gene expression changes throughout all cell lines upon cisplatin pertubation also showed the most extreme fold change values. So, genes were ranked after their fold-change and the 20 highest and 20 lowest were selected. 
+
+`````{r, echo = F}
+cisplatin.col=c()
+j=1
+
+while(j<820)
+{
+  if(isTRUE(meta[j,3]== "cisplatin"))
+  {cisplatin.col= c(cisplatin.col,j)
+  }
+  j = j +1
+}
+
+FC.cisplatin = log2FC.treated.untreated[,cisplatin.col]
+
+mean.FC.genes <- apply(FC.cisplatin, 1, mean)
+mean.FC.celllines <- apply(FC.cisplatin, 2, mean)
+```````
+
+The resulting genes and their expression fold-changes between tumor samples and treated tumor samples were visualized through a barplot. 
+
+````{r, echo = F, include = T, fig.width= 4.5, fig.height = 5, fig.show = 'hold'}
+sd.cisplatin = apply(FC.cisplatin, 1, sd)
+mean.FC.genes.sd = as.data.frame(cbind(mean.FC.genes, sd.cisplatin))
+mean.FC.ordered = mean.FC.genes.sd[order(mean.FC.genes.sd$mean.FC.genes, decreasing=TRUE), ]
+
+lowest.FC = mean.FC.ordered[13280:13299,]
+par(mar = c(5, 7, 5, 5))
+barplot(lowest.FC$mean.FC.genes,
+        horiz = TRUE,
+        xlim = c(-1.0, 0),
+        main= "lowest log2 FC-values",
+        xlab= "mean log2FC values in different celllines",
+        names.arg = rownames(lowest.FC),
+        col= "firebrick",
+        las=1,
+        border = "white", 
+        cex.names =0.8)
+
+highest.FC = mean.FC.ordered[1:20,]
+par(mar = c(5, 10, 5, 5))
+barplot(highest.FC$mean.FC.genes,
+        horiz = TRUE,
+        xlim = c(0, 1),
+        main= "highest log2 FC-values",
+        xlab= "mean log2FC values in different celllines",
+        names.arg = rownames(highest.FC),
+        col= "lightgreen",
+        las=1,
+        border = "white",
+        cex.names =0.8)
+``````
+
+`````{r, echo= F}
+#matrix containing the biomarker found through the FC 
+highest.FC = as.matrix(highest.FC) 
+lowest.FC = as.matrix(lowest.FC)
+biomarker1.FC = as.matrix(rbind(highest.FC, lowest.FC))
+highest.names <- row.names(highest.FC)
+lowest.names <- row.names(lowest.FC)
+row.names(biomarker1.FC) <- c(highest.names, lowest.names)
+biomarker1 <- c(highest.names, lowest.names)
+`````
+
+
+#### Additional criterium: Gene expression change in the same "direction"
+With the second criterium, gene expression changes upon treatment were associated with up- or downregulation. Consistent transcriptional changes can be defined as those in which the gene expression of the majority of the cell lines changed in the same direction, while only a small percentage of cell lines had an expression change in the opposite direction (Monks et. al.). 
+So, genes changing their expression in the same direction in 50 of 55 cell lines were selected.
+
+
+```{r, echo=T}
+is.neg = FC.cisplatin<0
+i =1
+j=1
+a=1
+biomarker2.up = c()
+biomarker2.down = c()
+while(j<13300){
+  while(i<56){
+    if(is.neg[j,i]==TRUE)
+     {a=a+1}
+    i=i+1}
+  if(a>49)
+     {biomarker2.down= c(biomarker2.down, j)}
+  if(a<6)
+    {biomarker2.up= c(biomarker2.up, j)}
+  a=1
+  i=1
+  j=j+1}
+```
+
+````{r, echo =F}
+biomarker2 = row.names(FC.cisplatin[c(biomarker2.down, biomarker2.up),])
+`````
+
+
+#### Subselection of biomarkers found through the FC-criterium 
+The genes found through the FC-criterium (criterium 1) were subselected with our additional criterium, which reduced the previously found genes (40) to 15 biomarker genes. With the second criterium, additional information was added through including the consistent change of up or down regulation.
+
+
+```{r, echo = F, include=TRUE}
+i=1
+j=1
+a=1
+double.biomarker = c()
+while(i<41)
+{
+  while(j<375)
+      {
+        if(isTRUE(biomarker2[j] == biomarker1[i]))
+           {double.biomarker = c(double.biomarker, biomarker1[a])
+             }
+            j = j +1
+         }
+          j= 1
+          i=i+1
+          a=a+1
+}
+
+double.biomarker.FC = FC.cisplatin[double.biomarker,]
+
+```
+`````{r, echo = F, include = T}
+grid.newpage()
+venn.plot <- draw.pairwise.venn(
+  area1 = 40,
+  area2 = 668,
+  cross.area = 15,
+  fill = c("light green", "light blue"),
+  category = c("FC-Criterium", "Same Direction"),
+  lty = "blank",
+  cex = 2,
+  cat.cex = 1.5,
+  cat.pos = c(0, 1),
+  cat.dist = -0.5,
+  cat.just = list(c(0.5, 9), c(1,1.5)),
+  cat.col = c("light green", "light blue"), 
+  ext.pos = -3,
+  ext.dist = -0.1,
+  ext.length = 0
+)
+grid.draw(venn.plot)
+```````
+
+````{r, echo = T}
+print(double.biomarker)
+````
+
+  
+
+
+### Step 1b: How significant are the genes identified as biomarkers? <a name="significance"></a> 
+
+#### Welch t-test to verify significance of the genes  
+
+With a welch two sample t-test the significance of the expressional change of biomarker genes was verified. 
+```{r, echo = F}
+treated.cisplatin <- treated.scaled[,grep ("cisplatin", colnames(treated.scaled))]
+untreated.cisplatin <- untreated.scaled[,grep("cisplatin", colnames(treated.scaled))]
+```
+
+**1. Checking normality**  
+Bevore performing the t-test, normality was checked for all biomarkers through QQplots. This is an example for the POLR3B gene, which appears to be normally distributed.   
+````{r, echo = F, include = T, dpi = 90, fig.align = 'center'}
+par(mar = c(5, 5, 5, 5))
+qqnorm(treated.cisplatin["POLR3B", ], main = "QQplot to check normality of the POLR3B gene")
+qqline(treated.cisplatin["POLR3B", ])
+legend(-2.5, 1.1,  cex = 0.9, box.lty = 0,)
+````
+
+**2. Welch two sample t-test**  
+The values are normally distributed, but the variances of the two samples are not equal. This is why a Welch-t-test (two-sample-two-sided) was performed because it corrects this difference, by estimating the variances and adjusting the degrees of freedom used in the test. 
+
+````{r dpi =90, fig.align = 'center'}
+pvalues.welch <- sapply(double.biomarker, function(x){
+       t.test(treated.cisplatin[x,], untreated.cisplatin[x,],paired= T)$p.value
+   })
+plot(density(pvalues.welch), main = "Density of p-Values")
+``````
+
+The resulting p-values indicate significant expressional change of biomarkers in all celllines upon cisplatin pertubation. 
+
+<br/>
+<br/>
+
+#### Standard deviation to check consistency of fold-changes across cell lines    
+Furthermore, the fold-change values for biomarker genes upon cisplatin pertubation were related to their standard deviation.  
+`````{r, echo = F, include= F}
+sd.cisplatin = apply(FC.cisplatin, 1, sd)
+mean.FC.genes.sd = as.data.frame(cbind(mean.FC.genes, sd.cisplatin))
+mean.FC.ordered = mean.FC.genes.sd[order(mean.FC.genes.sd$mean.FC.genes, decreasing=TRUE), ]
+head(mean.FC.genes.sd)
+plot(density(sd.cisplatin))
+```
+
+```{r, echo = T, include = T}
+mean.double <- apply(double.biomarker.FC, 1, mean)
+sd.double <- apply(double.biomarker.FC, 1, sd)
+double = cbind(mean.double, sd.double)
+colnames(double) = c("mean FC","SD" )
+print(double)
+`````
+
+The resulting standard deviation values were higher than expected, meaning the fold-change values have a high variation between the different cell lines. 
+A tissue based separation and selection of cancer types, which are regularly treated with cisplatin (testicular carcinoma, ovarian and bladder cancer), might result in fold-change values with less variance and also in different and more specific biomarker genes. 
+
+***
+
+## Step 2: Influence of cisplation on the biomarkers gene expression in different cell lines <a name="upordown"></a> 
+In the second step, the influence of cisplatin treatment on the up- or downregulation of the biomarkers gene expression was evaluated. Therefore, the log2-fold-changes were used. All cell lines were evaluated and related to tissue and cancer types. The result was visualized in a heatmap, which was clustered with kmeans-clustering. 
+
+````{r, echo = F}
+colfunc <- colorRampPalette(c("firebrick","firebrick3","lightcoral",
+                              "lightyellow","lightskyblue1","steelblue1",
+                              "steelblue3", "darkblue"))
+`````
+
+#### Checking how many clusters will be needed in the heatmap (elbow plot) 
+Before the heatmap was computed, the optimal number of clusters was checked with an elbow plot. Unfortunately, the kmeans clustering results in a high within-sum-of-square value, indicating a bad clustering.
+
+```{r, echo = T, include = T}
+wss = sapply(2:7,function(k) {
+  kmeans(x = t(double.biomarker.FC), centers = k)$tot.withinss
+})
+kmeans= kmeans(x = t(double.biomarker.FC), centers = 5, nstart = 10)
+print(kmeans$tot.withinss)
+
+`````
+
+````{r, echo = F, include = T, dpi = 80, fig.align= 'center'}
+plot(2:7, wss, type = "b",
+     pch = 19,
+     xlab = "Number of clusters K",
+     ylab = "Total within-clusters sum of squares",
+     main = "Elbow plot for kmeans clustering of celllines")
+````
+
+#### Influence of cisplatin on the biomarkers gene expression
+The following heatmap shows the influence of cisplatin on up- or downregulation of the biomarkers gene expression. The annotation bar relates cell lines to cancer types, but no patterns between tissues could be found. Genes can be clustered in two main groups: 
+* 13 genes were mostly upregulated or showed a similar gene expression as in untreated samples  
+  + LRBA: related to the immune checkpoint CTLA4, leads to a downregulation of immune surveillance  
+  + CUX1: leads to a downregulation of e.g. the cell cycle  
+* 2 genes were mostly downregulated upon cisplatin pertubation  
+  + GMDS: GMDS mutation/deficiency is said to be important for the escape from NK cell mediated tumor surveillance  
+
+
+As cisplatin acts as an intrastrand DNA-crosslinker, the targeted cells are not tumor-specific. Therefore this inconclusive result of gene up- and downregulation could be caused by the presence of more necrotic cells in the tumor microenvironment, which brings other tumor cells to downregulate immune surveillance upon cisplatin treatment. 
+
+```{r dpi = 200, fig.align='center'}
+colnames(double.biomarker.FC) <- meta[95:149,2]
+annotation = data.frame(Cancertype = cellline$Cancer_type)
+rownames(annotation) = cellline$Cell_Line_Name
+
+pheatmap(double.biomarker.FC,
+         color = colfunc(25),
+         cluster_cols = TRUE,
+         clustering_rows = TRUE,
+         clustering_method ="ward.D2",
+         treeheight_row = 30,
+         treeheight_col = 30,
+         annotation_col = annotation,
+         legend = T,
+         legend_breaks = c(-1,1),
+         legend_labels = c("down", "up"),
+         show_colnames = F,
+         cutree_rows = 2,
+         cutree_cols = 4,
+         border_color = "white",
+         scale = "column")
+```````
+
+
+***
+
+## Step 3: Further analysis of the biomarkers <a name="alterations"></a> 
+
+Is there an amplification, deletation or neutral gene copy number? 
+Any values smaller than -1 indicate a deletation and values higher than 1 an amplification. All values in between -1 and 1 represent a neutral gene copy number as the values are already log2... QUELLE. 
+
+
+````{r}
+copynumber.biomarker = as.matrix(copynumber[double.biomarker,])
+copynumber.quali = ifelse(copynumber.biomarker <= (-1), (-1), ifelse (copynumber.biomarker >= (1), 1, 0))
+````
+
+### Distribution of genetic alterations in cisplatin biomarker genes
+Visualizing the distribution of genetic alterations. 
+````{r, echo = F, include = T, dpi = 100}
+quantiles = as.matrix(quantile(copynumber.biomarker))
+d <- density(copynumber.biomarker)
+plot(d, main = "Distributions of genetic alterations in biomarker genes")
+abline(v= c(-1,1), col= c("red", "blue"), lty =2)
+legend(-6, 1.2, legend = c("Deletion", "Amplification"), col = c("red", "blue"), lty = 2)
+`````
+
+### checking the optimal number of cluster (elbow plot) 
+kmeans clustering of the heatmap.. 
+````{r, echo = F, include = T, warning = F, dpi = 80}
+wss = sapply(2:7, function(k) {
+  kmeans(x = t(copynumber.quali), centers = k)$tot.withinss
+})
+plot(2:7, wss, 
+     type = "b", pch = 19, 
+     xlab = "Number of clusters K",
+     ylab = "Total within-clusters sum of squares",
+     main = "Elbowplot kmeans clustering - biomarker gene alterations")
+
+kmeans= kmeans(x = t(copynumber.quali), centers = 5, nstart = 10)
+kmeans$tot.withinss
+`````
+
+
+  
+  
+### Connection between biomarker and genetic alterations
+--> Geninterpretation
+--> Gentherapie würde was anderes treffen
+
+````{r fig.align = 'right', echo = F, include = T, dpi = 160}
+colfunc2 <- colorRampPalette(c("firebrick2", "grey88", "deepskyblue3"))
+
+colnames(double.biomarker.FC) <- meta[95:149,2]
+annotation = data.frame(Cancertype = cellline$Cancer_type)
+rownames(annotation) = cellline$Cell_Line_Name
+
+pheatmap(copynumber.quali,
+         color = colfunc2(3),
+         cluster_rows = TRUE,
+         cluster_cols = TRUE,
+         clustering_method = "ward.D2",
+         legend = TRUE,
+         legend_breaks = c(-1,0,1),
+         legend_labels = c("deletion","", "amplification"),
+         border_color = "white",
+         show_colnames = FALSE,
+         cutree_rows = 4,
+         cutree_cols = 3,
+         treeheight_row = 20,
+         treeheight_col = 20,
+         annotation = annotation)
+````
+</div>
+## Sources
+
+"The NCI Transcriptional Pharmacodynamics Workbench: A Tool to Examine Dynamic Expression Profiling of Therapeutic Response in the NCI-60 Cell Line Panel.", Monks et. al.

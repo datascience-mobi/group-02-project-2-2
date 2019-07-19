@@ -222,7 +222,7 @@ FC.cisplatin = log2FC.treated.untreated[,cisplatin.col]
 
 mean.FC.genes <- apply(FC.cisplatin, 1, mean)
 mean.FC.celllines <- apply(FC.cisplatin, 2, mean)
-```````
+````
 
 ````{r, echo = F, include = T, fig.width=4, fig.height=4.25, out.extra='style="float:left"'}
 sd.cisplatin = apply(FC.cisplatin, 1, sd)

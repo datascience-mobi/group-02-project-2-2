@@ -5,7 +5,11 @@ output:
   html_document: default
   pdf_document: default
 ---
-<div style="text-align: justify">The goal of the following broad analysis is to gain an overview of the given datasets containing the influence of different drugs to the cellular response. This will be the basis for all next investigations, containing one specific drug - cisplatin. </div>
+# 1. Broad Analysis
+
+<br/>
+
+<div style="text-align: justify">The goal of the following broad analysis is to gain an overview of the given datasets containing the influence of different drugs on the cellular response. This will be the basis for all next investigations, including the sepcific analysis for cisplatin. </div>
 
 
 
@@ -22,7 +26,7 @@ library(ggplot2)
 library(viridis)
 library(ggplot2)
 ```
-## Table of content
+## 1.1 Table of contents
 1. [Cleaning up our data - NAs and scaling](#cleanup)  
 2. [Plotting the gene expression unscaled and scaled](#boxplots)  
 3. [Computation of the Fold Change - Treated/Untreated](#fc)  
@@ -45,7 +49,7 @@ drug <- read.delim("C:/Users/johan/Documents/Bioinfo_project/drug_annotation.tsv
 ```
   
 ## 1. Cleaning up our data - NAs and scaling <a name="cleanup"></a> 
-<div style="text-align: justify">In order to clean up our data, a loop for checking the amount of NAs in every matrix was created. Rows/Columns containing only NAs were deleted, because they do not contain any information. This only concerned the "mutations" matrix, and two columns were deleted.
+<div style="text-align: justify">In order to clean up our data, a loop for checking the amount of NAs in every matrix was created. Rows/Columns containing only NAs were deleted, as they do not contain any information. This only concerned the "mutations" matrix, where two columns were deleted.
 Furthermore the data has been scaled for the following investigations.</div>
 ```{r, include = FALSE}
 list.na = list("treated"=treated, "untreated"=untreated, "mutations"=mutations, "basalexp" = basalexp, "cellline"=cellline, "copynumber"=copynumber, "ic50"=ic50, "meta"=meta)
@@ -102,8 +106,8 @@ boxplot(treated.scaled, medcol="black", border = drug15, col= drug15,
 
 ## 3. Computation of the Fold Change - Treated/Untreated <a name="fc"></a>
 
-<div style="text-align: justify">In order to analyse the gene expression change from untreated to treated, log2 fold change values were computed. Because the data given was already log2-transformed, computing the difference between the treated(scaled) and untreated(scaled) data was enough. The distribution of the fold change values was checked through a density plot. The values are normally distributed and located near to 0.
-In the future, it would have also been interesting to explore the density of the fold change values by each cell line and not by all cell lines together.</div>
+<div style="text-align: justify">In order to analyze the gene expression change from untreated to treated, log2 fold change values were computed. Because the given data was already log2-transformed, computing the difference between the treated(scaled) and untreated(scaled) data resulted in log2 fold change values. The distribution of the fold change values was checked through a density plot. The values are normally distributed and most values were located near to 0, which implies a similar gene expression before and after treatment. 
+Furthermore, it would have also been interesting to explore the density of the fold change values by each cell line and not by all cell lines together.</div>
 
 <br/>
 <br/>
@@ -184,12 +188,12 @@ pca_plot_drugs34
 
 <br/>
 
-<div style="text-align: justify">This could be because vorinostat is the only HDAC inhibitor. It is a cytostatic drug used in T-cell lymphomas and therefor it is very specific. Bortezomib is the only Proteasome inhibitor and causes the loss of function of the proteasom. The loss of function of the proteasome results in the inhibition of different proteins, what leads to apoptosis and downregulation of the cell cycle. </div>
+<div style="text-align: justify">This could be because vorinostat is the only HDAC inhibitor. It is a cytostatic drug used in T-cell lymphomas and therefore it is very specific. Bortezomib is the only proteasome inhibitor and causes the loss of function of the proteasome. This loss of function results in the inhibition of different proteins, which leads to apoptosis and downregulation of the cell cycle. </div>
 
 <br/>
 
 ### 4.2 Colored PCA - chemo/targeted <a name="colchemtarg"></a>
-<div style="text-align: justify">Secondly, chemotherapeutics and targeted drugs were colored in both plots. This did not seperate the data in visible groups.</div>
+<div style="text-align: justify">Secondly, chemotherapeutics and targeted drugs were colored in both plots. This coloring did not result in a completely clear subdivision.</div>
 
 <br/>
 
@@ -247,7 +251,7 @@ pca_plot_chemtarg34
 <br/>
 
 ### 4.3 Colored PCA - tyrosine kinase inhibitor <a name="colTKI"></a>
-<div style="text-align: justify">Lastly, the 4 tyrosine kinase inhibitor (TKI) drugs were colored. There was no seperation visible in PC1 and PC2. By plotting PC3 and PC4, a batch of only TKI became visible. Although there are also many different drugs located in the same area, the concentration of the TKI may result from the specific and targeted mechanism.</div>
+<div style="text-align: justify">Lastly, the 4 tyrosine kinase inhibitor (TKI) drugs (dasatinib, sunitinib, lapatinib, sorafenib) were colored. There was no seperation visible in PC1 and PC2. By plotting PC3 and PC4, a batch of only TKI became visible. Although there are also many different drugs located in the same area, the concentration of the TKI may result from the specific and targeted mechanism.</div>
 
 <br/>
 
