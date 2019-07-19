@@ -5,6 +5,10 @@ output:
   html_document: default
   pdf_document: default
 ---
+# 1. Broad Analysis
+
+<br/>
+
 <div style="text-align: justify">The goal of the following broad analysis is to gain an overview of the given datasets containing the influence of different drugs on the cellular response. This will be the basis for all next investigations, including the sepcific analysis for cisplatin. </div>
 
 
@@ -22,7 +26,7 @@ library(ggplot2)
 library(viridis)
 library(ggplot2)
 ```
-## Table of content
+## 1.1 Table of contents
 1. [Cleaning up our data - NAs and scaling](#cleanup)  
 2. [Plotting the gene expression unscaled and scaled](#boxplots)  
 3. [Computation of the Fold Change - Treated/Untreated](#fc)  
