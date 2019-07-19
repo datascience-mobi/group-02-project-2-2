@@ -39,6 +39,9 @@ drug = c("5-Azacytidine", "bortezomib", "cisplatin","dasatinib","doxorubicin","e
 mean_drug =sapply(1:length(drug), function(x) mean(subset(results$RGES , drug == drug[x])))
 barplot(mean_drug , name = drug , las = 2 , horiz = FALSE ,col= "forestgreen", border = "white" , main = "mean RGES for different drugs" , ylab = "RGES")
 
+# check for negative RGES values again
+results_neg =results[which(results$RGES < 0),]
+
 #distribution RGES in different drugs
 dev.new(width=5, height=4)
 par(mfrow=c(5,3), mar=c(2,2,2,2))
@@ -46,80 +49,3 @@ sapply(1:length(drug),
        function(x) boxplot(results[which(results$drug == drug[x]),2],
                            main = drug[x], 
                            ylim = c(min,max)))
-
-# find negative RGES values
-results_neg =results[which(results$RGES < 0),]
-
-
-
-
-
-### IC50 spalte an results anf?gen -> drug_activity_rges
-##loading data
-library(reshape)
-
-wd = dirname(rstudioapi::getSourceEditorContext()$path)
-results = readRDS(paste0(wd, "/data/results.RDS"))
-ic50 = readRDS(paste0(wd, "/data/NegLogGI50.RDS"))
-meta = read.delim(paste0(wd, "/data/NCI_TPW_metadata.tsv"), header = TRUE, sep = "\t") 
-
-##melt function
-ic50 = t(ic50)
-melt.data <- melt(ic50)
-melt.data = as.matrix(melt.data)
-melt.ic50 = as.data.frame(melt.data)
-colnames(melt.ic50) = c("cell", "drug", "IC50")
-
-##remove NAs
-rmv.rows = apply(melt.data, 1, function(x) {
-  sum(is.na(x))
-})
-which(rmv.rows > 0)
-melt.ic50 = melt.data[-which(rmv.rows > 0),]
-rm(melt.data)
-
-##Cellines der IC50 aussortieren um sie an RGES_results anpassen
-IC50.value = c(rep(as.numeric(0),819))
-results = cbind(results, IC50.value)
-
-i=1
-j=1
-
-while(i<895)
-{while(j<820)
-{
-  if(isTRUE(melt.ic50[i,1]== results[j,4])
-     & (melt.ic50[i,2] == results[j,5]))
-  {results[j,9] = as.numeric(melt.ic50[i,3])
-  }
-  j = j +1
-}
-  j= 1
-  i=i+1}
-
-which(results$IC50.value == 0)
-drug_activity_rges = results[-which(results$IC50.value == 0),]
-
-
-saveRDS(drug_activity_rges, file = "drug_activity_rges.rds")
-
-
-########## drug efficacy plots 
-#correlated to IC50
-#IC50: The values are in -log10 scale of the concentration required for the 50% inhibition. Therefore higher values indicate that the cell line
-# is more sensitive to the drug (in contrast to RGES)
-
-library(ggplot2)
-
-plot(drug_activity_rges$RGES, log10(drug_activity_rges$IC50.value))
-cor_test <- cor.test(drug_activity_rges$RGES, drug_activity_rges$IC50.value)
-#drug_activity_rges_ordered <- drug_activity_rges[order(drug_activity_rges$RGES),]
-lm_cmap_ic50 <- lm(RGES ~ log(IC50.value, 10), drug_activity_rges)
-
-ggplot(drug_activity_rges, aes(drug_activity_rges$RGES, (-drug_activity_rges$IC50.value))) +
-  geom_point(color = "blue", size = 1) +
-  scale_size(range = c(2,5)) +
-  xlab("RGES") + 
-  ylab("IC50 nm")
-
-range(drug_activity_rges$IC50.value)

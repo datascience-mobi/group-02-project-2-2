@@ -1,3 +1,5 @@
+# load data
+
 library(rstudioapi)
 library(ggplot2)
 library(viridis)
@@ -15,8 +17,8 @@ mutations = readRDS(paste0(wd, "/data/CCLE_mutations.RDS"))
 cellline = read.delim(paste0(wd, "/data/cellline_annotation.tsv"), header = TRUE, sep = "\t")
 drug = read.delim(paste0(wd, "/data/drug_annotation.tsv"), header = TRUE, sep = "\t")
 
-
-#loop for NA values
+## 1. clean up
+###loop for NA values and scaling data
 list.na = list("treated"=treated, "untreated"=untreated, "mutations"=mutations, "basalexp" = basalexp, "cellline"=cellline, "copynumber"=copynumber, "ic50"=ic50, "meta"=meta)
 myfunc = function(x){sum(is.na(x))}
 
@@ -30,10 +32,12 @@ while(i<9)
 
 mutations.removed = mutations[, -(12:13)]
 
+###scale
+basal.scaled <- scale(basalexp)
+treated.scaled <- scale(treated)
+untreated.scaled <- scale(untreated)
 
-
-#gereral overview
-##Boxplots
+## 2.Boxplots
 ###boxplot with the samples from treated, color every drug in the boxplot without scaling
 
 melt = melt(treated)
@@ -52,15 +56,10 @@ cols15 <- c("#d7ff2e","#2f0085","#02ee81","#f357ff",
 
 ggplot(melt, aes(x = Var2, y = value)) + labs(y='Gene') + theme_bw() +
   geom_boxplot(aes(fill = melt$drugcolor, color=melt$drugcolor) ,outlier.size = 0.1) +
-  ggtitle("Gene Expression Treated") +
+  ggtitle("Gene Expression") +
   scale_fill_manual(name= melt$drugcolor, values = cols15) + 
   scale_color_manual(name = melt$drugcolor , values = cols15)
 
-
-##scale
-basal.scaled <- scale(basalexp)
-treated.scaled <- scale(treated)
-untreated.scaled <- scale(untreated)
 
 ###colored boxplot with scaling
 
@@ -80,26 +79,23 @@ cols15 <- c("#d7ff2e","#2f0085","#02ee81","#f357ff",
 
 ggplot(melt.scale, aes(x = Var2, y = value)) + labs(y='Gene') + theme_bw() +
   geom_boxplot(aes(fill = melt.scale$drugcolor, color=melt.scale$drugcolor) ,outlier.size = 0.1) +
-  ggtitle("Gene Expression Treated") +
+  ggtitle("Gene Expression Scaled") +
   scale_fill_manual(name= melt.scale$drugcolor, values = cols15) + 
   scale_color_manual(name = melt.scale$drugcolor , values = cols15)
 
 
-##compute the FC values
+##3- compute the FC values
 log2FC.treated.untreated <- treated.scaled - untreated.scaled
-is.nan.data.frame <- function(x)      #NaN durch 0 ersetzen
-  do.call(cbind, lapply(x, is.nan))
-log2FC.treated.untreated[is.nan(log2FC.treated.untreated)] <- 0
 plot(density(log2FC.treated.untreated), xlab= "log2 fold change values", main = "Density log2 fold change treated/untreated")
 
-##PCA
+## 4.PCA
 
 PCA.FC <- prcomp(log2FC.treated.untreated, center=F , scale=F)
 plot(PCA.FC, type ="lines", main = "Elbow plot of PCA")
 plot(PCA.FC$rotation[, 1], PCA.FC$rotation[, 2], xlab = "PC1", ylab = "PC2", pch=19, main = "PCA for log2 fold change treated/untreated")
 plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], xlab = "PC3", ylab = "PC4", pch=19, main = "PCA for log2 fold change treated/untreated")
 
-### wie viel Varianz wird durch components erklaert?
+### How many variance is explained in components?
 Varianz.PCA=PCA.FC$sdev^2
 
 ###plotting PCA - color every drug
@@ -114,7 +110,7 @@ pca_plot_drugs12 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,1],
   geom_point(aes(colour = factor(meta_neu$drug))) +
   scale_colour_viridis(option ="viridis", discrete = TRUE) +
   #mit BREWER: scale_fill_brewer(palette = "Dark2")
-  ggtitle("Principal Component Analysis 1 & 2") +
+  ggtitle("Principal Component Analysis - color drugs") +
   xlab("Principal Component 1") +
   ylab("Principal Component 2")
 
@@ -125,7 +121,7 @@ pca_plot_drugs34 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,3],
   geom_point(aes(colour = factor(meta_neu$drug))) +
   scale_colour_viridis(option ="viridis", discrete = TRUE) +
   #mit BREWER: scale_fill_brewer(palette = "Dark2")
-  ggtitle("Principal Component Analysis 3 & 4") +
+  ggtitle("Principal Component Analysis - color drugs") +
   xlab("Principal Component 3") +
   ylab("Principal Component 4")
 
@@ -163,7 +159,7 @@ pca_plot_chemtarg12 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,
   geom_point(aes(colour = factor(meta_neu$chem.targ))) +
   scale_colour_viridis(option ="viridis", discrete = TRUE) +
   #mit BREWER: scale_fill_brewer(palette = "Dark2")
-  ggtitle("Principal Component Analysis 1&2") +
+  ggtitle("Principal Component Analysis - color chemo/targeted") +
   xlab("Principal Component 1") +
   ylab("Principal Component 2")
 
@@ -173,15 +169,13 @@ pca_plot_chemtarg34 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,
   theme_bw(base_size = 7) +
   geom_point(aes(colour = factor(meta_neu$chem.targ))) +
   scale_colour_viridis(option ="viridis", discrete = TRUE) +
-  ggtitle("Principal Component Analysis 3&4") +
+  ggtitle("Principal Component Analysis color chemo/targeted") +
   xlab("Principal Component 3") +
   ylab("Principal Component 4")
 
 pca_plot_chemtarg34
 
 ###plotting PCA - color tyrosine kinase inhibitor
-###an meta_neu Spalte anfügen, ob TKI oder nicht; undzwar, wenn in meta_neu spalte drug = drug.added.ordered UND in
-### drug.added.ordered Spalte Mechanism=TKI ; dann füge in meta in neue Spalte das ein was bei Mechanism steht
 
 TKI = c(rep(as.numeric(0),819))
 meta_neu = cbind(meta_neu, TKI)
@@ -207,7 +201,7 @@ pca_plot_TKI12 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,1], y
   theme_bw(base_size = 7) +
   geom_point(aes(colour = factor(meta_neu$TKI))) +
   scale_colour_viridis(option ="viridis", discrete = TRUE) +
-  ggtitle("Principal Component Analysis 1&2") +
+  ggtitle("Principal Component Analysis - color TKI") +
   xlab("Principal Component 1") +
   ylab("Principal Component 2")
 
@@ -217,7 +211,7 @@ pca_plot_TKI34 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,3], y
   theme_bw(base_size = 7) +
   geom_point(aes(colour = factor(meta_neu$TKI))) +
   scale_colour_viridis(option ="viridis", discrete = TRUE) +
-  ggtitle("Principal Component Analysis 3&4") +
+  ggtitle("Principal Component Analysis - color TKI") +
   xlab("Principal Component 3") +
   ylab("Principal Component 4")
 

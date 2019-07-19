@@ -9,12 +9,13 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 ### 1. General Analysis
-```{r, include= FALSE}
+
+```{r, include = FALSE}
 library(viridis)
 library(ggplot2)
 ```
 
-```{r, eval=FALSE}
+```{r, eval = FALSE}
 library(viridis)
 library(ggplot2)
 ```
@@ -60,10 +61,6 @@ boxplot(treated.scaled, medcol="black", border = drug15, col= drug15,
 
 ```{r}
 log2FC.treated.untreated <- treated.scaled - untreated.scaled
-#NaN durch 0 ersetzen
-is.nan.data.frame <- function(x)
-  do.call(cbind, lapply(x, is.nan))
-log2FC.treated.untreated[is.nan(log2FC.treated.untreated)] <- 0
 ```
 
 ```{r}
