@@ -5,9 +5,6 @@ date: "19 7 2019"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
 
 
 # Table of contents
@@ -39,21 +36,21 @@ library(ggplot2)
 2. [Plotting the gene expression unscaled and scaled](#boxplots)  
 3. [Computation of the Fold Change - Treated/Untreated](#fc)  
 4. [Principal component analysis between treated and untreated data](#pca)  
-    4.1 [Colored PCA - drugs](#coldrug)  
-    4.2 [Colored PCA - chemo/targeted](#colchemtarg)  
-    4.3 [Colored PCA - tyrosine kinase inhibitor](#colTKI)  
+    4.1. [Colored PCA - drugs](#coldrug)  
+    4.2. [Colored PCA - chemo/targeted](#colchemtarg)  
+    4.3. [Colored PCA - tyrosine kinase inhibitor](#colTKI)  
 
 
 ```{r, include = FALSE}
-treated <- readRDS("C:/Users/johan/Documents/Bioinfo_project/NCI_TPW_gep_treated.rds")
-untreated <- readRDS("C:/Users/johan/Documents/Bioinfo_project/NCI_TPW_gep_untreated.rds")
-ic50 <- readRDS("C:/Users/johan/Documents/Bioinfo_project/NegLogGI50.rds")
-basalexp <- readRDS("C:/Users/johan/Documents/Bioinfo_project/CCLE_basalexpression.rds")
-copynumber <- readRDS("C:/Users/johan/Documents/Bioinfo_project/CCLE_copynumber.rds")
-mutations <- readRDS("C:/Users/johan/Documents/Bioinfo_project/CCLE_mutations.rds")
-cellline <- read.delim("C:/Users/johan/Documents/Bioinfo_project/cellline_annotation.tsv", header = TRUE, sep = "\t")
-meta <- read.delim("C:/Users/johan/Documents/Bioinfo_project/NCI_TPW_metadata.tsv", header = TRUE, sep = "\t")
-drug <- read.delim("C:/Users/johan/Documents/Bioinfo_project/drug_annotation.tsv", header = TRUE, sep = "\t")
+treated <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/NCI_TPW_gep_treated.rds")
+untreated <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/NCI_TPW_gep_untreated.rds")
+ic50 <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/NegLogGI50.rds")
+basalexp <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/CCLE_basalexpression.rds")
+copynumber <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/CCLE_copynumber.rds")
+mutations <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/CCLE_mutations.rds")
+cellline <- read.delim("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/cellline_annotation.tsv", header = TRUE, sep = "\t")
+meta <- read.delim("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/NCI_TPW_metadata.tsv", header = TRUE, sep = "\t")
+drug <- read.delim("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/drug_annotation.tsv", header = TRUE, sep = "\t")
 ```
 
 ```{r, include = FALSE}
@@ -61,20 +58,17 @@ drug <- read.delim("C:/Users/johan/Documents/Bioinfo_project/drug_annotation.tsv
 ``` 
 
 ```{r include = FALSE}
-nbinom.basal.untreated=readRDS("C:/Users/amvog/Documents/GitHub/project-02-group-02/data/nbinom.basal.untreated.rds")
-nbinom.treated.untreated=readRDS("C:/Users/amvog/Documents/GitHub/project-02-group-02/data/nbinom.treated.untreated.rds")
-results=readRDS("C:/Users/amvog/Documents/GitHub/project-02-group-02/data/results.rds")
+nbinom.basal.untreated=readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/nbinom.basal.untreated.rds")
+nbinom.treated.untreated=readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/nbinom.treated.untreated.rds")
+results=readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/results.rds")
 untreated.fit = 2^(subset(untreated, rownames(untreated) %in% rownames(basalexp)))
 treated.fit = 2^(subset(treated, rownames(treated) %in% rownames(basalexp)))
 ```
 
 ```{r, include = FALSE}
-results <- readRDS("C:/Users/johan/Documents/Bioinfo_project/results.rds")
+results <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/results.rds")
 ``` 
 
-```{r, echo=FALSE}
- Projekt/GitHub/project-02-group-02#project-02-group-02/data/results.rds")
-```
 
 ## 1. Cleaning up our data - NAs and scaling <a name="cleanup"></a> 
 <div style="text-align: justify">In order to clean up our data, a loop for checking the amount of NAs in every matrix was created. Rows/Columns containing only NAs were deleted, as they do not contain any information. This only concerned the "mutations" matrix, where two columns were deleted.
@@ -175,7 +169,7 @@ plot(PCA.FC$rotation[, 3], PCA.FC$rotation[, 4], xlab = "PC3", ylab = "PC4", pch
 
 <br/>
 
-### 4.1 Colored PCA - drugs <a name="coldrug"></a>
+### 4.1. Colored PCA - drugs <a name="coldrug"></a>
 <div style="text-align: justify">Firstly, each drug was colored in a different color. PC1 and PC2 don't seem to show any separations, but PC3 and PC4 seem to seperate the diffenrent drugs, especially Vorinostat an Bortezomib.</div>
 
 <br/>
@@ -359,8 +353,8 @@ celline = as.data.frame(cellline)
 ***
 ## Table of contents
 1. [Step 1: Identification of genes as biomarker](#step1)  
-    1.1 [Finding biomarker for cisplatin](#step1a)  
-    1.2 [Testing biomarker genes](#significance)  
+    1.1. [Finding biomarker for cisplatin](#step1a)  
+    1.2. [Testing biomarker genes](#significance)  
 2. [Step 2: Biomarker gene expression](#upordown)  
 3. [Step 3: Further evaluation of biomarker gene](#alterations)  
 
@@ -580,7 +574,7 @@ sd.double <- apply(double.biomarker.FC, 1, sd)
 double = cbind(mean.double, sd.double)
 colnames(double) = c("mean FC","SD" )
 print(double)
-`````
+```
 
 The resulting standard deviation values were higher than expected, meaning the fold-change values have a high variation between the different cell lines. 
 A tissue based separation and selection of cancer types, which are regularly treated with cisplatin (testicular carcinoma, ovarian and bladder cancer), might result in fold-change values with less variance and also in different and more specific biomarker genes. 
@@ -590,11 +584,11 @@ A tissue based separation and selection of cancer types, which are regularly tre
 ## Step 2: Influence of cisplation on the biomarkers gene expression in different cell lines <a name="upordown"></a> 
 In the second step, the influence of cisplatin treatment on the up- or downregulation of the biomarkers gene expression was evaluated. Therefore, the log2-fold-changes were used. All cell lines were evaluated and related to tissue and cancer types. The result was visualized in a heatmap, which was clustered with kmeans-clustering. 
 
-````{r, echo = F}
+```{r, echo = F}
 colfunc <- colorRampPalette(c("firebrick","firebrick3","lightcoral",
                               "lightyellow","lightskyblue1","steelblue1",
                               "steelblue3", "darkblue"))
-`````
+```
 
 #### Checking how many clusters will be needed in the heatmap (elbow plot) 
 Before the heatmap was computed, the optimal number of clusters was checked with an elbow plot. Unfortunately, the kmeans clustering results in a high within-sum-of-square value, indicating a bad clustering.
@@ -606,15 +600,15 @@ wss = sapply(2:7,function(k) {
 kmeans= kmeans(x = t(double.biomarker.FC), centers = 5, nstart = 10)
 print(kmeans$tot.withinss)
 
-`````
+```
 
-````{r, echo = F, include = T, dpi = 80, fig.align= 'center'}
+```{r, echo = F, include = T, dpi = 80, fig.align= 'center'}
 plot(2:7, wss, type = "b",
      pch = 19,
      xlab = "Number of clusters K",
      ylab = "Total within-clusters sum of squares",
      main = "Elbow plot for kmeans clustering of celllines")
-````
+```
 
 #### Influence of cisplatin on the biomarkers gene expression
 The following heatmap shows the influence of cisplatin on up- or downregulation of the biomarkers gene expression. The annotation bar relates cell lines to cancer types, but no patterns between tissues could be found. Genes were be clustered in two main groups:   
@@ -648,7 +642,7 @@ pheatmap(double.biomarker.FC,
          cutree_cols = 4,
          border_color = "white",
          scale = "column")
-```````
+```
 
 
 ***
@@ -657,27 +651,27 @@ pheatmap(double.biomarker.FC,
 Finally we evaluated whether there is an amplification, deletation or neutral gene copy number. 
 Any values smaller than -1 indicate a deletation and values higher than 1 an amplification. All values in between -1 and 1 represent a neutral gene copy number [Description of data sets](https://github.com/datascience-mobi/02-cellular-response-to-drug-pertubations#description-of-data-sets).
 
-````{r}
+```{r}
 copynumber.biomarker = as.matrix(copynumber[double.biomarker,])
 copynumber.quali = ifelse(copynumber.biomarker <= (-1), (-1), ifelse (copynumber.biomarker >= (1), 1, 0))
-````
+```
 
 
 The following plot visualizes the distribution of genetic alterations throughout the cell lines for the biomarker genes. 
-````{r, echo = F, include = T, dpi = 100}
+```{r, echo = F, include = T, dpi = 100}
 quantiles = as.matrix(quantile(copynumber.biomarker))
 d <- density(copynumber.biomarker)
 plot(d, main = "Distributions of genetic alterations in biomarker genes")
 abline(v= c(-1,1), col= c("red", "blue"), lty =2)
 legend(-6, 1.2, legend = c("Deletion", "Amplification"), col = c("red", "blue"), lty = 2)
-`````
+```
 
 All cell lines were evaluated and related to tissue and cancer types. The result was visualized in a heatmap, which was clustered with kmeans-clustering. 
 
 #### Checking the optimal number of cluster (elbow plot) 
 Before the heatmap was computed, the optimal number of clusters was checked with an elbow plot. 
 
-````{r, echo = F, include = T, warning = F, dpi = 80}
+```{r, echo = F, include = T, warning = F, dpi = 80}
 wss = sapply(2:7, function(k) {
   kmeans(x = t(copynumber.quali), centers = k)$tot.withinss
 })
@@ -689,14 +683,14 @@ plot(2:7, wss,
 
 kmeans= kmeans(x = t(copynumber.quali), centers = 5, nstart = 10)
 kmeans$tot.withinss
-`````
+```
 
 
   
   
 ### Connection between biomarker and genetic alterations
 Overall, biomarker genes for cisplatin do not show many genetic alterations. An exception to this general trend is e.g. the gene LRBA, which is said to be important for immune regulation. This result seems to be reasonable, as cisplatin is an unspecific chemotherapy agent, which is why biomarker genes for cisplatin are not generally alterated. 
-````{r fig.align = 'right', echo = F, include = T, dpi = 160}
+```{r fig.align = 'right', echo = F, include = T, dpi = 160}
 colfunc2 <- colorRampPalette(c("firebrick2", "grey88", "deepskyblue3"))
 
 colnames(double.biomarker.FC) <- meta[95:149,2]
@@ -718,7 +712,7 @@ pheatmap(copynumber.quali,
          treeheight_row = 20,
          treeheight_col = 20,
          annotation = annotation)
-````
+```
 </div>
 
 
@@ -743,12 +737,15 @@ RGES is a value, which measures the drugs potency to reverse a disease induced g
 
 
 ## Used library
-```{r, echo=TRUE}
+```{r, include=FALSE}
 library(DESeq)
-## Data preparation 
 ```
 
-## 1 Data adjustment <a name="data1"></a> 
+```{r, eval = F}
+library(DESeq)
+```
+
+## 1. Data adjustment <a name="data1"></a> 
 First, the basal expression matrix had to be adjusted to the treated and untreated expression matrices, because they contained different genes in different orders. The three matrices were needed to compute signatures with which the RGES was computed.
 
 
@@ -816,7 +813,7 @@ Different kinds of data were needed in order to compute the RGES.
 Drug signature contains scaled log 2 fold change values between treated and untreated data for all genes that passed the criteria above. Disease signatures are identical but contain the log 2 fold change between basal and untreated data.
 The function cmap_score_new also requires the id of down or up regulated genes from the diease signature.
 
-```{r eval= TRUE}
+```{r eval= F}
 dz_genes_up <- subset(nbinom.basal.untreated, log2FoldChange > 0,select="id")
 dz_genes_down <- subset(nbinom.basal.untreated, log2FoldChange <0 ,select="id")
 gene.list <- rownames(disease_signature)
@@ -880,11 +877,11 @@ head(results)
 ## Table of contents
 
 1. [Overview of our results](#overview)  
-  1.1 [Quantiles](#quantiles)  
-  1.2 [Plotting all RGES values from cisplatin](#boxplot)  
+  1.1. [Quantiles](#quantiles)  
+  1.2. [Plotting all RGES values from cisplatin](#boxplot)  
 2. [Mean of RGES from cisplatin in different tissues](#meantissues)  
 3. [Mean of RGES for different drugs](#meandrugs)  
-  3.1 [Distribution of RGES values from different drugs](#distribution)  
+  3.1. [Distribution of RGES values from different drugs](#distribution)  
     
 
 ```{r setup, include=FALSE}
@@ -905,7 +902,7 @@ results_cisplatin = subset(results , drug == "cisplatin")
 
 <br/>
 
-#### 1.1 Quantiles <a name="quantiles"></a>
+#### 1.1. Quantiles <a name="quantiles"></a>
 
 <br/>
 
@@ -950,7 +947,7 @@ results_neg
 <br/>
 <br/>
 
-#### 1.2 Plotting all RGES values of cisplatin <a name="boxplot"></a>
+#### 1.2. Plotting all RGES values of cisplatin <a name="boxplot"></a>
 <div style="text-align: justify">To take a look at how our RGES values are distributed, a boxplot with the RGES values for cisplatin in different cell lines was created.  </div>  
 
 <br/>
@@ -994,7 +991,7 @@ barplot(mean_drug , name = drug , las = 2 , horiz = FALSE ,col= "forestgreen", b
 <br/>
 <br/>
 
-#### 3.1 Distribution of RGES values from different drugs
+#### 3.1. Distribution of RGES values from different drugs
 <div style="text-align: justify">To take an intensive look at every drug and its distibution of RGES values, 15 boxplots were computed - one for each drug. The result was, that they looked nearly the same - as the mean RGES values for every drug already indicated. </div>
 
 <br/>
@@ -1022,30 +1019,30 @@ sapply(1:length(drug),
 
 ## Table of content
 1. [1. Univariate Regression: IC50 - RGES <a name="cleanup"></a> ](#1.lm)  
-    1.1. [Introdcution](#intro)
-    1.2. [Variable RGES](#rges)
-        1.2.1. [Correlation IC50 - RGES](#cor)
-        1.2.2. [Computation univariate model](#comp)
-        1.2.3. [Result univariate model: IC50 - RGES:](#res)
-        1.2.4. [Prediction of IC50 data](#pred)
-2. [Multiple Regression Model Cisplatin](#2.lm)  
+    1.1. [Introdcution](#intro)  
+    1.2. [Variable RGES](#rges)  
+          1.2.1. [Correlation IC50 - RGES](#cor)  
+          1.2.2. [Computation univariate model](#comp)  
+          1.2.3. [Result univariate model: IC50 - RGES:](#res)  
+          1.2.4. [Prediction of IC50 data](#pred)  
+2. [Multiple Regression Model Cisplatin](#2.lm)    
     2.1. [Variables: RGES and biomarkers](#bio)  
-        2.1.2. [Correlation between IC50, RGES and Biomarkers](#cor2)
-        2.1.3. [Computation of multiple regression model](#comp2)
-        2.1.4. [Prediction of IC50 values cisplatin](#pred2)
-    2.2. [Multiple Regression Model selected biomarkers](#3.lm)
-        2.2.1. [Variables: 4 biomarkers (PTPRG, FARS2, GMDS, PLCB1)](#var3)
-        2.2.2. [Computation of the model with specific biomarkers](#comp3)
-        2.2.3. [Prediction of IC50 values](#pred3)
-    2.3. [Multiple Regression Model PCAs](#4.lm)
-        2.3.1. [Variables: PCs](#var4)
-        2.3.2. [Analysation of PC1](#ana)
-        2.3.3. [Computation of the Model](#comp4)
-        2.3.4. [Further ideas for an enhancement of the PC model](#idea)
+          2.1.2. [Correlation between IC50, RGES and Biomarkers](#cor2)  
+          2.1.3. [Computation of multiple regression model](#comp2)  
+          2.1.4. [Prediction of IC50 values cisplatin](#pred2)  
+    2.2. [Multiple Regression Model selected biomarkers](#3.lm)  
+          2.2.1. [Variables: 4 biomarkers (PTPRG, FARS2, GMDS, PLCB1)](#var3)  
+          2.2.2. [Computation of the model with specific biomarkers](#comp3)  
+          2.2.3. [Prediction of IC50 values](#pred3)  
+    2.3. [Multiple Regression Model PCAs](#4.lm)  
+          2.3.1. [Variables: PCs](#var4)  
+          2.3.2. [Analysation of PC1](#ana)  
+          2.3.3. [Computation of the Model](#comp4)  
+          2.3.4. [Further ideas for an enhancement of the PC model](#idea)  
 
 
 ## Used Library:
-```{r, echo=TRUE}
+```{r, echo=TRUE, warning=FALSE}
 library(reshape)
 library(ggplot2)
 ```
@@ -1118,11 +1115,12 @@ cor(rges.ic50$RGES, rges.ic50$IC50.value, method = "spearman")
 ```
 
 Result of significance check:
-```{r, echo=FALSE, include=TRUE}
+```{r, echo=FALSE, include=TRUE, warning=FALSE}
 cor.test(rges.ic50$RGES, rges.ic50$IC50.value, method = "spearman")
 ```
 
 RGES values can also be plotted against IC50 values in order to visualize the correlation.
+
 ```{r,echo=FALSE, include=TRUE}
 ggplot(rges.ic50, aes(rges.ic50$RGES, rges.ic50$IC50.value)) +
   geom_point(color = "blue", size = 1) +
@@ -1133,7 +1131,7 @@ ggplot(rges.ic50, aes(rges.ic50$RGES, rges.ic50$IC50.value)) +
 
 The correlation coefficient as well as the plot of RGES values against the IC50 values are not convincing. The doubtful RGES values are very likely to be the reason as explained previously. Nevertheless a linear regression model was computed in order to predict the IC50 values with the previously computed RGES values. 
 
-### 1.2.2 Computation univariate model <a name="comp"></a> 
+### 1.2.2. Computation univariate model <a name="comp"></a> 
 A linear regression model should be learned on a training set. The training set is formed by 730 random variables of the data set (correspond to ~90 % of the whole data set). The remaining part of the data set is called test set. 
 It was checked, whether the residuals are normal distributed and whether they correlate with x-values.
 
@@ -1145,7 +1143,7 @@ rges.ic50.test = rges.ic50[-i.train, ]
 ```
 
 
-### 1.2.3 Result univariate model: IC50 - RGES: <a name="res"></a> 
+### 1.2.3. Result univariate model: IC50 - RGES: <a name="res"></a> 
 
 ```{r, echo = TRUE, include=TRUE}
 lm.rges_ic50 = lm(IC50.value ~ RGES, data = rges.ic50.train)
@@ -1211,7 +1209,7 @@ Due to these aspects, the univariate linear regression was expanded in order to 
 
 
 ## 2. Multiple Regression Model Cisplatin <a name="2.lm"></a> 
-### 2.1. Variabels: RGES and biomarkers <a name="bio"></a> 
+### 2.1. Variables: RGES and biomarkers <a name="bio"></a> 
 
 In order to obtain an enhanced model, a multiple regression for IC50 values of  cisplatin was performed. The previously computed biomarkers for cisplatin were included. Then IC50 values were predicted with RGES values, as well as with genes, that showed the most extreme and constant fold change values between treated and untreated patients.
 ```{r, echo=FALSE}
@@ -1229,7 +1227,7 @@ biomarker.FC.fit = subset(biomarker.FC, rownames(biomarker.FC) %in% drug_activit
 rges.ic50.biomarkers <- as.data.frame(cbind(drug_activity_rges.cisplatin[,c(2,9)], biomarker.FC.fit))
 ```
 
-### 2.1.2 Correlation between IC50, RGES and Biomarkers <a name="cor2"></a> 
+### 2.1.2. Correlation between IC50, RGES and Biomarkers <a name="cor2"></a> 
 
 To visualize the correlation pattern between Ic50 values, RGES and biomarkers, pairwise scatterplots, as well as a heatmap was produced. 
 ```{r, echo =TRUE, include= TRUE, dpi=250} 
@@ -1439,6 +1437,7 @@ As high p values were obtained for some PCs, the correlation between them was ch
 cor.pca = cor(pca$x)
 heatmap(cor.pca, col = cm.colors(256), main = "Heatmap Correlation PCs")
 ```
+
 This showed that the high p values were not the result of a correlation between explanatory vaiables. 
   
   
