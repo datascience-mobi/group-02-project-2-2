@@ -1104,7 +1104,7 @@ drug_activity_rges = results[-which(results$IC50.value == 0),]
 ```
 
 ## 1. Univariate Regression: IC50 - RGES <a name="1.lm"></a> 
-### 1.1. Introdcution <a name="intro"></a> 
+### 1.1. Introduction <a name="intro"></a> 
 Bin Chen *et al.* found out that RGES values positively correlate with IC50 values. This would mean, that the previously computed RGES values correlate with the IC50 data, which was checked. 
 Afterwards a linear regression model was created in order to predict the antagonistic drug potency of the samples with RGES values. RGES is a value, which measures the drugs potency to reverse a disease induced gene expression.
 
