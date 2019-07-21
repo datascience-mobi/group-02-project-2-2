@@ -8,16 +8,16 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r, include = FALSE}
-treated <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/NCI_TPW_gep_treated.rds")
-untreated <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/NCI_TPW_gep_untreated.rds")
-ic50 <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/NegLogGI50.rds")
-basalexp <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/CCLE_basalexpression.rds")
-copynumber <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/CCLE_copynumber.rds")
-mutations <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/CCLE_mutations.rds")
-cellline <- read.delim("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/cellline_annotation.tsv", header = TRUE, sep = "\t")
-meta <- read.delim("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/NCI_TPW_metadata.tsv", header = TRUE, sep = "\t")
-drug <- read.delim("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/drug_annotation.tsv", header = TRUE, sep = "\t")
-drug_activity_rges <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/drug_activity_rges.rds")
+treated <- readRDS("C:/Users/amvog/Documents/GitHub/project-02-group-02/data/NCI_TPW_gep_treated.rds")
+untreated <- readRDS("C:/Users/amvog/Documents/GitHub/project-02-group-02/data/NCI_TPW_gep_untreated.rds")
+ic50 <- readRDS("C:/Users/amvog/Documents/GitHub/project-02-group-02/data/NegLogGI50.rds")
+basalexp <- readRDS("C:/Users/amvog/Documents/GitHub/project-02-group-02/data/CCLE_basalexpression.rds")
+copynumber <- readRDS("C:/Users/amvog/Documents/GitHub/project-02-group-02/data/CCLE_copynumber.rds")
+mutations <- readRDS("C:/Users/amvog/Documents/GitHub/project-02-group-02/data/CCLE_mutations.rds")
+cellline <- read.delim("C:/Users/amvog/Documents/GitHub/project-02-group-02/data/cellline_annotation.tsv", header = TRUE, sep = "\t")
+meta <- read.delim("C:/Users/amvog/Documents/GitHub/project-02-group-02/data/NCI_TPW_metadata.tsv", header = TRUE, sep = "\t")
+drug <- read.delim("C:/Users/amvog/Documents/GitHub/project-02-group-02/data/drug_annotation.tsv", header = TRUE, sep = "\t")
+drug_activity_rges <- readRDS("C:/Users/amvog/Documents/GitHub/project-02-group-02/data/drug_activity_rges.rds")
 
 #scale
 basal.scaled <- scale(basalexp)
@@ -444,9 +444,7 @@ pheatmap(copynumber.quali,
 
 
 # 4. Reverse gene expression score
-```{r, echo=FALSE, include=TRUE}
-load("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/Schaubild_RGES.png")
-```
+![](C:/Users/amvog/Documents/GitHub/project-02-group-02/data/Schaubild_RGES.png)
 
 ## How to compute the RGES? 
 
@@ -468,7 +466,7 @@ doi: 10.1038/ncomms16022 (2017)
 ## 4.1. General overview of our RGES results
 
 ```{r, include = FALSE}
-results <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/results.rds")
+results <- readRDS("C:/Users/amvog/Documents/GitHub/project-02-group-02/data/results.rds")
 ``` 
 ```{r, echo= FALSE}
 results_cisplatin = subset (results , drug == "cisplatin")
@@ -540,7 +538,7 @@ ggplot(rges.ic50, aes(rges.ic50$RGES, rges.ic50$IC50.value)) +
 ```{r, echo=FALSE}
 #Multiple Regression
 # Include biomarkers to RGES matrix only for cisplatin!
-double.biomarker.FC <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/double.biomarker.FC.rds")
+double.biomarker.FC <- readRDS("C:/Users/amvog/Documents/GitHub/project-02-group-02/data/double.biomarker.FC.rds")
 drug_activity_rges.cisplatin = subset (drug_activity_rges , drug == "cisplatin")
 # transformieren, damit samples in zeile
 biomarker.FC = t(double.biomarker.FC)
@@ -617,6 +615,4 @@ abline(0, 1, col = "red")
 ```
 
 # 6. Conclusion
-```{r, echo=FALSE, include=TRUE}
-load("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/Timeline.png")
-```
+![](C:/Users/amvog/Documents/GitHub/project-02-group-02/data/Timeline.png)
