@@ -1,0 +1,31 @@
+---
+title: "Project 2 - Group 2"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+
+
+
+# Reverse gene expression score
+
+![](C:/Users/amvog/Documents/GitHub/project-02-group-02/data/Schaubild_RGES.png)
+
+
+# Compute Reverse gene expression score
+
+```{r eval=FALSE}
+dz_cmap_scores <- NULL
+count <- 0
+for(count in sig.ids){
+  cmap_exp_signature <- data.frame(gene.list,  rank(-1 * drug_signature[, count], ties.method="random"))    
+  colnames(cmap_exp_signature) <- c("ids","rank") 
+  dz_cmap_scores <- c(dz_cmap_scores, cmap_score_new(dz_genes_up,dz_genes_down,cmap_exp_signature)) 
+  count <- count + 1
+}
+``` 
