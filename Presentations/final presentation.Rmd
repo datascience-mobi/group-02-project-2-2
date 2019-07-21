@@ -444,9 +444,9 @@ pheatmap(copynumber.quali,
 
 
 # 4. Reverse gene expression score
-
-![](C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/Schaubild_RGES.png)
-
+```{r, echo=FALSE, include=TRUE}
+load("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/Schaubild_RGES.png")
+```
 
 ## How to compute the RGES? 
 
@@ -468,7 +468,7 @@ doi: 10.1038/ncomms16022 (2017)
 ## 4.1. General overview of our RGES results
 
 ```{r, include = FALSE}
-results <- readRDS("C:/Users/johan/Documents/Bioinfo_project/results.rds")
+results <- readRDS("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/results.rds")
 ``` 
 ```{r, echo= FALSE}
 results_cisplatin = subset (results , drug == "cisplatin")
@@ -522,7 +522,7 @@ barplot(mean_drug , name = drug , las = 2 , horiz = FALSE ,col= "forestgreen", b
 rges.ic50 <- as.data.frame(drug_activity_rges[,c(2,9)])
 ```
 
-### Do our RGES also positively correlate to IC50?
+### 5.1. Do our RGES also positively correlate to IC50?
 Bad Correlation &rarr; Bad Linear Regression Model
 ```{r,echo=FALSE, include=TRUE}
 ggplot(rges.ic50, aes(rges.ic50$RGES, rges.ic50$IC50.value)) +
@@ -532,7 +532,7 @@ ggplot(rges.ic50, aes(rges.ic50$RGES, rges.ic50$IC50.value)) +
   ylab("IC50") 
 ```
 
-### How can the model be enhanced?
+### 5.2. How can the model be enhanced?
 
 **+  Previously found 15 biomarkers for cisplatin**
   
@@ -590,7 +590,7 @@ knitr::kable(results.model.multiple, caption = "Results Multiple Regression Mode
 knitr::kable(P.values, caption = "P-values for coefficients")
 ```
 
-### Computation of a model with selected variables: PTPRG, COMMD10, GMDS, LRBA
+### 5.3. Computation of a model with selected variables: PTPRG, COMMD10, GMDS, LRBA
 ```{r, echo=TRUE, include=FALSE}
 model.multiple.biomarkers = lm(IC50.value ~ PTPRG + COMMD10 + GMDS + LRBA, data = train.set.multiple)
 ``` 
@@ -617,5 +617,6 @@ abline(0, 1, col = "red")
 ```
 
 # 6. Conclusion
-![](C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/Timeline.png)
-
+```{r, echo=FALSE, include=TRUE}
+load("C:/Users/Dori/Desktop/Studium/SS_19/Bioinfo Projekt/GitHub/project-02-group-02#project-02-group-02/data/Timeline.png")
+```
