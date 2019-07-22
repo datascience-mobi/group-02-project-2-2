@@ -512,7 +512,7 @@ barplot(mean_drug , name = drug , las = 2 , horiz = FALSE ,col= "forestgreen", b
 
 
 # 5. Linear Regression: 
-#### Is it possible to predict our IC50 values?
+#### Can the Ic50 values be predicted with the RGES values?
 
 
 ```{r, echo=FALSE}
@@ -520,8 +520,8 @@ barplot(mean_drug , name = drug , las = 2 , horiz = FALSE ,col= "forestgreen", b
 rges.ic50 <- as.data.frame(drug_activity_rges[,c(2,9)])
 ```
 
-### 5.1. Do our RGES also positively correlate to IC50?
-Bad Correlation &rarr; Bad Linear Regression Model
+### 5.1. Do the computed RGES values positively correlate to the IC50 values?
+
 ```{r,echo=FALSE, include=TRUE}
 ggplot(rges.ic50, aes(rges.ic50$RGES, rges.ic50$IC50.value)) +
   geom_point(color = "blue", size = 1) +
@@ -551,7 +551,7 @@ rges.ic50.biomarkers <- as.data.frame(cbind(drug_activity_rges.cisplatin[,c(2,9)
 ```
 ```{r, echo=FALSE, include=TRUE, fig.align="center"}
 cor.mat = cor(rges.ic50.biomarkers, method = "spearman")
-heatmap(cor.mat, col = cm.colors(256), main = "Heatmap Correlation RGES, IC50, Biomarkers", symm = T)
+heatmap(cor.mat, col = cm.colors(256), main = "Correlation RGES, IC50, Biomarkers", symm = T)
 ```
 
 #### Computation of the Model
