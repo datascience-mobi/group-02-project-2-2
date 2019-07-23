@@ -322,7 +322,7 @@ grid.draw(venn.plot)
 ````{r, echo = T}
 print(double.biomarker)
 ````
-### How significant are the genes identified as biomarkers?
+### Are the genes identified as biomarkers significantly up/down regulated?
 ```{r, echo = F}
 treated.cisplatin <- treated.scaled[,grep ("cisplatin", colnames(treated.scaled))]
 untreated.cisplatin <- untreated.scaled[,grep("cisplatin", colnames(treated.scaled))]
