@@ -19,11 +19,6 @@ meta <- read.delim("C:/Users/amvog/Documents/GitHub/project-02-group-02/data/NCI
 drug <- read.delim("C:/Users/amvog/Documents/GitHub/project-02-group-02/data/drug_annotation.tsv", header = TRUE, sep = "\t")
 drug_activity_rges <- readRDS("C:/Users/amvog/Documents/GitHub/project-02-group-02/data/drug_activity_rges.rds")
 
-#scale
-basal.scaled <- scale(basalexp)
-treated.scaled <- scale(treated)
-untreated.scaled <- scale(untreated)
-
 library(viridis)
 library(ggplot2)
 library(readxl)
@@ -34,12 +29,17 @@ library(VennDiagram)
 
 # 1. Broad Analysis
 
-## 1.1 General Analysis
+## 1.1 Is the data normalized?
 
+```{r}
+basal.scaled <- scale(basalexp)
+treated.scaled <- scale(treated)
+untreated.scaled <- scale(untreated)
+```
 
 ```{r, echo=FALSE, fig.width=4.7, fig.height=4, out.extra='style="float:left"',}
 drug15 = meta$drug
-palette(viridis(15))
+palette(rainbow(15))
 
 par(mar=c(5, 4, 5, 9))
 boxplot(treated, medcol="black", border = drug15, col= drug15, 
@@ -47,7 +47,7 @@ boxplot(treated, medcol="black", border = drug15, col= drug15,
          main= "Gene expression",
          names= FALSE, xaxt= "n", boxwex=1, boxlty =0)
 
-palette(viridis(15))
+palette(rainbow(15))
 
 par(mar=c(5, 4, 5, 9))
 boxplot(treated.scaled, medcol="black", border = drug15, col= drug15, 
@@ -57,12 +57,14 @@ boxplot(treated.scaled, medcol="black", border = drug15, col= drug15,
 ```
 
 
-## 1.2. Principal Component Analysis
+## 1.2. Can we identify certain cluster in the gene expression?
 
+Calculation of the Log2-Fold-Change:
 ```{r}
 log2FC.treated.untreated <- treated.scaled - untreated.scaled
 ```
 
+Performing the PCA:
 ```{r}
 PCA.FC <- prcomp(log2FC.treated.untreated, center=F , scale.=F)
 ```
@@ -75,7 +77,7 @@ plot(PCA.FC, type ="lines")
 <br/>
 <br/>
   
-#### 1.2.1 Colored PCA by drugs
+#### 1.2.1 Plotting PCA - colored by drugs
 
 ```{r, echo=FALSE}
 pca = PCA.FC
@@ -86,7 +88,6 @@ pca_plot_drugs12 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,1],
   theme_bw(base_size = 7) +
   geom_point(aes(colour = factor(meta_neu$drug))) +
   scale_colour_viridis(option ="viridis", discrete = TRUE) +
-  #mit BREWER: scale_fill_brewer(palette = "Dark2")
   ggtitle("Principal Component Analysis - color drugs") +
   xlab("Principal Component 1") +
   ylab("Principal Component 2")
@@ -95,7 +96,6 @@ pca_plot_drugs34 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,3],
   theme_bw(base_size = 7) +
   geom_point(aes(colour = factor(meta_neu$drug))) +
   scale_colour_viridis(option ="viridis", discrete = TRUE) +
-  #mit BREWER: scale_fill_brewer(palette = "Dark2")
   ggtitle("Principal Component Analysis - color drugs") +
   xlab("Principal Component 3") +
   ylab("Principal Component 4")
@@ -117,7 +117,7 @@ pca_plot_drugs34
 <br/>
 <br/>
   
-#### 1.2.2 Colored PCA by tyrosine kinase inhibitors  
+#### 1.2.2 Plotting PCA - colored by tyrosine kinase inhibitors  
 
 ```{r, echo=FALSE}
 drug.added <- drug
@@ -144,14 +144,6 @@ while(j<16)
   i= 1
   j=j+1}
 
-pca_plot_TKI12 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,1], y = pca$rotation[,2])) +
-  theme_bw(base_size = 7) +
-  geom_point(aes(colour = factor(meta_neu$TKI))) +
-  scale_colour_viridis(option ="viridis", discrete = TRUE) +
-  ggtitle("Principal Component Analysis TKI") +
-  xlab("Principal Component 1") +
-  ylab("Principal Component 2")
-
 pca_plot_TKI34 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,3], y = pca$rotation[,4])) +
   theme_bw(base_size = 7) +
   geom_point(aes(colour = factor(meta_neu$TKI))) +
@@ -162,12 +154,10 @@ pca_plot_TKI34 <- ggplot(as.data.frame(pca$rotation), aes(x= pca$rotation[,3], y
 ```
 
 ```{r, eval=FALSE}
-pca_plot_TKI12
 pca_plot_TKI34
 ```
 
-```{r, echo= FALSE, dpi=100, fig.width=4, fig.height=4, out.extra='style="float:center"', fig.align='center'}
-pca_plot_TKI12
+```{r, echo= FALSE}
 pca_plot_TKI34
 ```
 
@@ -498,7 +488,7 @@ legend(-6, 1.2, legend = c("25 % quantile", "75% quantile"), col = c("red", "blu
 <br/>
 <br/>
 
-### 4.2. Mean values - different criteria
+### 4.2. Are there exceptions? (tissue? drug?)
 ```{r, echo= FALSE, fig.width=4.7, fig.height=4, out.extra='style="float:center"', fig.align='center'}
 tissue = c( "Renal", "Lung" , "Breast" , "Colon", "Prostate" , "Leukemia", "Ovarian", "Melanoma", "CNS")
 mean_tissue =sapply(1:length(tissue), function(x) mean(subset(results_cisplatin$RGES , tissue == tissue[x])))
@@ -512,7 +502,7 @@ barplot(mean_drug , name = drug , las = 2 , horiz = FALSE ,col= "forestgreen", b
 
 
 # 5. Linear Regression: 
-#### Is it possible to predict our IC50 values?
+#### Can the Ic50 values be predicted with the RGES values?
 
 
 ```{r, echo=FALSE}
@@ -520,8 +510,8 @@ barplot(mean_drug , name = drug , las = 2 , horiz = FALSE ,col= "forestgreen", b
 rges.ic50 <- as.data.frame(drug_activity_rges[,c(2,9)])
 ```
 
-### 5.1. Do our RGES also positively correlate to IC50?
-Bad Correlation &rarr; Bad Linear Regression Model
+### 5.1. Do the computed RGES values positively correlate to the IC50 values?
+
 ```{r,echo=FALSE, include=TRUE}
 ggplot(rges.ic50, aes(rges.ic50$RGES, rges.ic50$IC50.value)) +
   geom_point(color = "blue", size = 1) +
@@ -551,7 +541,7 @@ rges.ic50.biomarkers <- as.data.frame(cbind(drug_activity_rges.cisplatin[,c(2,9)
 ```
 ```{r, echo=FALSE, include=TRUE, fig.align="center"}
 cor.mat = cor(rges.ic50.biomarkers, method = "spearman")
-heatmap(cor.mat, col = cm.colors(256), main = "Heatmap Correlation RGES, IC50, Biomarkers", symm = T)
+heatmap(cor.mat, col = cm.colors(256), main = "Correlation RGES, IC50, Biomarkers", symm = T)
 ```
 
 #### Computation of the Model
