@@ -57,7 +57,7 @@ boxplot(treated.scaled, medcol="black", border = drug15, col= drug15,
 ```
 
 
-## 1.2. Can we identify certain cluster in the gene expression?
+## 1.2. Can we identify certain cluster in the gene expression change?
 
 Calculation of the Log2-Fold-Change:
 ```{r}
@@ -436,6 +436,8 @@ pheatmap(copynumber.quali,
 # 4. Reverse gene expression score
 ![](C:/Users/amvog/Documents/GitHub/project-02-group-02/data/Schaubild_RGES.png)
 
+<br/>
+
 ## How to compute the RGES? 
 
 ```{r eval=FALSE}
@@ -605,4 +607,4 @@ abline(0, 1, col = "red")
 ```
 
 # 6. Conclusion
-![](C:/Users/amvog/Documents/GitHub/project-02-group-02/data/Timeline.png)
+![](C:/Users/amvog/Documents/GitHub/project-02-group-02/data/Timeline2.png)
